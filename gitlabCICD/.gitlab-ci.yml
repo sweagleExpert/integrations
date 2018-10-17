@@ -24,7 +24,7 @@ uploadConfiguration:
     - echo send configuration to Sweagle
     - ./sweagle_scripts/uploadFileToSweagle.sh
     - echo configuration sent
-  when: manual
+  when: on_sucess
   # possible values always, on_success, on_failure, manual
 
 deployTest:
@@ -32,17 +32,22 @@ deployTest:
   only:
   - master
   variables:
-    MDS: WEBPORTAL_CSS
-    VALIDATOR: ColorValidator
+    MDS: MyAPP_TEST_V1
+    VALIDATOR: myValidator
+    APPLI: MyAPP
+    ENVRT: TEST
   before_script:
     - echo check configuration from Sweagle
     - chmod +x ./sweagle_scripts/*.sh
-    - ./sweagle_scripts/SweagleCheckConfigByMds.sh $MDS
+    - ./sweagle_scripts/SweagleCheckConfigByMDS.sh $MDS
     - ./sweagle_scripts/SweagleCheckConfigByMdsValidator.sh $MDS $VALIDATOR
+    # SweagleGetConfigByAppEnv is a wrapper of getConfigByMdsParserArgs.sh
+    # customized to match an App and Env to an MDS
+    - ./sweagle_scripts/SweagleGetConfigByAppEnv.sh $APPLI $ENVRT
   script:
     - echo deploy TEST environment
     - echo run tests
-  when: manual
+  when: on_success
   # possible values always, on_success, on_failure, manual
 
 #staging:
