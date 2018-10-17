@@ -5,8 +5,8 @@ source $(dirname "$0")/sweagle.env
 #############
 #############   UPLOAD A CONFIG FILE TO SWEAGLE IN SPECIFIC PATH
 #############
-############# Input: 1- Path to upload to defined by each of the node names separated by ,
-############# Input: 2- Config file or path to upload
+############# Input: 1- Path to upload to, defined by each of the node names separated by ,
+############# Input: 2- Config file to upload
 ############# Output: 0 if no errors, 1 + Details of errors if any
 ##########################################################################
 if [ "$#" -lt "2" ]; then
@@ -18,7 +18,7 @@ argNodePath=$1
 argFile=$2
 
 if ! [[ -f "${argFile}" ]] ; then
-    echo "********** ERROR: Argument $argFile is not a file exiting";
+    echo "********** ERROR: Argument $argFile is not a file, exiting";
     exit 1
 fi
 
@@ -43,7 +43,7 @@ function loadDefaultSettings () {
 echo "*** Define config format based on file extension"
 filename=$(basename "$argFile")
 extension="${filename##*.}"
-#file name without extension for node import
+#file name without extension if you want to add it to node path
 #filename=$(basename "${argFile%.*}")
 if [ "$extension" == "json" ]; then
   argFormat="json"
