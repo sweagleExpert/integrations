@@ -15,24 +15,19 @@ variables:
 #  after_script: []
 
 
-uploadCSSConfiguration:
-  image: node:6
+uploadConfiguration:
   stage: uploadConfiguration
   only:
   - master
-  before_script:
-    - echo install NPM package
-    - npm install -g cssjson-cli
   script:
-    - chmod +x ./scripts/*.sh
-    - echo send CSS configuration to Sweagle
-    #- cssjson ./config-css/style.css -o ./config-css/style.json
-    - ./scripts/uploadFileToSweagle.sh
+    - chmod +x ./sweagle_scripts/*.sh
+    - echo send configuration to Sweagle
+    - ./sweagle_scripts/uploadFileToSweagle.sh
     - echo configuration sent
   when: manual
   # possible values always, on_success, on_failure, manual
 
-qualif:
+deployTest:
   stage: qualif
   only:
   - master
@@ -41,11 +36,11 @@ qualif:
     VALIDATOR: ColorValidator
   before_script:
     - echo check configuration from Sweagle
-    - chmod +x ./scripts/*.sh
-    - ./scripts/SweagleCheckConfigByMds.sh $MDS
-    - ./scripts/SweagleCheckConfigByMdsValidator.sh $MDS $VALIDATOR
+    - chmod +x ./sweagle_scripts/*.sh
+    - ./sweagle_scripts/SweagleCheckConfigByMds.sh $MDS
+    - ./sweagle_scripts/SweagleCheckConfigByMdsValidator.sh $MDS $VALIDATOR
   script:
-    - echo deploy Qualif environment
+    - echo deploy TEST environment
     - echo run tests
   when: manual
   # possible values always, on_success, on_failure, manual
@@ -54,14 +49,14 @@ qualif:
 #  stage: staging
 #  only:
 #    - release
-#  before_script: []
+#  before_script: [Use Sweagle again]
 #  script:
 #    - echo deploy to staging
 
 
 #production:
 #  stage: production
-#  before_script: []
+#  before_script: [Use Sweagle again]
 #  script:
 #    - echo deploy to production
 #  when: manual
