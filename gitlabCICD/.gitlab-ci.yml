@@ -1,0 +1,67 @@
+stages:
+  - build
+  - uploadConfiguration
+  - qualif
+  - preprod
+  - production
+
+variables:
+
+#build:
+#  stage: build
+#  before_script: []
+#  script:
+#    - echo build
+#  after_script: []
+
+
+uploadCSSConfiguration:
+  image: node:6
+  stage: uploadConfiguration
+  only:
+  - master
+  before_script:
+    - echo install NPM package
+    - npm install -g cssjson-cli
+  script:
+    - chmod +x ./scripts/*.sh
+    - echo send CSS configuration to Sweagle
+    #- cssjson ./config-css/style.css -o ./config-css/style.json
+    - ./scripts/uploadFileToSweagle.sh
+    - echo configuration sent
+  when: manual
+  # possible values always, on_success, on_failure, manual
+
+qualif:
+  stage: qualif
+  only:
+  - master
+  variables:
+    MDS: WEBPORTAL_CSS
+    VALIDATOR: ColorValidator
+  before_script:
+    - echo check configuration from Sweagle
+    - chmod +x ./scripts/*.sh
+    - ./scripts/SweagleCheckConfigByMds.sh $MDS
+    - ./scripts/SweagleCheckConfigByMdsValidator.sh $MDS $VALIDATOR
+  script:
+    - echo deploy Qualif environment
+    - echo run tests
+  when: manual
+  # possible values always, on_success, on_failure, manual
+
+#staging:
+#  stage: staging
+#  only:
+#    - release
+#  before_script: []
+#  script:
+#    - echo deploy to staging
+
+
+#production:
+#  stage: production
+#  before_script: []
+#  script:
+#    - echo deploy to production
+#  when: manual
