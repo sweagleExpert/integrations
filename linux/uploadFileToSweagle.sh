@@ -59,6 +59,7 @@ else
   argFormat="properties"
   argContentType="text/x-java-properties"
 fi
+echo "File extension detected is: "$argFormat
 
 echo "load API default settings..."
 loadDefaultSettings
