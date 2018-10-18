@@ -18,7 +18,7 @@ if [ "$#" -lt "2" ]; then
 fi
 argNodePath=$1
 
-sweagleScriptDir=$PWD/$(dirname "$0")
+sweagleScriptDir="$PWD"/$(dirname "$0")
 
 if [[ -f "$2" ]] ; then
   # the arg is a file, call the upload script only once
