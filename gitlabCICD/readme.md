@@ -12,7 +12,8 @@ You should use the scripts provided here with the scripts provided under the lin
 INSTALLATION
 
 1. Put all linux or windows Sweagle shell scripts into one folder of your gitlab repository (for example "/sweagle_scripts")
-2. Open file /.gitlab-ci.yml and adapt the 2 tasks "uploadConfiguration" and "deployTestEnvironment" in your own ./gitlab-ci.yml
+2. Open the "sweagle.env" script and put your sweagle API token as value for parameter aToken
+3. Open file /.gitlab-ci.yml and adapt the 2 tasks "uploadConfiguration" and "deployTestEnvironment" in your own ./gitlab-ci.yml
 - For upload task you could take it as a whole, just setting the correct input file/directory,
 - For deploy task, just the "before_script" part with parameters should be put in your "before_script" of your own deployment tasks
 (only requirement is that these tasks should be in a stage after stage containing "uploadConfiguration")
@@ -29,7 +30,7 @@ CONTENT
     - Call input:
         - CONFIG_FILE = Config file or directory containing all files to upload to Sweagle
         - FILE_EXTENSION = in case of config directory, you can specify an extension to filter files to upload
-                            
+
 - Task "deployTestEnvironment" is used to deploy to your target environment
     - In part, "before_script", call to Sweagle in order to check configuration data that was uploaded before
     - In case the configuration is wrong, Sweagle will return an exit code <> 0 that will freeze the pipeline
