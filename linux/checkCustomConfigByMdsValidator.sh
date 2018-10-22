@@ -15,7 +15,6 @@ if [ "$#" -lt "2" ]; then
     exit 1
 fi
 argMds=$1
-# To replace by array of validators in the future
 argCustomValidator=$2
 validatorResult=true
 
