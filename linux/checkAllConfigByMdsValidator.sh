@@ -36,10 +36,5 @@ for validator in "${argCustomValidators[@]}" ; do
 done
 
 echo -e "\n**********"
-echo "*** Third, calculate global result"
-if [ $validatorResult -ne 0 ]; then
-  echo "********** ERROR: AT LEAST ONE VALIDATOR RETURNS WRONG STATUS"
-else
-  echo "No errors found for MDS: "$argMds
-fi
+echo "*** NB OF VALIDATOR(S) IN ERROR: $validatorResult"
 exit $validatorResult
