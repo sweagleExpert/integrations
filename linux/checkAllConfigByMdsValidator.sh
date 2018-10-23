@@ -9,10 +9,10 @@ source $(dirname "$0")/sweagle.env
 ############# Output: 0 if no errors, 1 if errors
 ##########################################################################
 
-if [ "$#" -lt "2" ]; then
+if [ "$#" -lt "1" ]; then
     echo "********** ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
     echo "********** YOU SHOULD PROVIDE 1-MDS"
-    echo "********** YOU SHOULD PROVIDE 2-N-VALIDATORS SEPARATED BY <SPACES>"
+    echo "********** (OPTIONAL) YOU MAY ALSO PROVIDE 2-N-VALIDATORS SEPARATED BY <SPACES>"
     exit 1
 fi
 argMds=$1
@@ -29,11 +29,15 @@ $(dirname "$0")/checkStandardConfigByMds.sh $argMds
 validatorResult=$(( validatorResult+$? ))
 
 echo -e "\n**********"
-echo "*** Second, check status with Sweagle custom validators"
-for validator in "${argCustomValidators[@]}" ; do
-  $(dirname "$0")/checkCustomConfigByMdsValidator.sh $argMds $validator
-  validatorResult=$(( validatorResult+$? ))
-done
+if [ "${#argCustomValidators[@]}" -gt "0" ]; then
+  echo "*** Second, check status with Sweagle custom validators"
+  for validator in "${argCustomValidators[@]}" ; do
+    $(dirname "$0")/checkCustomConfigByMdsValidator.sh $argMds $validator
+    validatorResult=$(( validatorResult+$? ))
+  done
+else
+  echo "*** Second, no custom validators to check"
+fi
 
 echo -e "\n**********"
 echo "*** NB OF VALIDATOR(S) IN ERROR: $validatorResult"
