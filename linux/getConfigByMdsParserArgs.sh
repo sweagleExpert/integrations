@@ -43,7 +43,7 @@ if [ "$output" != "" ]; then
   echo "*** Store response to file: $output"
   dir=$(dirname "${output}")
   mkdir -p $dir
-  echo "$responseSweagle" >> $output
+  echo "$responseSweagle" > $output
 else
   echo -e "*** Sweagle response:\n$responseSweagle"
 fi
