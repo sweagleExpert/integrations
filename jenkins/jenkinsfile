@@ -1,0 +1,21 @@
+pipeline {
+    agent any
+    stages {
+        stage('UploadConfig') {
+            steps {
+                sh 'make'
+            }
+        }
+        stage('CheckConfig'){
+            steps {
+                sh 'make check'
+                junit 'reports/**/*.xml'
+            }
+        }
+        stage('DownloadConfig') {
+            steps {
+                sh 'make publish'
+            }
+        }
+    }
+}
