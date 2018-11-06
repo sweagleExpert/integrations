@@ -1,11 +1,20 @@
 stages:
   - build
   - uploadConfiguration
-  - qualif
-  - preprod
+  - test
+  - staging
   - production
 
 variables:
+  CONFIG_DIR: "<DIRECTORY OR FILE WHERE YOU PUT YOUR CONFIG TO UPLOAD TO SWEAGLE>"
+  SWEAGLE_SCRIPTS_DIR: "<DIRECTORY WHERE YOU PUT YOUR SWEAGLE SCRIPTS, EACH NODE SEPARATED BY COMMA>"
+  SWEAGLE_PATH: "<PATH IN DATA MODEL WHERE YOU WANT TO PUT YOUR CONFIG DATA>"
+  SWEAGLE_MDS: "<METADATASET YOU WANT TO GET CONFIG DATA FROM>"
+  SWEAGLE_VALIDATORS: "<OPTIONAL, LIST OF CUSTOM VALIDATORS, SEPARATED BY SPACES, USED TO CHECK YOUR CONFIG>"
+  SWEAGLE_EXPORTER: "<EXPORTER USED TO RETRIEVE YOUR CONFIG>"
+  SWEAGLE_EXPORTER_ARGS: "<OPTIONAL, EXPORTER ARGUMENTS IF ANY, SEPARATED BY COMMA>"
+  SWEAGLE_EXPORTER_FORMAT: "<OPTIONAL, FORMAT USED FOR DOWNLOADED CONFIG, PROPS (DEFAULT), YAML, JSON, XML>"
+  SWEAGLE_EXPORTER_OUTPUT: "<OPTIONAL, TARGET FILE TO EXPORT CONFIG DATA TO, DEFAULT OUTPUT IS SCREEN>"
 
 #build:
 #  stage: build
@@ -20,30 +29,32 @@ uploadConfiguration:
   only:
   - master
   script:
-    - chmod +x ./sweagle_scripts/*.sh
-    - echo send configuration to Sweagle
-    - ./sweagle_scripts/uploadFileToSweagle.sh
-    - echo configuration sent
-  when: on_sucess
+    - echo **********
+    - echo *** Send configuration to Sweagle
+    - chmod +x $SWEAGLE_SCRIPTS_DIR/*.sh
+    - $SWEAGLE_SCRIPTS_DIR/uploadDirToSweagle.sh $SWEAGLE_PATH $CONFIG_DIR
+    - echo *** Configuration sent
+  when: on_success
   # possible values always, on_success, on_failure, manual
 
-deployTest:
-  stage: qualif
+deployTestEnvironment:
+  stage: test
   only:
   - master
   variables:
-    MDS: MyAPP_TEST_V1
-    VALIDATOR: myValidator
-    APPLI: MyAPP
-    ENVRT: TEST
+    # specific variables for this step
   before_script:
-    - echo check configuration from Sweagle
-    - chmod +x ./sweagle_scripts/*.sh
-    - ./sweagle_scripts/SweagleCheckConfigByMDS.sh $MDS
-    - ./sweagle_scripts/SweagleCheckConfigByMdsValidator.sh $MDS $VALIDATOR
-    # SweagleGetConfigByAppEnv is a wrapper of getConfigByMdsParserArgs.sh
-    # customized to match an App and Env to an MDS
-    - ./sweagle_scripts/SweagleGetConfigByAppEnv.sh $APPLI $ENVRT
+    - echo **********
+    - echo *** Check configuration from Sweagle
+    - chmod +x $SWEAGLE_SCRIPTS_DIR/*.sh
+    - $SWEAGLE_SCRIPTS_DIR/checkAllConfigByMdsValidator.sh $SWEAGLE_MDS $SWEAGLE_VALIDATORS'
+    # you may create your own wrapper of Sweagle scripts to match an App or Env to an MDS
+    echo *** Retrieve lastest valid configuration from Sweagle
+    echo *** Sweagle will also fill token values, if any
+    # Store your config snapshot in order to be able to retrieve it
+    - $SWEAGLE_SCRIPTS_DIR/storeConfigSnapshotByMds.sh $SWEAGLE_MDS
+    # Download your config using exporter
+    - $SWEAGLE_SCRIPTS_DIR/getConfigByMdsParserArgs.sh $SWEAGLE_MDS $SWEAGLE_EXPORTER args=$SWEAGLE_EXPORTER_ARGS format=$SWEAGLE_EXPORTER_FORMAT output=$SWEAGLE_EXPORTER_OUTPUT
   script:
     - echo deploy TEST environment
     - echo run tests
