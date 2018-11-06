@@ -17,7 +17,7 @@ argTargetPath=$2
 # Example "App1/EnvDEV/release/release2.0"
 
 #filename without path for import
-filename=$(basename "$argSourceFile")
+filename=$(basename "$argSourceFile" .js)
 fileContent=`cat $argSourceFile`
 
 echo -e "\n**********"
