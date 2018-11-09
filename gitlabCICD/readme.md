@@ -17,7 +17,7 @@ INSTALLATION
 - For upload task you could take it as a whole, just setting the correct input file/directory,
 - For deploy task, just the "before_script" part with parameters should be put in your "before_script" of your own deployment tasks
 (only requirement is that these tasks should be in a stage after stage containing "uploadConfiguration")
-- Replace all calls using "/sweagle_scripts" path by the path where you put Sweagle scripts
+- Take variables block on top of the file and replace values for variables you are using, like SWEAGLE_SCRIPTS_DIR by the path where you put Sweagle scripts
 
 That's all !
 
@@ -26,16 +26,16 @@ CONTENT
 /.gitlab-ci.yml         : Sample GitLab CI/CD pipeline file
 
 - Task "uploadConfiguration" is used to upload config files to Sweagle
-    - Prérequis: uploadCSSConfiguration utilise une image GitLab Node:6 (besoin de librairie cssjson-cli pour le CSS)
     - Call input:
-        - CONFIG_FILE = Config file or directory containing all files to upload to Sweagle
-        - FILE_EXTENSION = in case of config directory, you can specify an extension to filter files to upload
+        - CONFIG_DIR = Config file or directory containing all files to upload to Sweagle
+        - SWEAGLE_PATH = Path in Data Model where you want to put your configuration data
 
 - Task "deployTestEnvironment" is used to deploy to your target environment
     - In part, "before_script", call to Sweagle in order to check configuration data that was uploaded before
     - In case the configuration is wrong, Sweagle will return an exit code <> 0 that will freeze the pipeline
-    - Pre-requisite: uploadConfiguration task must be finished before confoguration is checked
+    - Pre-requisite: uploadConfiguration task must be finished before configuration is checked
     (so it should be in a previous stage of gitlab-ci to avoid parallel work)
     - Call input:
-        - MDS = Sweagle MDS to check
-        - VALIDATORS = Sweagle validator used to check configuration (as many as needed)
+        - SWEAGLE_MDS = Sweagle MDS to check
+        - SWEAGLE_VALIDATORS = Sweagle custom validators used to check configuration (as many as needed separated by spaces)
+    - In "script" part, call to Sweagle in order to retrieve latest valid configuration data
