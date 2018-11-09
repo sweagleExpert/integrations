@@ -21,8 +21,10 @@ argMdsTo=$2
 argKeysOnly=false
 
 function apiUrl() {
+# As of now, ignorePath is set to false, because if set to true, it will return a JSON result
+# In the future, ignorePath should be set to true as not important for most use cases
 cat <<EOF
-$sweagleURL/api/v1/data/include/diff?fromName=$argMdsFrom&toName=$argMdsTo&simplified=true&format=text/csv
+$sweagleURL/api/v1/data/include/diff?fromName=$argMdsFrom&toName=$argMdsTo&simplified=true&ignorePath=false&format=text/csv
 EOF
 }
 

@@ -21,7 +21,7 @@ if [ ! -z "$2" ]; then
 fi
 
 argLevel="warn"
-#store snapshot even if it contains errors
+#uncomment below if you want to store snapshot even if it contains errors
 #argLevel="error"
 
 function apiUrl() {
