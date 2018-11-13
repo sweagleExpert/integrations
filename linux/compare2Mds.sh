@@ -51,8 +51,6 @@ with open('comparisonResult2.tmp', 'w') as dest_file:
 EOF_PYTHON
 }
 
-
-
 # if only keys are compared, remove all values comparison results
 if [ "$argKeysOnly" == "true" ]; then
    echo "********** Compare only keys, ignoring values comparison results"
