@@ -33,15 +33,47 @@ echo "*** Call Sweagle API to compare configuration from MDS (Old): $argMdsFrom 
 echo "curl -s -X GET '$(apiUrl)' -H '$(apiToken)'"
 response=$(curl -s -X GET "$(apiUrl)" -H "$(apiToken)")
 
+#Remove part of a json result in python
+function removeJsonKey() {
+python - <<EOF_PYTHON
+#!/usr/bin/python
+import json
+
+print("*** Use python to remove values comparison")
+with open('comparisonResult2.tmp', 'w') as dest_file:
+    with open('comparisonResult.tmp', 'r') as source_file:
+        for line in source_file:
+            element = json.loads(line.strip())
+            if 'changed' in element:
+                del element['changed']
+            dest_file.write(json.dumps(element))
+
+EOF_PYTHON
+}
+
+
 
 # if only keys are compared, remove all values comparison results
 if [ "$argKeysOnly" == "true" ]; then
    echo "********** Compare only keys, ignoring values comparison results"
    # for txt/csv format of response
    #response=`echo "$response" | sed '/"modified",/d'`
-   added=$(echo "$response" | jq '.added')
-   deleted=$(echo "$response" | jq '.deleted')
-   response='{"added":'$added',"deleted":'$deleted'}'
+
+   # for json format of response using jq json formatter
+   #added=$(echo "$response" | jq '.added')
+   #deleted=$(echo "$response" | jq '.deleted')
+   #response='{"added":'$added',"deleted":'$deleted'}'
+
+   # for json format of response using python
+   echo "$response" > comparisonResult.tmp
+   removeJsonKey
+   response=`cat comparisonResult2.tmp`
+   rm -f "comparisonResult*.tmp"
 fi
 
-echo "$response" | jq
+echo -e "\n**********"
+echo "*** Show result"
+# using jq formatter
+#echo "$response" | jq
+# using python mjson formatter
+echo "$response" | python -mjson.tool
