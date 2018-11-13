@@ -1,0 +1,27 @@
+version: 1
+
+dn: ou=users,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: users
+
+dn: uid=testuser1,ou=users,dc=example,dc=com
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+objectClass: person
+cn: Test User1
+sn: testuser1
+mail: test.user1@example.com
+uid: testuser1
+
+dn: uid=testuser2,ou=users,dc=example,dc=com
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+objectClass: person
+cn: Test User2
+sn: testuser2
+mail: test.user2@example.com
+uid: testuser2
+
