@@ -30,7 +30,7 @@ EOF
 
 echo -e "\n**********"
 echo "*** Call Sweagle API to compare configuration from MDS (Old): $argMdsFrom to MDS (New): $argMdsTo"
-echo "curl -s -X GET '$(apiUrl)' -H '$(apiToken)'"
+#echo "curl -s -X GET '$(apiUrl)' -H '$(apiToken)'"
 response=$(curl -s -X GET "$(apiUrl)" -H "$(apiToken)")
 
 #Remove part of a json result in python
