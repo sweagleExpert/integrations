@@ -18,6 +18,7 @@ fi
 argMds=$1
 # Remove first item from args to keep only validators list
 shift;
+# Get validators list and put it in array
 argCustomValidators=("$@")
 #echo ${argCustomValidators[@]}
 validatorResult=0

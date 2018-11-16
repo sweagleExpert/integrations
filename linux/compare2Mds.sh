@@ -5,6 +5,8 @@ source $(dirname "$0")/sweagle.env
 #############
 #############   COMPARE 2 SWEAGLE MDS BY NAMES
 #############
+############# Prerequisites: This script requires Python v2.7.15 or higher
+#############
 ############# Input: MDS to compare
 ############# Output: 0 if no errors, 1 + Details of errors if any
 ##########################################################################
@@ -21,8 +23,6 @@ argMdsTo=$2
 argKeysOnly=true
 
 function apiUrl() {
-# As of now, ignorePath is set to false, because if set to true, it will return a JSON result
-# In the future, ignorePath should be set to true as not important for most use cases
 cat <<EOF
 $sweagleURL/api/v1/data/include/diff?fromName=$argMdsFrom&toName=$argMdsTo&simplified=true&ignorePath=true
 EOF
