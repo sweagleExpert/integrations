@@ -35,6 +35,13 @@ echo "*** Call Sweagle API to create parser: $filename"
 #echo "curl -s -X POST '$(apiUrl)'  --data-urlencode 'scriptDraft=$fileContent' -H '$(apiToken)')"
 response=$(curl -s -X POST "$(apiUrl)"  --data-urlencode "scriptDraft=$fileContent" -H "$(apiToken)")
 
+# Check if error returned because parser already exists
+if [[ $response == *"already exists"* ]]; then
+  echo "It's already there!"
+  # Build code here to extract ID of parser and update it
+fi
+
+
 # function to extract a key value from a json result
 function jsonValue() {
    key=$1
