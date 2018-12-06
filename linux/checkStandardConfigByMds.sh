@@ -25,16 +25,9 @@ $sweagleURL/api/v1/data/include/validate?name=$argMds&format=json&forIncoming=tr
 EOF
 }
 
-function jsonValue() {
-   key=$1
-   num=$2
-   awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/\042'$key'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${num}p
-}
-
-
 echo -e "\n**********"
 echo "*** Call Sweagle API to check configuration status for MDS: "$argMds
-errorFound=$(curl -s -X GET "$(apiUrl)" -H "$(apiToken)" | jsonValue $argControl 1)
+errorFound=$(curl -s -X GET "$(apiUrl)" -H "$(apiToken)" | jsonValue $argControl)
 if [ "$errorFound" != 0 ]
 then
    echo "********** ERROR: BROKEN configuration data detected, get details of errors and exit"

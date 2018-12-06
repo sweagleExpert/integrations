@@ -41,14 +41,7 @@ if [[ $response == *"already exists"* ]]; then
   # Build code here to extract ID of parser and update it
 fi
 
-
-# function to extract a key value from a json result
-function jsonValue() {
-   key=$1
-   num=$2
-   awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/\042'$key'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${num}p
-}
-parserID=$(echo "$response" | jsonValue "id" 1)
+parserID=$(echo "$response" | jsonValue "id")
 
 if [[ ! -z $parserID ]]
 then
