@@ -14,5 +14,7 @@ source $(dirname "$0")/ldap.env
 ##########################################################################
 
 
-
-curl "ldap://$ldapHost:$ldapPort/$ldapUsersOrg?$swLogin,$swName,$swEmail?sub?(ObjectClass=person)" -u "$ldapUser":$ldapPassword
+response=$(curl -s "ldap://$ldapHost:$ldapPort/$ldapUsersOrg?$swLogin,$swName,$swEmail?sub?(ObjectClass=person)" -u "$ldapUser":$ldapPassword)
+echo "$response" > test.ldif
+#./ldifToCsv.sh "$response"
+awk -F ': ' -f ./ldif2csv.awk < ./test.ldif > ./test.csv

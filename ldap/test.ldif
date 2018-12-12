@@ -1,0 +1,14 @@
+DN: uid=testuser2,ou=users,dc=example,dc=com
+	sn: testuser2
+
+	cn: Test User2
+
+	mail: test.user2@example.com
+
+
+DN: uid=testuser1,ou=users,dc=example,dc=com
+	sn: testuser1
+
+	cn: Test User1
+
+	mail: test.user1@example.com
