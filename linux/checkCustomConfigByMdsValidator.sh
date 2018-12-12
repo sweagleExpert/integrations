@@ -16,7 +16,7 @@ if [ "$#" -lt "2" ]; then
 fi
 argMds=$1
 argCustomValidator=$2
-validatorResult=true
+argControl=result
 
 echo -e "\n**********"
 echo "*** Call Sweagle API to check configuration status for MDS: $argMds and VALIDATOR: $argCustomValidator"
@@ -31,12 +31,13 @@ EOF
 #echo "curl -s -X POST '$(apiUrl)' -H '$(apiToken)'"
 response=$(curl -s -X POST "$(apiUrl)" -H "$(apiToken)")
 echo "Response: " $response
+rc=$(echo "$response" | jsonValue $argControl)
 if [[ $response = "{\"error\":"* ]]; then
-  echo -e "\n********** ERROR: Unable to validate MDS: $argMds with VALIDATOR: $argCustomValidator  \n"
+  echo -e "\n********** ERROR: Unable to validate MDS: $argMds with VALIDATOR: $argCustomValidator \n"
   exit 1
-elif [ "$response" = false ]; then
-  echo "********** ERROR: BROKEN configuration data detected for Validator: " $argCustomValidator
-  exit 1
+elif [ "$rc" = false ]; then
+    echo "********** ERROR: BROKEN configuration data detected for Validator: " $argCustomValidator
+    exit 1
 fi
 
 echo "No errors found for MDS: "$argMds
