@@ -87,7 +87,9 @@ function updateParser {
   local argDescription=$2
   local argScript=$3
   echo "*** Update parser $argId"
-  response=$(curl -s -X POST "$sweagleURL/api/v1/tenant/metadata-parser/$argId?"--data-urlencode "description=$argDescription" --data-urlencode "scriptDraft=$argScript" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  # to debug
+  #echo "curl -s -X POST '$sweagleURL/api/v1/tenant/metadata-parser/$argId' --data-urlencode 'description=$argDescription' --data-urlencode 'scriptDraft=$argScript' -H 'Authorization: bearer $aToken' -H 'Accept: application/vnd.siren+json'"
+  response=$(curl -s -X POST "$sweagleURL/api/v1/tenant/metadata-parser/$argId" --data-urlencode "description=$argDescription" --data-urlencode "scriptDraft=$argScript" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
   # Check if any error before continue
   errorFound=$(echo $response | jsonValue "error_description")
   if [[ -z $errorFound ]]; then
