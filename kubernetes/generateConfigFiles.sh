@@ -1,4 +1,5 @@
 
+# format of the ouput yaml or json are supported
 FORMAT=$1
 TARGET_DIR= "./"
 K8S_CONFIG=("deployments" "services")

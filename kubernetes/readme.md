@@ -18,4 +18,5 @@ That's all !
 
 CONTENT
 
-/generateConfigFiles.sh : Use generateConfigFiles.sh to generate all config files from Kubernetes cluster, then use uploadDirToSweagle.sh from linux or windows scripts to import generated files into SWEAGLE
+/generateConfigFiles.sh : Use generateConfigFiles.sh to generate all config files from Kubernetes cluster, then use s
+uploadDirToSweagle.sh from linux or windows scripts to import generated files into SWEAGLE
