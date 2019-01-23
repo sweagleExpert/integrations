@@ -1,13 +1,13 @@
 
 # format of the ouput yaml or json are supported
 FORMAT=$1
-TARGET_DIR= "./"
+TARGET_DIR="."
 K8S_CONFIG=("deployments" "services")
 
 for CONFIG in "${K8S_CONFIG[@]}"
 do
-  DEP_LIST=$(<"./kube-$CONFIG.txt")
-  #DEP_LIST=$(kubectl get deployments --all-namespaces)
+  #DEP_LIST=$(<"./kube-$CONFIG.txt")
+  DEP_LIST=$(kubectl get $CONFIG --all-namespaces)
   #echo "$DEP_LIST"
   LINE_NB=1
   while IFS= read -r LINE;
@@ -17,8 +17,8 @@ do
     if [[ $LINE_NB -gt 1 ]];
     then
       read -r -a array <<< "$LINE"
-      echo "kubectl get $CONFIG ${array[1]} --namespace=${array[0]} -o=$FORMAT > $TARGET_DIR/${array[1]}-$CONFIG.$FORMAT"
-      #kubectl get $CONFIG ${array[1]} --namespace=${array[0]} -o=$FORMAT > $TARGET_DIR/${array[1]}-$CONFIG.$FORMAT
+      #echo "kubectl get $CONFIG ${array[1]} --namespace=${array[0]} -o=$FORMAT > $TARGET_DIR/${array[1]}-$CONFIG.$FORMAT"
+      kubectl get $CONFIG ${array[1]} --namespace=${array[0]} -o=$FORMAT > $TARGET_DIR/${array[1]}-$CONFIG.$FORMAT
     fi
     LINE_NB=$(( $LINE_NB + 1 ))
   done < <(printf '%s\n' "$DEP_LIST")
