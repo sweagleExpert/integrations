@@ -14,12 +14,14 @@ if [ "$#" -lt "2" ]; then
     echo "********** (optional) PARSER ARGUMENTS, put args=all_values_separated_by_comma"
     echo "********** (optional) FORMAT, put format=JSON (or YAML, or XML, or PROPS)"
     echo "********** (optional) FILE OUT, put output=complete_filename_with_path"
+    echo "********** (optional) TEMPLATE PARSER, put template=true (default is false)"
     exit 1
 fi
 
 # READ PARAMETERS
 argMds=$1
 argParser=$2
+template="false"
 while [[ "$#" > "0" ]]
 do
   case $1 in
@@ -29,15 +31,21 @@ shift
 done
 
 function apiUrl() {
+  if [ "$template" != "true" ]; then
 cat <<EOF
 $sweagleURL/api/v1/tenant/metadata-parser/parse?mds=$argMds&parser=$argParser&args=$args&format=$format
 EOF
+  else
+cat <<EOF
+$sweagleURL/api/v1/tenant/template-parser/replace?mds=$argMds&parser=$argParser
+EOF
+  fi
 }
 
 echo -e "\n**********"
-echo "*** Call Sweagle API to get configuration for MDS: " $argMds
+echo "*** Call SWEAGLE API to get configuration for MDS: " $argMds
 # For debugging
-echo "curl -s -X POST ''$(apiUrl)' -H '$(apiToken)'"
+echo "curl -s -X POST '$(apiUrl)' -H '$(apiToken)'"
 responseSweagle=$(curl -s -X POST "$(apiUrl)" -H "$(apiToken)")
 if [ "$output" != "" ]; then
   echo "*** Store response to file: $output"
@@ -45,5 +53,5 @@ if [ "$output" != "" ]; then
   mkdir -p $dir
   echo "$responseSweagle" > $output
 else
-  echo -e "*** Sweagle response:\n$responseSweagle"
+  echo -e "*** SWEAGLE response:\n$responseSweagle"
 fi
