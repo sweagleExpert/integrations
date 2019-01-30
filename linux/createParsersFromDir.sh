@@ -4,15 +4,13 @@
 #############
 #############   UPLOAD A DIRECTORY OR FILE OF PARSERS TO SWEAGLE
 #############
-############# Input: 1- Config Directory or file to upload
-############# Input: 2- Parser type : EXPORTER or VALIDATOR
-#############
+############# Input: see error message below
 ############# Output: 0 if no errors, 1 + Details of errors if any
 ##########################################################################
 if [ "$#" -lt "2" ]; then
     echo "********** ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
     echo "********** YOU SHOULD PROVIDE 1- PARSER FILENAME OR DIRECTORY AND 2- PARSER TYPE"
-    echo "********** PARSER TYPE MUST BE EXPORTER OR VALIDATOR"
+    echo "********** PARSER TYPE MUST BE EXPORTER, VALIDATOR OR TEMPLATE"
     exit 1
 fi
 argSourceDir=$1

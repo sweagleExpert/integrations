@@ -5,16 +5,13 @@ source $(dirname "$0")/sweagle.env
 #############
 #############   CREATE AND PUBLISH A PARSER FILE IN SWEAGLE
 #############
-############# Inputs:
-############# - Source file to store (this is a javascript Sweagle exporter or validator script
-############# - Parser type : EXPORTER or VALIDATOR
-#############
+############# Inputs: See error message below
 ############# Output: 0 if no errors, 1 + Details of errors if any
 ##########################################################################
 if [ "$#" -lt "2" ]; then
     echo "********** ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
     echo "********** YOU SHOULD PROVIDE 1- PARSER FILENAME AND 2- PARSER TYPE"
-    echo "********** PARSER TYPE MUST BE EXPORTER OR VALIDATOR"
+    echo "********** PARSER TYPE MUST BE EXPORTER, VALIDATOR OR TEMPLATE"
     exit 1
 fi
 argSourceFile=$1
@@ -36,7 +33,13 @@ fi
 # Put json parsers list in variable parsersList
 function getParsers {
   echo "*** Get parsers list"
-  response=$(curl -s -X GET "$sweagleURL/api/v1/tenant/metadata-parser" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  #For debug
+  #echo "curl -s -X GET '$sweagleURL/api/v1/tenant/metadata-parser' -H 'Authorization: bearer $aToken' -H 'Accept: application/vnd.siren+json'"
+  if [ "$argParserType" = "TEMPLATE" ]; then
+    response=$(curl -s -X GET "$sweagleURL/api/v1/tenant/template-parser" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  else
+    response=$(curl -s -X GET "$sweagleURL/api/v1/tenant/metadata-parser" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  fi
   # Check if any error before continue
   errorFound=$(echo $response | jsonValue "error_description")
   if [[ -z $errorFound ]]; then
@@ -69,7 +72,13 @@ function createParser {
   local argDescription=$2
   local argScript=$3
   echo "*** Create parser with name: $argName"
-  response=$(curl -s -X POST "$sweagleURL/api/v1/tenant/metadata-parser?name=$filename&parserType=$argParserType&errorDescriptionDraft=error+in+parser+$filename" --data-urlencode "description=$argDescription" --data-urlencode "scriptDraft=$argScript" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  if [ "$argParserType" = "TEMPLATE" ]; then
+    #for debug
+    #echo "curl -s -X POST '$sweagleURL/api/v1/tenant/template-parser?name=$filename&parserType=$argParserType&errorDescriptionDraft=error+in+parser+$filename' --data-urlencode 'description=$argDescription' --data-urlencode 'template=$argScript' -H 'Authorization: bearer $aToken' -H 'Accept: application/vnd.siren+json'"
+    response=$(curl -s -X POST "$sweagleURL/api/v1/tenant/template-parser?name=$filename" --data-urlencode "description=$argDescription" --data-urlencode "template=$argScript" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  else
+    response=$(curl -s -X POST "$sweagleURL/api/v1/tenant/metadata-parser?name=$filename&parserType=$argParserType&errorDescriptionDraft=error+in+parser+$filename" --data-urlencode "description=$argDescription" --data-urlencode "scriptDraft=$argScript" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  fi
   # Check if any error before continue
   errorFound=$(echo $response | jsonValue "error_description")
   if [[ -z $errorFound ]]; then
@@ -89,7 +98,11 @@ function updateParser {
   echo "*** Update parser $argId"
   # to debug
   #echo "curl -s -X POST '$sweagleURL/api/v1/tenant/metadata-parser/$argId' --data-urlencode 'description=$argDescription' --data-urlencode 'scriptDraft=$argScript' -H 'Authorization: bearer $aToken' -H 'Accept: application/vnd.siren+json'"
-  response=$(curl -s -X POST "$sweagleURL/api/v1/tenant/metadata-parser/$argId" --data-urlencode "description=$argDescription" --data-urlencode "scriptDraft=$argScript" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  if [ "$argParserType" = "TEMPLATE" ]; then
+    response=$(curl -s -X POST "$sweagleURL/api/v1/tenant/template-parser/$argId" --data-urlencode "description=$argDescription" --data-urlencode "template=$argScript" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  else
+    response=$(curl -s -X POST "$sweagleURL/api/v1/tenant/metadata-parser/$argId" --data-urlencode "description=$argDescription" --data-urlencode "scriptDraft=$argScript" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  fi
   # Check if any error before continue
   errorFound=$(echo $response | jsonValue "error_description")
   if [[ -z $errorFound ]]; then
@@ -102,8 +115,13 @@ function updateParser {
 
 function publishParser {
   local argId=$1
+  local argScript=$2
   echo "*** Publish parser with id: $argId"
-  response=$(curl -s -X POST "$sweagleURL/api/v1/tenant/metadata-parser/$argId/publish" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" )
+  if [ "$argParserType" = "TEMPLATE" ]; then
+    response=$(curl -s -X POST "$sweagleURL/api/v1/tenant/template-parser/$argId/publish" --data-urlencode "template=$argScript" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" )
+  else
+    response=$(curl -s -X POST "$sweagleURL/api/v1/tenant/metadata-parser/$argId/publish" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" )
+  fi
   errorFound=$(echo $response | jsonValue "error_description")
   if [[ -z $errorFound ]]; then
     echo "*** Published parser $argId"
@@ -115,7 +133,11 @@ function publishParser {
 
 function getNextParserId {
   echo "*** Get parser list"
-  response=$(curl -s -X GET -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" "$sweagleURL/api/v1/tenant/metadata-parser")
+  if [ "$argParserType" = "TEMPLATE" ]; then
+    response=$(curl -s -X GET -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" "$sweagleURL/api/v1/tenant/template-parser")
+  else
+    response=$(curl -s -X GET -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" "$sweagleURL/api/v1/tenant/metadata-parser")
+  fi
   # Check if any error before continue
   errorFound=$(echo $response | jsonValue "error_description")
   if [[ -z $errorFound ]]; then
@@ -132,7 +154,11 @@ function getNextParserId {
 function deleteParser {
   local argId=$1
   echo "*** Deleting parser $argId"
-  response=$(curl -s -X DELETE "$sweagleURL/api/v1/tenant/metadata-parser/$argId" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  if [ "$argParserType" = "TEMPLATE" ]; then
+    response=$(curl -s -X DELETE "$sweagleURL/api/v1/tenant/template-parser/$argId" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  else
+    response=$(curl -s -X DELETE "$sweagleURL/api/v1/tenant/metadata-parser/$argId" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  fi
   # Check if any error before continue
   errorFound=$(echo $response | jsonValue "error_description")
   if [[ -z $errorFound ]]; then
@@ -155,7 +181,7 @@ if [[ $response == *"already exists"* ]]; then
   updateParser $parserId "$description" "$fileContent"
 fi
 if [[ ! -z $parserId ]]; then
-  publishParser $parserId
+  publishParser $parserId "$fileContent"
 else
   echo -e "\n**********"
   echo "*** ERROR CREATING PARSER: $filename"
