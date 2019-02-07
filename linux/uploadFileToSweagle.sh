@@ -55,6 +55,9 @@ elif [ "$extension" == "xml" ]; then
 elif [ "$extension" == "yml" ] || [ "$extension" == "yaml" ]; then
   argFormat="yml"
   argContentType="application/x-yaml"
+elif [ "$extension" == "ini" ]; then
+  argFormat="ini"
+  argContentType="text/plain"
 else
   # if not identified, consider file as property file
   argFormat="properties"
