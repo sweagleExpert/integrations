@@ -24,7 +24,7 @@ fi
 
 function apiUrl() {
 cat <<EOF
-$sweagleURL/api/v1/data/bulk-operations/dataLoader/upload?nodePath=$argNodePath&format=$argFormat&allowDelete=$argDeleteData&onlyParent=$argOnlyParent&autoApprove=$argDcsApprove&storeSnapshotResults=$argSnapshotCreate&validationLevel=$argSnapshotLevel
+$sweagleURL/api/v1/data/bulk-operations/dataLoader/upload?nodePath=$argNodePath&format=$argFormat&allowDelete=$argDeleteData&onlyParent=$argOnlyParent&autoApprove=$argDcsApprove&storeSnapshotResults=$argSnapshotCreate&validationLevel=$argSnapshotLevel&encoding=$argEncoding
 EOF
 }
 
@@ -32,6 +32,7 @@ function loadDefaultSettings () {
     #general settings for the REST data upload
     argDcsApprove="true"
     argDeleteData="false"
+    argEncoding="utf-8"
     argOnlyParent="true"
     # don't store snapshot now to be able to validate with custom validators later
     argSnapshotCreate="false"
