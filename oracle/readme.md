@@ -7,6 +7,7 @@ Use case is to retrieve configuration regularly to allow SWEAGLE to control conf
 If you want to know more on exporting configuration from SWEAGLE to ORACLE, please check:
 https://github.com/sweagleExpert/templates/tree/master/oracle
 
+
 PRE-REQUISITES
 
 The scripts in this directory only does the formatting of data so that you can import it in SWEAGLE.
