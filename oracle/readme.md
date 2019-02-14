@@ -16,11 +16,15 @@ You should use the scripts provided here with the scripts provided under the lin
 
 STRATEGY
 
-The best strategy when getting configuration from a database is to try to simplify data pump by transforming into a property file format, using SQL query like:
+For most use cases, the best strategy in term of performance is to directly get a JSON object from ORACLE using SELECT JSON_OBJECTAGG or SELECT JSON_OBJECT functions.
+See description here: https://docs.oracle.com/en/database/oracle/oracle-database/12.2/sqlrf/JSON_OBJECT.html#GUID-1EF347AE-7FDA-4B41-AFE0-DD5A49E8B370
+But this may not work due to ORACLE limitations in input/output size before version 18c.
+
+Another strategy when getting configuration from a database is to try to simplify data pump by transforming into a property file format, using SQL query like:
 SELECT <YOUR_KEY_COLUMN> || '=' || <YOUR_VALUE_COLUMN> FROM <YOUR_TABLE>;
 
-The sample files provided here handles more complex use cases when database table contains more than 2 columns to extract. It is based on the fact that you get regularly full export of your table in TSV format.
-
+For more complex use cases, you may get regular export of your tables in TSV format.
+The sample files provided here handles this when database table contains more than 2 columns to extract.
 
 CONTENT
 
