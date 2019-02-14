@@ -27,6 +27,7 @@ For more complex use cases, you may get regular export of your tables in TSV for
 The sample files provided here handles this when database table contains more than 2 columns to extract.
 
 CONTENT
+
 /selectJSON.sql : example of PL/SQL queries to directly extract JSON format from tables
 
 /tsv2json.sh : Generate a JSON file from a TSV file, with table Keys as node of the JSON. Launch without arguments to get help.
