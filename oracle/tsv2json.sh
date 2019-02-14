@@ -49,7 +49,7 @@ echo '{' > $FILE_OUT
 while IFS=$'\t' read -r -a LINE_ARRAY
 do
   NBC=${#LINE_ARRAY[@]}
-  echo 'number of columns:' $NBC
+  # For debugging: echo 'number of columns:' $NBC
   if [ $LINE_COUNT -gt 1 ]; then
     # Manage Value lines
     i=0
@@ -99,7 +99,7 @@ do
     if [ $LINE_COUNT -eq $LAST_LINE ]; then
       # Last line, close the json record
       j=1
-      EOR=""
+      EOR="}"
       while ((j < $NB_KEYS_COLUMN)); do
         EOR=$EOR'}'
         ((j+=1))
@@ -116,4 +116,3 @@ do
   fi
   ((LINE_COUNT+=1))
 done < $FILE_IN
-echo '}' >> $FILE_OUT
