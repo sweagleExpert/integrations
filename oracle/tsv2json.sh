@@ -43,19 +43,18 @@ function escape_json_chars() {
 
 LINE_COUNT=1
 LAST_LINE=$(<"$FILE_IN" wc -l)
-EOR=""
 KEY_ARRAY=()
 echo '{' > $FILE_OUT
 while IFS=$'\t' read -r -a LINE_ARRAY
 do
-  NBC=${#LINE_ARRAY[@]}
+  # For debugging: NBC=${#LINE_ARRAY[@]}
   # For debugging: echo 'number of columns:' $NBC
   if [ $LINE_COUNT -gt 1 ]; then
     # Manage Value lines
     i=0
     JSON_RECORD=""
     # Manage Key columns
-    #For debugging: echo "Handling line: "$LINE_COUNT
+    # For debugging: echo "Handling line: "$LINE_COUNT
     while ((i < $NB_KEYS_COLUMN)); do
       if [ "${KEY_ARRAY[$i]}" !=  "${LINE_ARRAY[$i]}" ]; then
         # This is new key, start a node
