@@ -4,69 +4,64 @@ sampleSimple=
    (CONNECT_DATA=
      (SERVICE_NAME=myoracledb.example.com)))
 
+
 sampleHA=
+  (DESCRIPTION=
+   (ADDRESS_LIST=
+    (LOAD_BALANCE=on)
+    (FAILOVER=off)
+    (ADDRESS=(PROTOCOL=tcp)(HOST=host1)(PORT=1521))
+    (ADDRESS=(PROTOCOL=tcp)(HOST=host2)(PORT=1521)))
+   (ADDRESS_LIST=
+    (LOAD_BALANCE=off)
+    (FAILOVER=on)
+    (ADDRESS=(PROTOCOL=tcp)(HOST=host3)(PORT=1521))
+    (ADDRESS=(PROTOCOL=tcp)(HOST=host4)(PORT=1521)))
+   (CONNECT_DATA=
+    (SERVICE_NAME=myoracledb.example.com)))
+
+
+SampleFullOptions=
+(DESCRIPTION_LIST=
+ (SOURCE_ROUTE=on)
  (DESCRIPTION=
+  (ADDRESS= (PROTOCOL = IPC)(KEY = EXTPROC1))
+  (CONNECT_DATA=
+   (SERVICE_NAME=generic)
+   (RDB_DATABASE=[.mf]mf_personal.rdb)
+   (GLOBAL_NAME=alpha5))
+  (TYPE_OF_SERVICE=rdb_database))
+ (DESCRIPTION=
+  (SDU=8192)
+  (SEND_BUF_SIZE=11784)
+  (RECV_BUF_SIZE=11784)
+  (ENABLE=broken)
+  (SOURCE_ROUTE=off)
   (ADDRESS_LIST=
-   (LOAD_BALANCE=on)
-   (FAILOVER=off)
-   (ADDRESS=(PROTOCOL=tcp)(HOST=host1)(PORT=1521))
-   (ADDRESS=(PROTOCOL=tcp)(HOST=host2)(PORT=1521)))
-  (ADDRESS_LIST=
+   (SOURCE_ROUTE=off)
    (LOAD_BALANCE=off)
    (FAILOVER=on)
-   (ADDRESS=(PROTOCOL=tcp)(HOST=host3)(PORT=1521))
-   (ADDRESS=(PROTOCOL=tcp)(HOST=host4)(PORT=1521)))
+   (ADDRESS=(PROTOCOL=tcp)(HOST=host1)(PORT=1521)
+     (SEND_BUF_SIZE=11784)
+     (RECV_BUF_SIZE=11784))
+   (ADDRESS=(PROTOCOL=tcp)(HOST=host2)(PORT=1521)
+     (SEND_BUF_SIZE=11784)
+     (RECV_BUF_SIZE=11784)))
   (CONNECT_DATA=
-   (SERVICE_NAME=myoracledb.example.com)))
-
-# This is to illustrate a full options Oracle configuration
-# Some configuration items are redundant or useless
-SampleFullOptions=
- (DESCRIPTION_LIST=
-  (SOURCE_ROUTE=on)
-  # SOURCE_ROUTE possible values on | off | yes | no
-  (DESCRIPTION=
-   (ADDRESS= (PROTOCOL = IPC)(KEY = EXTPROC1))
-   (CONNECT_DATA=
-    (SERVICE_NAME=generic)
-    (RDB_DATABASE=[.mf]mf_personal.rdb)
-    (GLOBAL_NAME=alpha5))
-   (TYPE_OF_SERVICE=rdb_database))
-  (DESCRIPTION=
-   (SDU=8192)
-   (SEND_BUF_SIZE=11784)
-   (RECV_BUF_SIZE=11784)
-   (ENABLE=broken)
-   (SOURCE_ROUTE=off)
-   (ADDRESS_LIST=
-    (SOURCE_ROUTE=off)
-    (LOAD_BALANCE=off)
-    # LOAD_BALANCE possible values on | off | yes | no | true | false
-    (FAILOVER=on)
-    # FAILOVER possible values on | off | yes | no | true | false
-    (ADDRESS=(PROTOCOL=tcp)(HOST=host1)(PORT=1521)
-      (SEND_BUF_SIZE=11784)
-      (RECV_BUF_SIZE=11784))
-    (ADDRESS=(PROTOCOL=tcp)(HOST=host2)(PORT=1521)
-      (SEND_BUF_SIZE=11784)
-      (RECV_BUF_SIZE=11784)))
-   (CONNECT_DATA=
-    (SERVER_NAME=sales.us.example.com)
-    (SERVER=dedicated)
-    # SERVER possible values dedicated | shared | pooled
-    (SID=sales)
-    (PRESENTATION = RO)
-    (HS=ok)
-    (INSTANCE_ROLE=any)
-    # INSTANCE_ROLE possible values primary | secondary | any
-    (FAILOVER_MODE=
-     (BACKUP=sales2.example.com)
-     (TYPE=select)
-     (METHOD=basic)
-     (RETRIES=20)
-     (DELAY=15))
-    (SERVICE_NAME=sales.us.example.com)
-    (INSTANCE_NAME=sales1))
-   (TYPE_OF_SERVICE=oracle9_database)
-   (SECURITY=
-    (SSL_SERVER_CERT_DN="cn=sales,cn=Oracle,dc=example,dc=com"))))
+   (SERVER_NAME=sales.us.example.com)
+   (SERVER=dedicated)
+   (SID=sales)
+   (PRESENTATION = RO)
+   (HS=ok)
+   (INSTANCE_ROLE=any)
+   (FAILOVER_MODE=
+    (BACKUP=sales2.example.com)
+    (TYPE=select)
+    (METHOD=basic)
+    (RETRIES=20)
+    (DELAY=15))
+   (SERVICE_NAME=sales.us.example.com)
+   (INSTANCE_NAME=sales1))
+  (TYPE_OF_SERVICE=oracle9_database)
+  (SECURITY=
+   (SSL_SERVER_CERT_DN="cn=sales,cn=Oracle,dc=example,dc=com"))))

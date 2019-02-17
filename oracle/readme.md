@@ -30,6 +30,10 @@ CONTENT
 
 /selectJSON.sql : example of PL/SQL queries to directly extract JSON format from tables
 
+/tns2xml.awk : Transform an tnsnames.ora file into XML format.
+To use it: awk -f tns2xml.awk <your tns file> > <your target xml file>
+(limitations: you should remove comment lines from your file)
+
 /tsv2json.sh : Generate a JSON file from a TSV file, with table Keys as node of the JSON. Launch without arguments to get help.
 (limitations: values including line break may cause issues)
 
