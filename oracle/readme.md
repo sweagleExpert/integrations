@@ -1,7 +1,10 @@
 # SWEAGLE Integration to ORACLE database
 DESCRIPTION
 
-This folder provides examples of script to import into SWEAGLE configurations from ORACLE database tables containing properties.
+This folder provides examples of script to import into SWEAGLE
+1. Oracle database instances configurations contained in tnsnames.ora file
+2. Configurations of applications contained in ORACLE database tables
+
 Use case is to retrieve configuration regularly to allow SWEAGLE to control configuration consistency, for example before deploying a new release.
 
 If you want to know more on exporting configuration from SWEAGLE to ORACLE, please check:
@@ -14,7 +17,7 @@ The scripts in this directory only does the formatting of data so that you can i
 You should use the scripts provided here with the scripts provided under the linux or windows directory to import configuration.
 
 
-STRATEGY
+STRATEGY TO UPLOAD PROPERTIES CONTAINED IN ORACLE TABLES
 
 For most use cases, the best strategy in term of performance is to directly get a JSON object from ORACLE using SELECT JSON_OBJECTAGG or SELECT JSON_OBJECT functions.
 See description here: https://docs.oracle.com/en/database/oracle/oracle-database/12.2/sqlrf/JSON_OBJECT.html#GUID-1EF347AE-7FDA-4B41-AFE0-DD5A49E8B370
