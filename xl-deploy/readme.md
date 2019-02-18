@@ -4,7 +4,7 @@ DESCRIPTION
 
 This folder provides examples of script to integrate SWEAGLE with XL-DEPLOY.
 Use case could be of two kinds:
-1. If XL-DEPLOY dictionary is the source of truth for configuration, than get configuration items regularly from CL-DEPLOY dictionary and validates it with SWEAGLE before deployment occurs
+1. If XL-DEPLOY dictionary is the source of truth for configuration, than get configuration items regularly from XL-DEPLOY dictionary and validates it with SWEAGLE before deployment occurs
 2. If configuration source of truth is outside XL-DEPLOY (for example in developers git), get configuration in SWEAGLE, validates it, then store it in XL-DEPLOY for deployment
 
 
