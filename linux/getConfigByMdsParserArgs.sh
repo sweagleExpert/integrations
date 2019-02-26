@@ -12,7 +12,7 @@ if [ "$#" -lt "2" ]; then
     echo "********** ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
     echo "********** YOU SHOULD PROVIDE 1- MDS AND 2- PARSER"
     echo "********** (optional) PARSER ARGUMENTS, put args=all_values_separated_by_comma"
-    echo "********** (optional) FORMAT, put format=JSON (or YAML, or XML, or PROPS)"
+    echo "********** (optional) FORMAT, put format=JSON (or YAML, or XML, or PROPS, or INI)"
     echo "********** (optional) FILE OUT, put output=complete_filename_with_path"
     echo "********** (optional) TEMPLATE PARSER, put template=true (default is false)"
     exit 1
