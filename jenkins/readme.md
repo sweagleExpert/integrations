@@ -13,7 +13,7 @@ Script "uploadDirToSweagle" requires no space in the name of your jenkins projec
 
 INSTALLATION
 
-1. Put all linux or windows Sweagle shell scripts into one folder of your jenkins job workspace (for example "/sweagle_scripts")
+1. Put all linux or windows Sweagle shell scripts into one folder of your jenkins job workspace (for example "/sweagle_scripts") or your git repository (if you are using jenkins pipeline with git plugins)
 2. Open the "sweagle.env" script and put your sweagle API token as value for parameter aToken
 3. In Jenkins:
     - if you use classic steps/jobs approach
@@ -42,7 +42,6 @@ CONTENT
     - Call input:
         - SWEAGLE_MDS = Sweagle MDS to check
         - SWEAGLE_VALIDATORS = Sweagle custom validators used to check configuration (as many as needed separated by spaces)
-
 
 - Stage "DownloadConfig" is used to retrieve latest valid configuration data before deployment
     - Sweagle will also fill tokens values (if any)
