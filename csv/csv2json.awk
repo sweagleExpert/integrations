@@ -5,7 +5,8 @@
 # <nb of key columns> is optional with default value of 1, if not provided
 
 BEGIN{
-  FS=";"
+  # Put here your column separator , ; \t (for tab)
+  FS="\t"
   OFS=""
 
   # Initiate error log file
