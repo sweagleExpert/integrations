@@ -31,14 +31,17 @@ The sample files provided here handles this when database table contains more th
 
 CONTENT
 
-/selectJSON.sql : example of PL/SQL queries to directly extract JSON format from tables
+/selectJSON.sql : Examples of PL/SQL queries to directly extract JSON format from tables
 
 /tns2xml.awk : Transform an tnsnames.ora file into XML format.
 To use it: awk -f tns2xml.awk <your tns file> > <your target xml file>
 (limitations: you should remove comment lines from your file)
 
-/tsv2json.sh : Generate a JSON file from a TSV file, with table Keys as node of the JSON. Launch without arguments to get help.
-(limitations: values including line break may cause issues)
+/tsv2json.awk : Transform a tab separated file (TSV) into JSON format based on number of key columns provided (default 1 if not provided). Key columns must be ordered and placed as first columns in the file.
+To use it: awk -v nbKeys=<nb of key columns> -f tsv2json.awk <your csv file>
+(limitations: duplicate keys, values including line break or separator are skipped and logged)
 
-/tsv2json.jq : Generate a JSON file from a TSV file using jq library. It is more powerful and quicker than previous shell script but requires JQ to be installed
-(limitations: all values are put in array of JSON list with no parent node)
+/tsv2json.sh : This is just a wrapper of tsv2json.awk to facilitate usage. Launch without arguments to get help.
+
+/tsv2json.jq : Generate a JSON file from a TSV file using jq library. Using jq  ensure a better compliance to JSON format
+(limitations: This require jq to be installed. All values are put in JSON array with no parent node)

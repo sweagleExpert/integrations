@@ -1,8 +1,8 @@
 # Script to transform a CSV formatted file (with header line) into JSON format
-# To use it: awk -f csv2json.awk <your csv file>
+# To use it: awk -f csv2json-1key.awk <your csv file>
 
 BEGIN{
-  FS=";"
+  FS=","
   OFS=""
 
   # Initiate error log file

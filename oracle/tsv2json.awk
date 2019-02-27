@@ -1,12 +1,12 @@
 #! /usr/bin/awk
 
 # Script to transform a CSV formatted file (with header line) into JSON format
-# To use it: awk -v nbKeys=<nb of key columns> -f csv2json.awk <your csv file>
+# To use it: awk -v nbKeys=<nb of key columns> -f tsv2json.awk <your csv file>
 # <nb of key columns> is optional with default value of 1, if not provided
 
 BEGIN{
   # Put here your column separator , ; \t (for tab)
-  FS=","
+  FS="\t"
   OFS=""
 
   # Initiate error log file
