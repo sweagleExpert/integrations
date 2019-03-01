@@ -1,0 +1,41 @@
+def CONFIG_DIR = "<DIRECTORY OR FILE WHERE YOU PUT YOUR CONFIG TO UPLOAD TO SWEAGLE>"
+def SWEAGLE_SCRIPTS_DIR = "<DIRECTORY WHERE YOU PUT YOUR SWEAGLE SCRIPTS, EACH NODE SEPARATED BY COMMA>"
+def SWEAGLE_PATH = "<PATH IN DATA MODEL WHERE YOU WANT TO PUT YOUR CONFIG DATA>"
+def SWEAGLE_MDS = "<METADATASET YOU WANT TO GET CONFIG DATA FROM>"
+def SWEAGLE_VALIDATORS = "<OPTIONAL, LIST OF CUSTOM VALIDATORS, SEPARATED BY SPACES, USED TO CHECK YOUR CONFIG>"
+def SWEAGLE_EXPORTER = "<EXPORTER USED TO RETRIEVE YOUR CONFIG>"
+def SWEAGLE_EXPORTER_ARGS = "<OPTIONAL, EXPORTER ARGUMENTS IF ANY, SEPARATED BY COMMA>"
+def SWEAGLE_EXPORTER_FORMAT = "<OPTIONAL, FORMAT USED FOR DOWNLOADED CONFIG: PROPS (DEFAULT), YAML, JSON, XML>"
+def SWEAGLE_EXPORTER_OUTPUT = "<OPTIONAL, TARGET FILE TO EXPORT CONFIG DATA TO, DEFAULT OUTPUT IS SCREEN>"
+
+node {
+    checkout scm
+
+    stage('UploadConfig') {
+      echo '**********'
+      echo '*** Upload Configuration files to SWEAGLE'
+      sh("chmod +x ${SWEAGLE_SCRIPTS_DIR}/*.sh")
+      sh("${SWEAGLE_SCRIPTS_DIR}/webPortalUploadConfigBefore.sh ${ENV_NAME}")
+      echo '*** Configuration sent'
+    }
+
+    stage('CheckConfig') {
+      echo '**********'
+      echo '*** Ask SWEAGLE to check your configuration All-in-One'
+      sh("${SWEAGLE_SCRIPTS_DIR}/checkAllConfigByMdsValidator.sh ${SWEAGLE_MDS} ${SWEAGLE_VALIDATORS}")
+    }
+
+    stage('DownloadConfig') {
+      echo '**********'
+      echo '*** Retrieve lastest valid configuration from SWEAGLE'
+      echo '*** SWEAGLE will also fill token values, if any'
+      // Store your config snapshot in order to be able to retrieve it
+      sh("${SWEAGLE_SCRIPTS_DIR}/storeConfigSnapshotByMds.sh ${SWEAGLE_MDS}")
+      // Download your config using exporter
+      sh("${SWEAGLE_SCRIPTS_DIR}/getConfigByMdsParserArgs.sh ${SWEAGLE_MDS} ${SWEAGLE_EXPORTER} " +
+        "args=${SWEAGLE_EXPORTER_ARGS} " +
+        "format=${SWEAGLE_EXPORTER_FORMAT} " +
+        "output=${SWEAGLE_EXPORTER_OUTPUT}")
+    }
+
+}
