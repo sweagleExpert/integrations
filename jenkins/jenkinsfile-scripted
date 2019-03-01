@@ -15,7 +15,7 @@ node {
       echo '**********'
       echo '*** Upload Configuration files to SWEAGLE'
       sh("chmod +x ${SWEAGLE_SCRIPTS_DIR}/*.sh")
-      sh("${SWEAGLE_SCRIPTS_DIR}/webPortalUploadConfigBefore.sh ${ENV_NAME}")
+      sh("${SWEAGLE_SCRIPTS_DIR}/uploadDirToSweagle.sh ${SWEAGLE_PATH} ${CONFIG_DIR}")
       echo '*** Configuration sent'
     }
 
