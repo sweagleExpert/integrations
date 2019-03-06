@@ -6,14 +6,15 @@ BEGIN { FS="="; RS=""; ORS="\n" }
     delete tag
     counter = 0
     tnsnames = ""
-    # LINE BELOW NOT TO USE IF MULTIPLE ORACLE DEFINITIONS
-    #tnsnames = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>"
+
+    if (NR == 1) {
+      tnsnames = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?><TNSNAMES>"
+    }
 
     # trim the value
     gsub(/[ \t\n]+/,"",$1)
     tnsnames = tnsnames "<" $1 ">"
     tag[counter] = "</" $1 ">"
-
 
     #print "-------------------------------------"
     #print "Name=" $1
@@ -35,11 +36,6 @@ BEGIN { FS="="; RS=""; ORS="\n" }
 #        $i = "<" $i ">"
 #      }
 
-# DONT WORK
-#      if ($i ~ /^#/) {
-#        print "*** IT IS A COMMENT, ignore it"
-#        $i = ""
-#      }
 
       if ($i ~ /^\"/) {
         #print "*** IT IS A VALUE"
@@ -84,4 +80,7 @@ BEGIN { FS="="; RS=""; ORS="\n" }
 
     tnsnames = tnsnames tag[0]
     print tnsnames
+}
+END {
+  print "</TNSNAMES>"
 }

@@ -21,4 +21,4 @@ openssl req -newkey rsa:2048 -nodes -keyout key.pem -x509 -days 365 -out certifi
 
 CONTENT
 
-/pem2ini.sh : Generate an INI file from a PEM certificate file, with information regarding PEM parameters (end date, issues, subject).
+/pem2ini.sh : Generate an INI file from a PEM certificate file, with information regarding PEM parameters (end date, issuers, subject).
