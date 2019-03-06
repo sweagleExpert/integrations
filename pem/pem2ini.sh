@@ -30,11 +30,11 @@ if [[ -d "$argDir" ]]; then
       echo "********** Exiting without error"
       exit 0
     fi
-    echo "*** Store config of file: $filename"
+    #echo "*** Store config of file: $filename"
     echo "[$filename]" >> $output
     echo file=$file  >> $output
-    echo $(openssl x509 -noout -issuer -in $file) >> $output
-    echo $(openssl x509 -noout -subject -in $file) >> $output
+    echo $(openssl x509 -noout -nameopt utf8 -issuer -in $file) >> $output
+    echo $(openssl x509 -noout -nameopt utf8 -subject -in $file) >> $output
     echo "notAfter=$(date --date="$(openssl x509 -enddate -noout -in "$file"|cut -d= -f 2)" --iso-8601)" >> $output
     #echo "notAfter=$(date --date="$(openssl x509 -enddate -noout -in "$file"|cut -d= -f 2)" --iso-8601=seconds)" >> $output
     #echo $(openssl x509 -enddate -noout -in $file) >> $output
