@@ -15,7 +15,7 @@ Script "uploadDirToSweagle" requires no space in the name of your jenkins projec
 INSTALLATION
 
 1. Put all linux or windows SWEAGLE shell scripts into one folder of your jenkins job workspace (for example "/sweagle_scripts") or your git repository (if you are using jenkins pipeline with git plugins)
-2. Open the "sweagle.env" script and put your sweagle API token as value for parameter aToken
+2. Open the "sweagle.env" script and put your values for SWEAGLE tenant, API token, and scripts path (for ex: "./sweagle_scripts")
 3. In Jenkins:
     - if you use classic steps/jobs approach, configure your project and add Shell steps in order to use SWEAGLE scripts. Recommended approach is:
         - First step, upload your config files to SWEAGLE
