@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<synthetic xsi:schemaLocation="http://www.xebialabs.com/deployit/synthetic synthetic.xsd" xmlns="http://www.xebialabs.com/deployit/synthetic" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <type type="sweagle.Tenant" extends="configuration.HttpConnection">
+      <property name="url"   required="true" label="URL" />
+      <property name="token" required="true" label="Access Token" password="true" description="Your SWEAGLE API access token " />
+    </type>
+
+    <type type="sweagle.Download" extends="xlrelease.PythonScript" label="Download Configuration from SWEAGLE">
+        <property name="sweagleTenant" category="input" label="Tenant" referenced-type="sweagle.Tenant" kind="ci"/>
+        <property name="mds"  label="Metadataset" category="input"/>
+        <property name="parser" label="Parser" category="input"/>
+        <property name="args" required="false" label="Parser Arguments" description="Put all arguments separated by comma" category="input"/>
+        <property name="content" label="config" category="output"/>
+        <property name="taskColor" hidden="true" default="#C8E274"/>
+        <property name="iconLocation" required="false" hidden="true" default="logo/sweagle.png"/>
+    </type>
+
+    <type type="sweagle.GetVersion" extends="xlrelease.PythonScript" label="Get SWEAGLE version">
+        <property name="sweagleTenant" category="input" label="Tenant" referenced-type="sweagle.Tenant" kind="ci"/>
+        <property name="taskColor" hidden="true" default="#C8E274"/>
+        <property name="iconLocation" required="false" hidden="true" default="logo/sweagle.png"/>
+    </type>
+
+    <type type="sweagle.Upload" extends="xlrelease.PythonScript" label="Upload Configuration to SWEAGLE">
+        <property name="sweagleTenant" category="input" label="Tenant" referenced-type="sweagle.Tenant" kind="ci"/>
+        <property name="nodePath"  label="Node Path" category="input" description="Put all arguments separated by comma"/>
+        <property name="content"  label="Content" category="input"/>
+        <property name="taskColor" hidden="true" default="#C8E274"/>
+        <property name="iconLocation" required="false" hidden="true" default="logo/sweagle.png"/>
+    </type>
+
+    <type type="sweagle.Validate" extends="xlrelease.PythonScript" label="Validate Configuration">
+        <property name="sweagleTenant" category="input" label="Tenant" referenced-type="sweagle.Tenant" kind="ci"/>
+        <property name="mds"  label="Metadataset" category="input"/>
+        <property name="validators" required="false" label="Validator(s)" description="Put all validators separated by spaces" category="input"/>
+        <property name="status"  label="Status" kind="boolean" category="output"/>
+        <property name="errorMsg"  label="Error Message" category="output"/>
+        <property name="taskColor" hidden="true" default="#C8E274"/>
+        <property name="iconLocation" required="false" hidden="true" default="logo/sweagle.png"/>
+    </type>
+
+</synthetic>
