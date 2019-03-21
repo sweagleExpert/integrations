@@ -9,15 +9,14 @@ if sweagleTenant is None:
 headers = {"Authorization": "Bearer {0}".format(sweagleTenant['token']),
             "Accept": "application/json",
             "Content-Type": "application/json"}
+#For DEBUG print('* headers: {0}'.format(headers))
 status = True
 # In Jython True=1, False=0
+errorMsg = ""
 
 print ("*** First, check status with SWEAGLE standard validator")
-url = "{0}/api/v1/data/include/validate?name={1}&format=json&forIncoming=true".format(sweagleTenant['url'],
-        mds)
-#For DEBUG
-#print('* url: {0}'.format(url))
-#print('* headers: {0}'.format(headers))
+url = "{0}/api/v1/data/include/validate?name={1}&format=json&forIncoming=true".format(sweagleTenant['url'], mds)
+#For DEBUG print('* url: {0}'.format(url))
 r = requests.get(url, headers=headers, verify=False)
 
 if r.status_code == requests.codes.ok:
