@@ -13,8 +13,10 @@ headers = {"Authorization": "Bearer {0}".format(sweagleTenant['token']),
 status = True
 # In Jython True=1, False=0
 errorMsg = ""
+mds = mds.replace("/", "-")
 
-print ("*** First, check status with SWEAGLE standard validator")
+
+print ("\r *** First, check status with SWEAGLE standard validator")
 url = "{0}/api/v1/data/include/validate?name={1}&format=json&forIncoming=true".format(sweagleTenant['url'], mds)
 #For DEBUG print('* url: {0}'.format(url))
 r = requests.get(url, headers=headers, verify=False)
@@ -25,16 +27,15 @@ if r.status_code == requests.codes.ok:
     print ""
     if int(response['summary']['errors']) > 0:
         status = False
-        print "*** BROKEN CONFIGURATION: " + json.dumps(response['errors'])
+        print "\r *** BROKEN CONFIGURATION: " + json.dumps(response['errors'])
         errorMsg = json.dumps(response['errors'])
     else:
         print "standard validators passed successfully"
 else:
     raise Exception("%s: HTTP response code %s (%s)" % (url, r.status_code, r.json()))
 
-print ("")
-print ("*** Second, check status with SWEAGLE custom validator(s)")
-for validator in validators.split():
+print ("\r *** Second, check status with SWEAGLE custom validator(s)")
+for validator in validators:
     print ("* Check status for validator: " + validator)
     url = "{0}/api/v1/tenant/metadata-parser/validate?mds={1}&parser={2}&forIncoming=true".format(sweagleTenant['url'],
         mds, validator)
@@ -44,7 +45,7 @@ for validator in validators.split():
         #print("* SWEAGLE response: {}".format(json.dumps(response)))
         if response['result'] == False:
             status = False
-            print "*** BROKEN CONFIGURATION: " + json.dumps(response['description'])
+            print "\r *** BROKEN CONFIGURATION: " + json.dumps(response['description'])
             errorMsg = errorMsg + "\r\n" + json.dumps(response['description'])
         else:
             print " - validator passed successfully"

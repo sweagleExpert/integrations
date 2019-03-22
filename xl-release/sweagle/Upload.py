@@ -10,6 +10,8 @@ headers = {"Authorization": "Bearer {0}".format(sweagleTenant['token']),
             "Accept": "application/json",
             "Content-Type": "application/json"}
 
+nodePath = nodePath.replace("/", ",")
+			
 url = ("{0}/api/v1/data/bulk-operations/dataLoader/upload?"
     "nodePath={1}&format=json&allowDelete=false&onlyParent=true"
     "&autoApprove=true&storeSnapshotResults=false&validationLevel=warn"
@@ -18,13 +20,13 @@ url = ("{0}/api/v1/data/bulk-operations/dataLoader/upload?"
 data = content
 
 #For DEBUG
-#print('* url: {0}'.format(url))
-#print('* headers: {0}'.format(headers))
+#print('\r * url: {0}'.format(url))
+#print('\r * headers: {0}'.format(headers))
 r = requests.post(url, headers=headers, data=data, verify=False)
 
 if r.status_code == requests.codes.ok:
     response = r.json()
-    print("* SWEAGLE response: {}".format(json.dumps(response)))
+    print("\r * SWEAGLE response: {}".format(json.dumps(response)))
     print ""
 else:
     raise Exception("%s: HTTP response code %s (%s)" % (url, r.status_code, r.json()))
