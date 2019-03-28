@@ -37,9 +37,15 @@ else:
 print ("\r *** Second, check status with SWEAGLE custom validator(s)")
 for validator in validators:
     print ("* Check status for validator: " + validator)
-    url = "{0}/api/v1/tenant/metadata-parser/validate?mds={1}&parser={2}&forIncoming=true".format(sweagleTenant['url'],
+    url = "{0}/api/v1/tenant/metadata-parser/validate?mds={1}&parser={2}&forIncoming=".format(sweagleTenant['url'],
         mds, validator)
-    r = requests.post(url, headers=headers, verify=False)
+    r = requests.post(url + "true", headers=headers, verify=False)
+    response = r.json()
+    if r.status_code == 404 and response['error'] == "NotFoundException":
+        # API got error that pending MDS not found, retry for last valid snapshot
+        print ("\r *** No pending MDS found, check last snapshot instead")
+        r = requests.post(url + "false", headers=headers, verify=False)
+
     if r.status_code == requests.codes.ok:
         response = r.json()
         #print("* SWEAGLE response: {}".format(json.dumps(response)))
