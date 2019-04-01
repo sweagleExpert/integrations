@@ -13,12 +13,16 @@ if [ "$#" -lt "1" ]; then
 fi
 output=$1
 
+# List of files to parse, put a line with empty value to remove it
+CONF_GROUP=/etc/group
 CONF_HOSTS=/etc/hosts
 CONF_LDAP=/etc/ldap/ldap.conf
 CONF_LIMITS=/etc/security/limits.conf
 CONF_NSSWITCH=/etc/nsswitch.conf
+CONF_PASSWD=/etc/passwd
 CONF_RESOLV=/etc/resolv.conf
 CONF_SYSCTL=/etc/sysctl.conf
+
 
 # helper to convert hex to dec (portable version)
 function hex2dec(){
@@ -89,70 +93,112 @@ case $os in
     ;;
 esac
 
-# Do the hosts file
-echo -e "\n[hosts]" >> $output
-cat $CONF_HOSTS > $output.tmp
-# Remove all empty or commented lines
-sed -i -E '/^$/d' $output.tmp
-sed -i -E  '/^(#.*)$/d' $output.tmp
-# Transform into properties file by replacing first space or tab by =
-sed -i -E 's/( |\t)/=/' $output.tmp
-while IFS='=' read -r col1 col2
-do
-  # Check if it is an IPv6 address
-  if [[ $col1 == *":"* ]]; then
-    # If IPv6, then expand it so that SWEAGLE import works betters
-    echo $(expand_ipv6 "$col1") "=" $col2 >> $output
-  else
-    echo "$col1 = $col2"  >> $output
-  fi
-done < $output.tmp
+if [ -n "$CONF_HOSTS" ]; then
+  # Do the hosts file
+  echo -e "\n[hosts]" >> $output
+  cat $CONF_HOSTS > $output.tmp
+  # Remove all empty or commented lines
+  sed -i -E '/^$/d' $output.tmp
+  sed -i -E  '/^(#.*)$/d' $output.tmp
+  # Transform into properties file by replacing first space or tab by =
+  sed -i -E 's/( |\t)/=/' $output.tmp
+  while IFS='=' read -r col1 col2
+  do
+    # Check if it is an IPv6 address
+    if [[ $col1 == *":"* ]]; then
+      # If IPv6, then expand it so that SWEAGLE import works betters
+      echo $(expand_ipv6 "$col1") "=" $col2 >> $output
+    else
+      echo "$col1 = $col2"  >> $output
+    fi
+  done < $output.tmp
+fi
+
+if [ -n "$CONF_SYSCTL" ]; then
+  # Do the sysctl.conf file
+  echo -e "\n[sysctl]" >> $output
+  cat $CONF_SYSCTL > $output.tmp
+  # Remove all empty or commented lines
+  sed -i -E '/^$/d' $output.tmp
+  sed -i -E  '/^(#.*)$/d' $output.tmp
+  # It is already a properties file, just store it
+  cat $output.tmp >> $output
+fi
 
 
-# Do the sysctl.conf file
-echo -e "\n[sysctl]" >> $output
-cat $CONF_SYSCTL > $output.tmp
-# Remove all empty or commented lines
-sed -i -E '/^$/d' $output.tmp
-sed -i -E  '/^(#.*)$/d' $output.tmp
-# It is already a properties file, just store it
-cat $output.tmp >> $output
+if [ -n "$CONF_LDAP" ]; then
+  # Do the ldap.conf file
+  echo -e "\n[ldap]" >> $output
+  cat $CONF_LDAP > $output.tmp
+  # Remove all empty or commented lines
+  sed -i -E '/^$/d' $output.tmp
+  sed -i -E  '/^(#.*)$/d' $output.tmp
+  # Transform into properties file by replacing first space or tab by =
+  sed -i -E 's/( |\t)/=/' $output.tmp
+  cat $output.tmp >> $output
+fi
+
+if [ -n "$CONF_NSSWITCH" ]; then
+  # Do the nsswitch.conf file
+  echo -e "\n[nsswitch]" >> $output
+  cat $CONF_NSSWITCH > $output.tmp
+  # Remove all empty or commented lines
+  sed -i -E '/^$/d' $output.tmp
+  sed -i -E  '/^(#.*)$/d' $output.tmp
+  # Trim spaces and tabs
+  sed -i -e 's/^\s*//' -e '/^$/d' $output.tmp
+  # Transform into properties file by replacing first : by =
+  sed -i -E 's/(:)/=/' $output.tmp
+  cat $output.tmp >> $output
+fi
 
 
-# Do the ldap.conf file
-echo -e "\n[ldap]" >> $output
-cat $CONF_LDAP > $output.tmp
-# Remove all empty or commented lines
-sed -i -E '/^$/d' $output.tmp
-sed -i -E  '/^(#.*)$/d' $output.tmp
-# Transform into properties file by replacing first space or tab by =
-sed -i -E 's/( |\t)/=/' $output.tmp
-cat $output.tmp >> $output
+if [ -n "$CONF_RESOLV" ]; then
+  # Do the resolv.conf file
+  echo -e "\n[resolv]" >> $output
+  cat $CONF_RESOLV > $output.tmp
+  # Remove all empty or commented lines
+  sed -i -E '/^$/d' $output.tmp
+  sed -i -E  '/^(#.*)$/d' $output.tmp
+  # Transform into properties file by replacing first space or tab by =
+  sed -i -E 's/( |\t)/=/' $output.tmp
+  cat $output.tmp >> $output
+fi
 
 
-# Do the nsswitch.conf file
-echo -e "\n[nsswitch]" >> $output
-cat $CONF_NSSWITCH > $output.tmp
-# Remove all empty or commented lines
-sed -i -E '/^$/d' $output.tmp
-sed -i -E  '/^(#.*)$/d' $output.tmp
-# Trim spaces and tabs
-sed -i -e 's/^\s*//' -e '/^$/d' $output.tmp
-# Transform into properties file by replacing first : by =
-sed -i -E 's/(:)/=/' $output.tmp
-cat $output.tmp >> $output
+if [ -n "$CONF_GROUP" ]; then
+  # Do the group file
+  echo -e "\n[group]" >> $output
+  cat $CONF_GROUP > $output.tmp
+  # this could also be getent passwd
+  # Remove all empty or commented lines
+  sed -i -E '/^$/d' $output.tmp
+  sed -i -E  '/^(#.*)$/d' $output.tmp
+  # Transform into properties file by replacing first : or tab by =
+  sed -i -E 's/(:)/=/' $output.tmp
+  # Replace all other occurence of : by space to avoid INI escaping
+  sed -i -E 's/:/ /g' $output.tmp
+  cat $output.tmp >> $output
+  # Do the group file, only sudo
+  echo -e "\n[sudo]" >> $output
+  cat $output.tmp | grep sudo | awk '{print "sudo="$3}'>> $output
+fi
 
 
-# Do the resolv.conf file
-echo -e "\n[resolv]" >> $output
-cat $CONF_RESOLV > $output.tmp
-# Remove all empty or commented lines
-sed -i -E '/^$/d' $output.tmp
-sed -i -E  '/^(#.*)$/d' $output.tmp
-# Transform into properties file by replacing first space or tab by =
-sed -i -E 's/( |\t)/=/' $output.tmp
-cat $output.tmp >> $output
-
+if [ -n "$CONF_PASSWD" ]; then
+  # Do the list of users = passwd file
+  echo -e "\n[passwd]" >> $output
+  cat $CONF_PASSWD > $output.tmp
+  # this could also be getent passwd
+  # Remove all empty or commented lines
+  sed -i -E '/^$/d' $output.tmp
+  sed -i -E  '/^(#.*)$/d' $output.tmp
+  # Transform into properties file by replacing first : or tab by =
+  sed -i -E 's/(:)/=/' $output.tmp
+  # Replace all other occurence of : by space to avoid INI escaping
+  sed -i -E 's/:/ /g' $output.tmp
+  cat $output.tmp >> $output
+fi
 
 # Do the ifconfig
 INTERFACES=($(ls /sys/class/net))
@@ -161,6 +207,8 @@ for network in "${INTERFACES[@]}"
 do
   echo -e "\n[network-interface-$network]" >> $output
   ifconfig -a $network > $output.tmp
+  # Replace all occurence of : by . to avoid INI escaping
+  sed -i -E 's/:/./g' $output.tmp
   cat $output.tmp | grep 'inet ' | awk '{print "inet="$2}' >> $output
   cat $output.tmp | grep 'inet6' | awk '{print "inet6="$2}' >> $output
   cat $output.tmp | grep 'netmask' | awk '{print "netmask="$4}' >> $output
@@ -173,19 +221,19 @@ do
   fi
 done
 
-
-# Do the limits.conf file
-echo "*** Please note limits.conf will be produced as separate json file"
-TARGET_DIR=$(dirname "${output}")
-cat $CONF_LIMITS > $output.tmp
-# Remove all empty or commented lines
-sed -i -E '/^$/d' $output.tmp
-sed -i -E  '/^(#.*)$/d' $output.tmp
-echo "[" > $TARGET_DIR/limits.conf.json
-cat $output.tmp | awk 'BEGIN {FS="\t"};
-  {print "{\"domain\":\""$1"\",\"type\":\""$2"\",\"item\":\""$3"\",\"value\":\""$4"\"},"}' >> $TARGET_DIR/limits.conf.json
-# replace last , by ] to end json array
-sed -i '$ s/.$/]/' $TARGET_DIR/limits.conf.json
-
+if [ -n "$CONF_LIMITS" ]; then
+  # Do the limits.conf file
+  echo "*** Please note limits.conf will be produced as separate json file"
+  TARGET_DIR=$(dirname "${output}")
+  cat $CONF_LIMITS > $output.tmp
+  # Remove all empty or commented lines
+  sed -i -E '/^$/d' $output.tmp
+  sed -i -E  '/^(#.*)$/d' $output.tmp
+  echo "[" > $TARGET_DIR/limits.conf.json
+  cat $output.tmp | awk 'BEGIN {FS="\t"};
+    {print "{\"domain\":\""$1"\",\"type\":\""$2"\",\"item\":\""$3"\",\"value\":\""$4"\"},"}' >> $TARGET_DIR/limits.conf.json
+  # replace last , by ] to end json array
+  sed -i '$ s/.$/]/' $TARGET_DIR/limits.conf.json
+fi
 
 rm $output.tmp
