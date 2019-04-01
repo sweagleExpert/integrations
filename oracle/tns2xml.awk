@@ -6,6 +6,8 @@ BEGIN { FS="="; RS=""; ORS="\n" }
     delete tag
     counter = 0
     tnsnames = ""
+    # This will serve to manage ADDRESS_LIST index as order of address is important
+    addressCounter = 0
 
     if (NR == 1) {
       tnsnames = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?><TNSNAMES>"
@@ -65,10 +67,20 @@ BEGIN { FS="="; RS=""; ORS="\n" }
         # if record contains a (, it is a starting TAG, get it
         #print "*** IDENTIFY START TAG"
         startTAG = substr($i,index($i,"(")+1)
+        if (startTAG == "ADDRESS_LIST") {
+          # If we are in an address list, then manage index of address as address order is important in TNSNAMES
+          addressCounter = 1
+        }
 
         # replace ( by corresponding start tag
         sub(/\(/, "<", $i)
-        $i = $i ">"
+        if (startTAG == "ADDRESS" && addressCounter > 0) {
+          $i = $i "-" addressCounter ">"
+          startTAG = startTAG "-" addressCounter
+          addressCounter = addressCounter + 1
+        } else {
+          $i = $i ">"
+        }
         #print "*** IDENTIFY START TAG"
         counter = counter + 1
         tag[counter] = "</" startTAG ">"
@@ -81,6 +93,6 @@ BEGIN { FS="="; RS=""; ORS="\n" }
     tnsnames = tnsnames tag[0]
     print tnsnames
 }
-END {
+END{
   print "</TNSNAMES>"
 }
