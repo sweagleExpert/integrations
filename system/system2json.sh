@@ -65,37 +65,45 @@ mkdir -p $dir
 if [ -f /etc/redhat-release ]; then
     os="redhat"
 else
-    os=$(awk -F= '/^NAME/{print $2}' /etc/os-release|sed 's/"//g')
+    os=$(awk -F= '/^NAME/{print $2}' /etc/os-release | sed 's/"//g')
 fi
 case $os in
   "CentOS Linux"|"redhat")
-    echo "[os]" > $output
-    echo "DISTRIB_DESCRIPTION = $(cat /etc/redhat-release)"  >> $output
-    echo "uname = $(uname -a)"  >> $output
-    echo -e "\n[packages]" >> $output
-    rpm -qa --qf "%{n} = %{v}.%{r}\n" >> $output
+    echo -e '{"os":{' >> $output
+    echo '"DISTRIB_DESCRIPTION":'$(cat /etc/redhat-release)'",'  >> $output
+    echo '"uname":'$(uname -a)'"}'  >> $output
+    # replace last , by } to end json element
+    sed -i '$ s/.$/}/' $output
+
+    echo -e ',\n"packages":{' >> $output
+    rpm -qa --qf "%{n}:%{v}.%{r},\n" >> $output
     ;;
   "Ubuntu")
-    echo "[os]" > $output
-    cat /etc/lsb-release >> $output
-    echo "uname = $(uname -a)"  >> $output
-    echo -e "\n[packages]" >> $output
+    echo -e '{"os":{' > $output
+    cat /etc/lsb-release | awk 'BEGIN {FS="="}; {gsub(/\"/, "", $0); print "\""$1"\":\""$2"\","}' >> $output
+    echo $(uname -a)  | awk '{print "\"uname\":\""$3"\","}' >> $output
+    # replace last , by } to end json element
+    sed -i '$ s/.$/}/' $output
+
+    echo -e ',\n"packages":{' >> $output
     apt list --installed > $output.tmp
     # put only name of package = version in result
     # use getline to ignore first line as it contains a comment
     cat $output.tmp | awk '{getline
-              print substr($1, 1, index($1, "/")-1) " = " $2}' >> $output
-    #cat $output.tmp | awk '{print $1 "=" $2}' > $output
+              print "\"" substr($1, 1, index($1, "/")-1) "\":\""$2"\","}' >> $output
     ;;
   *)
     echo "**** ERROR : OS $os not recognized"
     exit 1
     ;;
 esac
+# replace last , by } to end json element
+sed -i '$ s/.$/}/' $output
+
 
 if [ -n "$CONF_HOSTS" ]; then
   # Do the hosts file
-  echo -e "\n[hosts]" >> $output
+  echo -e ',\n"hosts":{' >> $output
   cat $CONF_HOSTS > $output.tmp
   # Remove all empty or commented lines
   sed -i -E '/^$/d' $output.tmp
@@ -107,87 +115,103 @@ if [ -n "$CONF_HOSTS" ]; then
     # Check if it is an IPv6 address
     if [[ $col1 == *":"* ]]; then
       # If IPv6, then expand it so that SWEAGLE import works betters
-      echo $(expand_ipv6 "$col1") "=" $col2 >> $output
+      echo $(expand_ipv6 "$col1") "=" $col2 | awk 'BEGIN {FS="="}; {gsub(/ /, "", $0); print "\""$1"\":\""$2"\","}' >> $output
     else
-      echo "$col1 = $col2"  >> $output
+      echo "$col1 = $col2" | awk 'BEGIN {FS="="}; {gsub(/ /, "", $0); print "\""$1"\":\""$2"\","}' >> $output
     fi
   done < $output.tmp
+  # replace last , by } to end json element
+  sed -i '$ s/.$/}/' $output
 fi
 
 if [ -n "$CONF_SYSCTL" ]; then
   # Do the sysctl.conf file
-  echo -e "\n[sysctl]" >> $output
+  echo -e ',\n"sysctl":{' >> $output
   cat $CONF_SYSCTL > $output.tmp
   # Remove all empty or commented lines
   sed -i -E '/^$/d' $output.tmp
   sed -i -E  '/^(#.*)$/d' $output.tmp
   # It is already a properties file, just store it
-  cat $output.tmp >> $output
+  #cat $output.tmp >> $output
+  cat $output.tmp | awk 'BEGIN {FS="="}; {gsub(/ /, "", $0); print "\""$1"\":\""$2"\","}' >> $output
+  # replace last , by } to end json element
+  sed -i '$ s/.$/}/' $output
 fi
 
 
 if [ -n "$CONF_LDAP" ]; then
   # Do the ldap.conf file
-  echo -e "\n[ldap]" >> $output
+  echo -e ',\n"ldap":{' >> $output
   cat $CONF_LDAP > $output.tmp
   # Remove all empty or commented lines
   sed -i -E '/^$/d' $output.tmp
   sed -i -E  '/^(#.*)$/d' $output.tmp
   # Transform into properties file by replacing first space or tab by =
-  sed -i -E 's/( |\t)/=/' $output.tmp
-  cat $output.tmp >> $output
+  #sed -i -E 's/( |\t)/=/' $output.tmp
+  cat $output.tmp | awk '{print "\""$1"\":\""$2"\","}' >> $output
+  #cat $output.tmp >> $output
+  # replace last , by ] to end json array
+  sed -i '$ s/.$/}/' $output
 fi
 
 if [ -n "$CONF_NSSWITCH" ]; then
   # Do the nsswitch.conf file
-  echo -e "\n[nsswitch]" >> $output
+  echo -e ',\n"nsswitch":{' >> $output
   cat $CONF_NSSWITCH > $output.tmp
   # Remove all empty or commented lines
   sed -i -E '/^$/d' $output.tmp
   sed -i -E  '/^(#.*)$/d' $output.tmp
   # Trim spaces and tabs
-  sed -i -e 's/^\s*//' -e '/^$/d' $output.tmp
+  sed -i -e 's/^\s*//' -e '/^$/d' -e '/\t/d' $output.tmp
   # Transform into properties file by replacing first : by =
   sed -i -E 's/(:)/=/' $output.tmp
-  cat $output.tmp >> $output
+  cat $output.tmp | awk 'BEGIN {FS="="}; {gsub(/ /, "", $2); print "\""$1"\":\""$2"\","}' >> $output
+  # replace last , by ] to end json array
+  sed -i '$ s/.$/}/' $output
 fi
 
 
 if [ -n "$CONF_RESOLV" ]; then
   # Do the resolv.conf file
-  echo -e "\n[resolv]" >> $output
+  echo -e ',\n"resolv":{' >> $output
   cat $CONF_RESOLV > $output.tmp
   # Remove all empty or commented lines
   sed -i -E '/^$/d' $output.tmp
   sed -i -E  '/^(#.*)$/d' $output.tmp
   # Transform into properties file by replacing first space or tab by =
   sed -i -E 's/( |\t)/=/' $output.tmp
-  cat $output.tmp >> $output
+  cat $output.tmp | awk 'BEGIN {FS="="};
+    {print "\""NR"\":{\""$1"\":\""$2"\"},"}' >> $output
+  # replace last , by ] to end json array
+  sed -i '$ s/.$/}/' $output
 fi
 
 
 if [ -n "$CONF_GROUP" ]; then
   # Do the group file
-  echo -e "\n[group]" >> $output
+  echo -e ',\n"group":{' >> $output
   cat $CONF_GROUP > $output.tmp
   # this could also be getent passwd
   # Remove all empty or commented lines
   sed -i -E '/^$/d' $output.tmp
   sed -i -E  '/^(#.*)$/d' $output.tmp
-  # Transform into properties file by replacing first : or tab by =
-  sed -i -E 's/(:)/=/' $output.tmp
+  # Transform into awk file by replacing first : or tab by <pspace>
+  sed -i -E 's/(:)/ /' $output.tmp
+  cat $output.tmp | awk '{print "\""$1"\":\""$2"\","}' >> $output
+  # replace last , by } to end json element
+  sed -i '$ s/.$/}/' $output
   # Replace all other occurence of : by space to avoid INI escaping
-  sed -i -E 's/:/ /g' $output.tmp
-  cat $output.tmp >> $output
+  #sed -i -E 's/:/ /g' $output.tmp
+  #cat $output.tmp >> $output
   # Do the group file, only sudo
-  echo -e "\n[sudo]" >> $output
-  cat $output.tmp | grep sudo | awk '{print "sudo="$3}'>> $output
+  echo -e ',\n"sudo":{' >> $output
+  cat $output.tmp | grep sudo | awk 'BEGIN {FS=":"}; {print "\"sudo\":\""$3"\"}"}' >> $output
 fi
 
 
 if [ -n "$CONF_PASSWD" ]; then
   # Do the list of users = passwd file
-  echo -e "\n[passwd]" >> $output
+  echo -e ',\n"passwd":{' >> $output
   cat $CONF_PASSWD > $output.tmp
   # this could also be getent passwd
   # Remove all empty or commented lines
@@ -195,45 +219,50 @@ if [ -n "$CONF_PASSWD" ]; then
   sed -i -E  '/^(#.*)$/d' $output.tmp
   # Transform into properties file by replacing first : or tab by =
   sed -i -E 's/(:)/=/' $output.tmp
+  cat $output.tmp | awk 'BEGIN {FS="="}; {print "\""$1"\":\""$2"\","}' >> $output
+  # replace last , by } to end json element
+  sed -i '$ s/.$/}/' $output
   # Replace all other occurence of : by space to avoid INI escaping
-  sed -i -E 's/:/ /g' $output.tmp
-  cat $output.tmp >> $output
+  #sed -i -E 's/:/ /g' $output.tmp
 fi
 
 # Do the ifconfig
 INTERFACES=($(ls /sys/class/net))
 #echo INT=$INTERFACES
+echo -e ',\n"network":{' >> $output
 for network in "${INTERFACES[@]}"
 do
-  echo -e "\n[network-interface-$network]" >> $output
+  echo -e '"'$network'":{' >> $output
   ifconfig -a $network > $output.tmp
   # Replace all occurence of : by . to avoid INI escaping
-  sed -i -E 's/:/./g' $output.tmp
-  cat $output.tmp | grep 'inet ' | awk '{print "inet="$2}' >> $output
-  cat $output.tmp | grep 'inet6' | awk '{print "inet6="$2}' >> $output
-  cat $output.tmp | grep 'netmask' | awk '{print "netmask="$4}' >> $output
-  cat $output.tmp | grep 'broadcast' | awk '{print "broadcast="$6}' >> $output
-  cat $output.tmp | grep 'mtu' | awk '{print "mtu="$4}' >> $output
+  #sed -i -E 's/:/./g' $output.tmp
+  cat $output.tmp | grep 'inet ' | awk '{print "\"inet\":\""$2"\","}' >> $output
+  cat $output.tmp | grep 'inet6' | awk '{print "\"inet6\":\""$2"\","}' >> $output
+  cat $output.tmp | grep 'netmask' | awk '{print "\"netmask\":\""$4"\","}' >> $output
+  cat $output.tmp | grep 'broadcast' | awk '{print "\"broadcast\":\""$6"\","}' >> $output
+  cat $output.tmp | grep 'mtu' | awk '{print "\"mtu\":\""$4"\","}' >> $output
   if [ $network = "lo" ]; then
-    cat $output.tmp | grep 'txqueuelen' | awk '{print "txqueuelen="$3}' >> $output
+    cat $output.tmp | grep 'txqueuelen' | awk '{print "\"txqueuelen\":\""$3"\"},"}' >> $output
   else
-    cat $output.tmp | grep 'txqueuelen' | awk '{print "txqueuelen="$4}' >> $output
+    cat $output.tmp | grep 'txqueuelen' | awk '{print "\"txqueuelen\":\""$4"\"},"}' >> $output
   fi
 done
+# replace last , by } to end json element
+sed -i '$ s/.$/}/' $output
+
 
 if [ -n "$CONF_LIMITS" ]; then
   # Do the limits.conf file
-  echo "*** Please note limits.conf will be produced as separate json file"
-  TARGET_DIR=$(dirname "${output}")
+  echo -e ',\n"limits":{' >> $output
   cat $CONF_LIMITS > $output.tmp
   # Remove all empty or commented lines
   sed -i -E '/^$/d' $output.tmp
   sed -i -E  '/^(#.*)$/d' $output.tmp
-  echo "{" > $TARGET_DIR/limits.conf.json
   cat $output.tmp | awk 'BEGIN {FS="\t"};
-    {print "\""NR"\":{\"domain\":\""$1"\",\"type\":\""$2"\",\"item\":\""$3"\",\"value\":\""$4"\"},"}' >> $TARGET_DIR/limits.conf.json
-  # replace last , by ] to end json array
-  sed -i '$ s/.$/}/' $TARGET_DIR/limits.conf.json
+    {print "\""NR"\":{\"domain\":\""$1"\",\"type\":\""$2"\",\"item\":\""$3"\",\"value\":\""$4"\"},"}' >> $output
+  # replace last , by } to end json element
+  sed -i '$ s/.$/}/' $output
 fi
 
+echo -e '\n}' >> $output
 rm $output.tmp

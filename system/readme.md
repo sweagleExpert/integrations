@@ -15,4 +15,6 @@ You should use the scripts provided here with the scripts provided under the lin
 
 CONTENT
 
-/system2ini.sh : export various linux confidution items into ini and json files
+/system2ini.sh : export various linux configuration items into ini and json files
+
+/system2json.sh : export various linux configuration items into json file
