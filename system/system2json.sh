@@ -69,9 +69,9 @@ else
 fi
 case $os in
   "CentOS Linux"|"redhat")
-    echo -e '{"os":{' >> $output
+    echo -e '{"os":{' > $output
     echo '"DISTRIB_DESCRIPTION":'$(cat /etc/redhat-release)'",'  >> $output
-    echo '"uname":"'$(uname -a)'"}'  >> $output
+    uname -a | awk '{print "\"uname\":\""$3"\","}' >> $output
     # replace last , by } to end json element
     sed -i '$ s/.$/}/' $output
 
@@ -81,7 +81,7 @@ case $os in
   "Ubuntu")
     echo -e '{"os":{' > $output
     cat /etc/lsb-release | awk 'BEGIN {FS="="}; {gsub(/\"/, "", $0); print "\""$1"\":\""$2"\","}' >> $output
-    echo $(uname -a)  | awk '{print "\"uname\":\""$3"\","}' >> $output
+    uname -a | awk '{print "\"uname\":\""$3"\","}' >> $output
     # replace last , by } to end json element
     sed -i '$ s/.$/}/' $output
 
