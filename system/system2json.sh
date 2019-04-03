@@ -71,12 +71,12 @@ case $os in
   "CentOS Linux"|"redhat")
     echo -e '{"os":{' >> $output
     echo '"DISTRIB_DESCRIPTION":'$(cat /etc/redhat-release)'",'  >> $output
-    echo '"uname":'$(uname -a)'"}'  >> $output
+    echo '"uname":"'$(uname -a)'"}'  >> $output
     # replace last , by } to end json element
     sed -i '$ s/.$/}/' $output
 
     echo -e ',\n"packages":{' >> $output
-    rpm -qa --qf "%{n}:%{v}.%{r},\n" >> $output
+    rpm -qa --qf "\"%{n}\":\"%{v}.%{r}\",\n" >> $output
     ;;
   "Ubuntu")
     echo -e '{"os":{' > $output
