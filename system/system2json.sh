@@ -311,8 +311,6 @@ for network in "${INTERFACES[@]}"
 do
   echo -e '"'$network'":{' >> $output
   ifconfig -a $network > $output.tmp
-  # Replace all occurence of : by . to avoid INI escaping
-  #sed -i -r 's/:/./g' $output.tmp
   cat $output.tmp | grep 'inet ' | awk 'BEGIN {FS=":"}; {print "\"inet\":\""$2"\","}'|sed -r 's/\s+.+$//' >> $output
   cat $output.tmp | grep 'inet6' | awk '{print "\"inet6\":\""$2"\","}' >> $output
   cat $output.tmp | grep 'netmask' | awk '{print "\"netmask\":\""$4"\","}' >> $output
