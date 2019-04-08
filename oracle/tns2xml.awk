@@ -15,6 +15,8 @@ BEGIN { FS="="; RS=""; ORS="\n" }
 
     # trim the value
     gsub(/[ \t\n]+/,"",$1)
+    # replace , that split alias in tnsnames by / (as , not supported in xml tag)
+    gsub(/,/,"__",$1)
     tnsnames = tnsnames "<" $1 ">"
     tag[counter] = "</" $1 ">"
 

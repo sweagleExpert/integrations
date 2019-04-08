@@ -16,7 +16,7 @@ FILE_OUT="$2"
 sweagleScriptDir=$(dirname "$0")
 
 # Remove all commented lines
-sed -E  "/^(#.*)$/d" $FILE_IN > $FILE_OUT.tmp
+sed -r  "/^(#.*)$/d" $FILE_IN > $FILE_OUT.tmp
 
 # Do the XML transfo
 awk -f $sweagleScriptDir/tns2xml.awk $FILE_OUT.tmp > $FILE_OUT
