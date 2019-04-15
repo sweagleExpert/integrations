@@ -45,8 +45,6 @@ do
     RESULT_LIST=$(grep '^'$key $SOURCE_FILE)
     for line in $RESULT_LIST; do
       value=${line/$key/}
-      #value=$(echo "${line}"|awk -F" " '{$1=""; gsub(/(  |\r)/, "", $0); print $0}')
-      #value=$(echo "${line}"|awk -F" " '{ print $0 }')
       value=$(trim $value)
       echo "\"$(escapeJSON $value)\"," >> $OUTPUT_FILE
     done
@@ -55,12 +53,10 @@ do
 
   elif [[ "$nbLines" -gt 0 ]]; then
     # there is at least one item
-    #value=$(grep '^'$key $SOURCE_FILE|awk -F" " '{$1=""; print $0}')
     line=$(grep '^'$key $SOURCE_FILE)
     value=${line/$key/}
     value=$(trim $value)
     value=$(escapeJSON $value)
-    #echo "\"$(ltrim $key)\":\"$(ltrim $value)\"," >> $OUTPUT_FILE
     echo "\"$(trim $key)\":\"$value\"," >> $OUTPUT_FILE
   fi
 done
