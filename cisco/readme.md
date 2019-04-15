@@ -1,4 +1,4 @@
-# SWEAGLE Integration to CISCO network equipment
+# SWEAGLE Integration to CISCO equipment configuration
 
 DESCRIPTION
 
