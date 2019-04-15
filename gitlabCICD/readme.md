@@ -1,4 +1,5 @@
 # SWEAGLE Integration to GitLab CI/CD
+
 DESCRIPTION
 
 This folder provides examples of configuration to include SWEAGLE into a GitLab CI/CD.
