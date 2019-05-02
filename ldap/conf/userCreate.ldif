@@ -1,0 +1,68 @@
+version: 1
+
+
+###############################################################################
+#####       ORGS CREATION
+###############################################################################
+dn: ou=users,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: users
+
+dn: ou=Global,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: Global
+
+dn: ou=Groups,ou=Global,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: Groups
+
+###############################################################################
+#####       USERS CREATION
+###############################################################################
+
+dn: uid=testuser1,ou=users,dc=example,dc=com
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+objectClass: person
+cn: Test User1
+sn: testuser1
+mail: test.user1@example.com
+uid: testuser1
+
+
+dn: uid=testuser2,ou=users,dc=example,dc=com
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+objectClass: person
+cn: Test User2
+sn: testuser2
+mail: test.user2@example.com
+uid: testuser2
+memberof: cn=DEV-APPLI-A,ou=Groups,ou=Global,dc=example,dc=com
+
+###############################################################################
+#####       GROUPS CREATION
+###############################################################################
+dn: cn=FRANCE-ALL,ou=Groups,ou=Global,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: FRANCE-ALL
+member: uid=testuser1,ou=users,dc=example,dc=com
+member: uid=testuser2,ou=users,dc=example,dc=com
+
+dn: cn=ADMIN-SWEAGLE,ou=Groups,ou=Global,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: ADMIN-SWEAGLE
+member: uid=testuser1,ou=users,dc=example,dc=com
+
+dn: cn=DEV-APPLI-A,ou=Groups,ou=Global,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: DEV-APPLI-A
+member: uid=testuser2,ou=users,dc=example,dc=com

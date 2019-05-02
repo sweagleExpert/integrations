@@ -1,0 +1,91 @@
+version: 1
+
+
+###############################################################################
+#####       ORGS CREATION
+###############################################################################
+#!RESULT OK
+#!CONNECTION ldap://localhost:389
+#!DATE 2019-05-02T09:48:15.613
+dn: ou=users,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: users
+
+#!RESULT OK
+#!CONNECTION ldap://localhost:389
+#!DATE 2019-05-02T09:48:25.623
+dn: ou=Global,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: Global
+
+#!RESULT OK
+#!CONNECTION ldap://localhost:389
+#!DATE 2019-05-02T09:48:30.633
+dn: ou=Groups,ou=Global,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: Groups
+
+###############################################################################
+#####       USERS CREATION
+###############################################################################
+
+#!RESULT OK
+#!CONNECTION ldap://localhost:389
+#!DATE 2019-05-02T09:48:35.643
+dn: uid=testuser1,ou=users,dc=example,dc=com
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+objectClass: person
+cn: Test User1
+sn: testuser1
+mail: test.user1@example.com
+uid: testuser1
+
+
+#!RESULT OK
+#!CONNECTION ldap://localhost:389
+#!DATE 2019-05-02T09:48:40.654
+dn: uid=testuser2,ou=users,dc=example,dc=com
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+objectClass: person
+cn: Test User2
+sn: testuser2
+mail: test.user2@example.com
+uid: testuser2
+
+###############################################################################
+#####       GROUPS CREATION
+###############################################################################
+#!RESULT OK
+#!CONNECTION ldap://localhost:389
+#!DATE 2019-05-02T09:48:45.663
+dn: cn=FRANCE-ALL,ou=Groups,ou=Global,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: FRANCE-ALL
+member: uid=testuser1,ou=users,dc=example,dc=com
+member: uid=testuser2,ou=users,dc=example,dc=com
+
+#!RESULT OK
+#!CONNECTION ldap://localhost:389
+#!DATE 2019-05-02T09:48:50.677
+dn: cn=ADMIN-SWEAGLE,ou=Groups,ou=Global,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: ADMIN-SWEAGLE
+member: uid=testuser1,ou=users,dc=example,dc=com
+
+#!RESULT OK
+#!CONNECTION ldap://localhost:389
+#!DATE 2019-05-02T09:48:55.702
+dn: cn=DEV-APPLI-A,ou=Groups,ou=Global,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: DEV-APPLI-A
+member: uid=testuser2,ou=users,dc=example,dc=com

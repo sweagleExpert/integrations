@@ -17,11 +17,11 @@ OUTPUT_FILE=$2
 # Define here the list of keys to extract from conf file and target JSON element
 declare -A KEYS;
 KEYS["http_port"]="http_port";
-KEYS["acl localnet src"]="acl/localnet/src";
-KEYS["acl SSL_ports port"]="acl/SSL_ports/port";
-KEYS["acl Safe_ports port"]="acl/Safe_ports/port"
-KEYS["http_access allow"]="http_access/allow";
-KEYS["http_access deny"]="http_access/deny";
+KEYS["acl localnet src"]="acl-localnet/src";
+KEYS["acl SSL_ports port"]="acl-SSL_ports/port";
+KEYS["acl Safe_ports port"]="acl-Safe_ports/port"
+KEYS["http_access allow"]="http_access-allow";
+KEYS["http_access deny"]="http_access-deny";
 KEYS["icp_port"]="icp_port";
 KEYS["authenticate_ttl"]="authenticate_ttl";
 KEYS["ident_timeout"]="ident_timeout";
