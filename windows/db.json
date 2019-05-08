@@ -1,0 +1,13 @@
+{
+  "user": {
+    "first_name": "API USER",
+    "user_type": "API",
+    "token": "<TO BE DEFINED>"
+  },
+  "environment": {
+    "url": "https://testing.sweagle.com"
+  },
+  "settings": {
+    "friendlyOutput": false
+  }
+}
