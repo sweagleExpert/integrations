@@ -1,4 +1,4 @@
-# This powershell script upload configuration to SWEAGLE platform using REST API
+﻿# This powershell script upload configuration to SWEAGLE platform using REST API
 # Version 1.1
 # Author : Dimitris Finas
 # Inputs required: 1- INPUT FILE AND 2- SWEAGLE PATH (values separated by /)
@@ -7,7 +7,7 @@
 param(
     [Parameter(Mandatory=$true)][Alias("file")][string]$argFileIn,
     [Parameter(Mandatory=$true)][Alias("path")][string]$argNodePath,
-    [Parameter(Mandatory=$false)][Alias("format")][ValidateSet("INI","JSON","PROPS","PROPERTIES","XML","YAML","YML")][string]$argFormat
+    [Parameter(Mandatory=$false)][Alias("format")][ValidateSet("ini","json","props","properties","xml","yaml","yml")][string]$argFormat
 )
 
 
@@ -40,11 +40,12 @@ If (!(Test-path $dbFile)) {
 $sweagleParams = Get-Content $dbFile | ConvertFrom-Json
 
 If ($PSBoundParameters.ContainsKey('argFormat')) {
-  switch($argFormat.ToLower())
+  $argFormat = $argFormat.ToLower()
+  switch($argFormat)
   {
       "ini"  { $argContentType="text/plain" }
       "json" { $argContentType="application/json" }
-      "yaml" { $argContentType="application/x-yaml" }
+      "yaml" { $argFormat="yml"; $argContentType="application/x-yaml" }
       "yml"  { $argContentType="application/x-yaml" }
       "xml"  { $argContentType="application/xml" }
       default { $argContentType="text/x-java-properties" }
@@ -74,6 +75,7 @@ $headers.Add("Authorization", "Bearer " + $sweagleParams.user.token)
 $headers.Add("Accept", "*/*")
 #echo $url
 #echo $headers
+#echo "Content-Type=$argContentType"
 
 # Call Get Version to debug access to SWEAGLE tenant
 #$response = Invoke-RestMethod -Uri "https://testing.sweagle.com/info" -Headers $headers -Method GET -Verbose

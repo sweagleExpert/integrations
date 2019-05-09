@@ -2,7 +2,7 @@
 # Version 1.0
 # Author : Dimitris Finas
 param(
-    [Parameter(Mandatory=$true)][Alias("mds")][string]$argMds
+    [Parameter(Mandatory=$true)][string]$argMds
 )
 
 
@@ -40,7 +40,7 @@ $headers.Add("Accept", "*/*")
 try { $response = Invoke-RestMethod -Uri $url -Headers $headers -Method GET -Verbose }
 catch {
     echo "********** ERROR: API call failed"
-    Write-Host "HTTP StatusCode:" $_.Exception.Response.StatusCode.value__
+    Write-Host "HTTP StatusCode:" $_.Exception.Response.StatusCode.value__ 
     Write-Host "Exception:" $_.Exception.Message
     exit 1
 }

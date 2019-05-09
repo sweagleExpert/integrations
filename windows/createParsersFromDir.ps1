@@ -4,7 +4,7 @@
 # Inputs required: 1- INPUT DIRECTORY AND 2- PARSERS TYPE ("EXPORTER","TEMPLATE","VALIDATOR")
 
 param(
-    [Parameter(Mandatory=$true)][Alias("path")][string]$argDir,
+    [Parameter(Mandatory=$true)][Alias("dir")][string]$argDir,
     [Parameter(Mandatory=$true)][Alias("type")][ValidateSet("EXPORTER","TEMPLATE","VALIDATOR")][string]$argParserType
 )
 
