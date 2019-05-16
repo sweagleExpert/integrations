@@ -15,26 +15,27 @@ SOURCE_FILE=$1
 OUTPUT_FILE=$2
 
 # Define here the list of keys to extract from conf file and target JSON element
+# If target json element is empty, it will use key as json element
 declare -A KEYS;
-KEYS["http_port"]="http_port";
+KEYS["http_port"]="";
 KEYS["acl localnet src"]="acl-localnet/src";
 KEYS["acl SSL_ports port"]="acl-SSL_ports/port";
 KEYS["acl Safe_ports port"]="acl-Safe_ports/port"
 KEYS["http_access allow"]="http_access-allow";
 KEYS["http_access deny"]="http_access-deny";
 KEYS["icp_port"]="icp_port";
-KEYS["authenticate_ttl"]="authenticate_ttl";
-KEYS["ident_timeout"]="ident_timeout";
-KEYS["cache_peer"]="cache_peer";
-KEYS["cache_effective_user"]="cache_effective_user";
-KEYS["cache_effective_group"]="cache_effective_group";
-KEYS["cache_dir"]="cache_dir";
-KEYS["cache_log"]="cache_log";
-KEYS["coredump_dir"]="coredump_dir";
-KEYS["dns_defnames"]="dns_defnames";
-KEYS["pid_filename"]="pid_filename";
-KEYS["never_direct"]="never_direct";
-KEYS["visible_hostname"]="visible_hostname";
+KEYS["authenticate_ttl"]="";
+KEYS["ident_timeout"]="";
+KEYS["cache_peer"]="";
+KEYS["cache_effective_user"]="";
+KEYS["cache_effective_group"]="";
+KEYS["cache_dir"]="";
+KEYS["cache_log"]="";
+KEYS["coredump_dir"]="";
+KEYS["dns_defnames"]="";
+KEYS["pid_filename"]="";
+KEYS["never_direct"]="";
+KEYS["visible_hostname"]="";
 
 IFS="
 "
@@ -54,10 +55,20 @@ echo "{" > $OUTPUT_FILE
 for elem in ${!KEYS[*]}; do
   # retrieve the key to search and JSON element
   key="${elem}"
-  in="/"
-  out="\":{\""
-  node=$(echo "${KEYS[$key]//$in/$out}")
+  node=${KEYS[$key]}
+  echo "key=$key"
+  echo "json=$node"
+  if [[ -z "$node" ]]; then
+   #json target element is emtpty, replace by key
+   node=$key
+  else
+    # json target element not empty, build json
+    in="/"
+    out="\":{\""
+    node=$(echo "${KEYS[$key]//$in/$out}")
+  fi
   node_end=$(echo "${node//'{'/'}'}" | tr -cd '}')
+  echo "node=$node"
 
   nbLines=$(grep -c '^'$key $OUTPUT_FILE.tmp)
   echo "- matching key ($key) occurs $nbLines"
