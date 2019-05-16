@@ -56,8 +56,6 @@ for elem in ${!KEYS[*]}; do
   # retrieve the key to search and JSON element
   key="${elem}"
   node=${KEYS[$key]}
-  echo "key=$key"
-  echo "json=$node"
   if [[ -z "$node" ]]; then
    #json target element is emtpty, replace by key
    node=$key
@@ -68,7 +66,6 @@ for elem in ${!KEYS[*]}; do
     node=$(echo "${KEYS[$key]//$in/$out}")
   fi
   node_end=$(echo "${node//'{'/'}'}" | tr -cd '}')
-  echo "node=$node"
 
   nbLines=$(grep -c '^'$key $OUTPUT_FILE.tmp)
   echo "- matching key ($key) occurs $nbLines"
