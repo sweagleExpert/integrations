@@ -17,23 +17,34 @@ fi
 
 argMds=$1
 #argControl="warnings"
-argControl="errors"
+argControl=errors
+argError=error
 
 function apiUrl() {
 cat <<EOF
-$sweagleURL/api/v1/data/include/validate?name=$argMds&format=json&forIncoming=true
+$sweagleURL/api/v1/data/include/validate?name=$argMds&format=json
 EOF
 }
 
 echo -e "\n**********"
-echo "*** Call Sweagle API to check configuration status for MDS: "$argMds
-errorFound=$(curl -s -X GET "$(apiUrl)" -H "$(apiToken)" | jsonValue $argControl)
-if [ "$errorFound" != 0 ]
-then
-   echo "********** ERROR: BROKEN configuration data detected, get details of errors and exit"
-   responseSweagle=$(curl -s -X GET "$(apiUrl)" -H "$(apiToken)")
-   echo "Sweagle response: $responseSweagle"
-   exit 1
+echo "*** Call Sweagle API to check configuration status for MDS: $argMds"
+response=$(curl -s -X GET "$(apiUrl)&forIncoming=true" -H "$(apiToken)")
+#echo "Response: " $response
+
+ec=$(echo "$response" | jsonValue $argError)
+if [ "$ec" = "NotFoundException" ]; then
+  echo "No pending MDS found, relaunch API to get last snapshot result instead"
+  response=$(curl -s -X GET "$(apiUrl)&forIncoming=false" -H "$(apiToken)")
+  echo "SWEAGLE response: $response"
+fi
+
+errorFound=$(echo "$response" | jsonValue $argControl)
+if [[ $response = "{\"error\":"* ]]; then
+    echo -e "\n********** ERROR: Unable to validate MDS: $argMds with standard validators:"
+    exit 1
+elif [ "$errorFound" != 0 ]; then
+    echo "********** ERROR: BROKEN configuration data detected for MDS: $argMds for standard validators:"
+    exit 1
 fi
 
 echo "No $argControl found for MDS: "$argMds
