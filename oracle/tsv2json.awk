@@ -1,7 +1,7 @@
 #! /usr/bin/awk
 
 # Script to transform a CSV formatted file (with header line) into JSON format
-# To use it: awk -v nbKeys=<nb of key columns> -f tsv2json.awk <your csv file>
+# To use it: awk -v nbKeys=<nb of key columns> -f csv2json.awk <your csv file>
 # <nb of key columns> is optional with default value of 1, if not provided
 
 BEGIN{
@@ -24,7 +24,13 @@ BEGIN{
   # manage last column, removing end of line chars
   sub("\r","",$i)
   header[i] = ($i)
-  print "{"
+  if (nbKeyColumns != 0) {
+    print "{"
+  } else {
+    # there is no key column, this is a pure json array
+    print "[{"
+    firstItem = 0
+  }
 }
 {
   if (NF != nbColumns) {
@@ -34,30 +40,38 @@ BEGIN{
   }
   #print "\n****** DEBUG: CURRENT LINE=",NR >> errorFile
 
-  # Manage key columns
-  for(i=1;i<=nbKeyColumns;i++) {
-    #printf "DEBUG: Column %s,  CurrentKey= %s, Value= %s", i, key[i], ($i) >> errorFile
+  if (nbKeyColumns != 0) {
+    # Manage key columns
+    for(i=1;i<=nbKeyColumns;i++) {
+      #printf "DEBUG: Column %s,  CurrentKey= %s, Value= %s", i, key[i], ($i) >> errorFile
 
-    if (key[i] == "") {
-      #print "*** DEBUG: GO OPTION 1 - NEW NODE" >> errorFile
-      printf "\n\"%s\": {", ($i)
-      key[i] = ($i)
-    } else if (key[i] != $i) {
-      # If new key, end old node and create a new node
-      #print "*** DEBUG: GO OPTION 2 - RENEW NODE, CLOSE OLD ONE" >> errorFile
-      for(c=i+1;c<=nbKeyColumns;c++) {
-        # close current record and reinit array
-        #print "*** DEBUG: REINIT ARRAY i=",i >> errorFile
-        printf "}"
-        key[c] = ""
+      if (key[i] == "") {
+        #print "*** DEBUG: GO OPTION 1 - NEW NODE" >> errorFile
+        printf "\n\"%s\": {", ($i)
+        key[i] = ($i)
+      } else if (key[i] != $i) {
+        # If new key, end old node and create a new node
+        #print "*** DEBUG: GO OPTION 2 - RENEW NODE, CLOSE OLD ONE" >> errorFile
+        for(c=i+1;c<=nbKeyColumns;c++) {
+          # close current record and reinit array
+          #print "*** DEBUG: REINIT ARRAY i=",i >> errorFile
+          printf "}"
+          key[c] = ""
+        }
+        printf ",\n\"%s\": {", ($i)
+        key[i] = ($i)
+      } else if (i == nbKeyColumns) {
+        # We are last key column with same value, this is duplicate
+        print "ERROR: duplicate Key, skip line ", NR >> errorFile
+        next
       }
-      printf ",\n\"%s\": {", ($i)
-      key[i] = ($i)
-    } else if (i == nbKeyColumns) {
-      # We are last key column with same value, this is duplicate
-      print "ERROR: duplicate Key, skip line ", NR >> errorFile
-      next
     }
+  } else {
+    # No key column, this is pure json array, each new line is a new json element
+    if (firstItem > 0 ) {
+      print ",{"
+    }
+    firstItem = 1
   }
 
   # Manage value columns
@@ -76,5 +90,10 @@ BEGIN{
   printf "\"%s\":\"%s\" }", header[i], ($i)
 }
 END{
-  for(c=0;c<nbKeyColumns;c++) printf "}"
+  if (nbKeyColumns != 0) {
+    for(c=0;c<nbKeyColumns;c++) print "}"
+  } else {
+    # there is no key column, this is a pure json array
+    print "]"
+  }
 }
