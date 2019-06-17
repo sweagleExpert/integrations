@@ -20,4 +20,4 @@ else
   NB_KEYS_COLUMN=1
 fi
 
-awk -v nbKeys=$NB_KEYS_COLUMN -f csv2json.awk $FILE_IN > $FILE_OUT
+awk -v nbKeys=$NB_KEYS_COLUMN -f $(dirname "$0")/csv2json.awk $FILE_IN > $FILE_OUT

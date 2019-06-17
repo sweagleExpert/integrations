@@ -19,6 +19,6 @@ sweagleScriptDir=$(dirname "$0")
 sed -r  "/^(#.*)$/d" $FILE_IN > $FILE_OUT.tmp
 
 # Do the XML transfo
-awk -f $sweagleScriptDir/tns2xml.awk $FILE_OUT.tmp > $FILE_OUT
+awk -f $(dirname "$0")/tns2xml.awk $FILE_OUT.tmp > $FILE_OUT
 
 rm $FILE_OUT.tmp
