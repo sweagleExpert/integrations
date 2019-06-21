@@ -1,0 +1,75 @@
+auth password-policy {
+    description none
+    expiration-warning 7
+    max-duration 99999
+    max-login-failures 0
+    min-duration 0
+    minimum-length 6
+    password-memory 0
+    policy-enforcement disabled
+    required-lowercase 0
+    required-numeric 0
+    required-special 0
+    required-uppercase 0
+}
+auth radius Common/system-auth {
+    accounting-bug disabled
+    app-service none
+    client-id none
+    debug disabled
+    description none
+    partition Common
+    retries 3
+    servers {
+        Common/system_auth_name1
+        Common/system_auth_name2
+    }
+    service-type authenticate-only
+}
+net fdb vlan Common/a010pr1000 {
+    app-service none
+    partition Common
+    records none
+}
+net interface 1.1 {
+    bundle not-supported
+    bundle-speed not-supported
+    description none
+    disabled
+    flow-control tx-rx
+    force-gigabit-fiber disabled
+    forward-error-correction not-supported
+    if-alias none
+    if-index 368
+    lldp-admin txonly
+    lldp-tlvmap 130943
+    mac-address 00:46:e9:ae:12:02
+    media-active none
+    media-fixed auto
+    media-max 1000T-FD
+    media-sfp auto
+    module-description none
+    mtu 1500
+    prefer-port sfp
+    qinq-ethertype 0x8100
+    serial none
+    sflow {
+        poll-interval 0
+        poll-interval-global yes
+    }
+    stp enabled
+    stp-auto-edge-port enabled
+    stp-edge-port true
+    stp-link-type auto
+    vendor none
+    vendor-oui none
+    vendor-partnum none
+    vendor-revision none
+}
+vcmp virtual-disk ahostxxx.img {
+    operating-system tmos
+}
+vcmp virtual-disk-template BIGIP-11.6.1.0.0.317.iso.img.deflated {
+    iso-version BIGIP-11.6.1.0.0.317.iso
+    operating-system tmos
+}
