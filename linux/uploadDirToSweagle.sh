@@ -14,6 +14,7 @@ if [ "$#" -lt "2" ]; then
     echo "********** ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
     echo "********** YOU SHOULD PROVIDE 1-NODEPATH AND 2-DIRECTORY OR FILE TO UPLOAD"
     echo "********** (OPTIONAL) YOU MAY PROVIDE ALSO 3- FILE EXTENSION TO FILTER DIRECTORY"
+    echo "********** (OPTIONAL) YOU MAY PROVIDE ALSO 4- -R TO DO RECURSIVE SEARCH"
     exit 1
 fi
 argNodePath=$1
@@ -29,18 +30,40 @@ elif [[ -d "$2" ]] ; then
   if [ ! -z "$3" ]; then
     # Use file extension as filter for the loop
     argFileExtension="$3"
-    for file in *.${argFileExtension}; do
-      # filename without extension if you want to add it to node path
-      filename=$(basename "${file%.*}")
-      # remove case where there is no result and "*" is returned
-      if [ "$filename" == "*" ]; then
-        echo "********** No file with extension: $argFileExtension"
-        echo "********** In directory: $2"
-        echo "********** Exiting without error"
-        exit 0
-      fi
-      $sweagleScriptDir/uploadFileToSweagle.sh "$argNodePath,$filename" "$file"
-    done
+    if [ ! -z "$4" ] && [ $4 = "-R" ]; then
+      echo "Do recursive search"
+      echo "$(find . -name *.${argFileExtension});"
+      for file in $(find . -name *.${argFileExtension}); do
+        # filename without extension if you want to add it to node path
+        filename=$(basename "${file%.*}")
+        dirname=$(dirname "${file}")
+        dirname=${dirname////,}
+        dirname=${dirname//.,/}
+        #echo "filename=$filename"
+        #echo "dirname=$dirname"
+        # remove case where there is no result and "*" is returned
+        if [ "$filename" == "*" ]; then
+          echo "********** No file with extension: $argFileExtension"
+          echo "********** In directory: $2"
+          echo "********** Exiting without error"
+          exit 0
+        fi
+        $sweagleScriptDir/uploadFileToSweagle.sh "$argNodePath,$dirname,$filename" "$file"
+      done
+    else
+      for file in *.${argFileExtension}; do
+        # filename without extension if you want to add it to node path
+        filename=$(basename "${file%.*}")
+        # remove case where there is no result and "*" is returned
+        if [ "$filename" == "*" ]; then
+          echo "********** No file with extension: $argFileExtension"
+          echo "********** In directory: $2"
+          echo "********** Exiting without error"
+          exit 0
+        fi
+        $sweagleScriptDir/uploadFileToSweagle.sh "$argNodePath,$filename" "$file"
+      done
+    fi
   else
     # No file extension provided as arg
     for file in *; do
