@@ -29,7 +29,7 @@ variables:
   # ex: SWEAGLE_EXPORTER_FORMAT: "YAML"
   SWEAGLE_EXPORTER_OUTPUT: ""
   # ex: SWEAGLE_EXPORTER_OUTPUT: ""
-  GITLAB_TARGET_DIR: "/release"
+  GITLAB_TARGET_DIR: ""
   # ex: GITLAB_TARGET_DIR: "/release"
 
 #build:
