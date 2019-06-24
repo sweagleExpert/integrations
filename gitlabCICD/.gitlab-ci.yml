@@ -1,31 +1,36 @@
+image: node:6
+
 stages:
   - build
+  - validate and store config
+  - deploy
   - test
   - staging
   - production
 
-image: node:6
-
 # WARNING: check if your tenant is case sensitive (default) to input vars below
 variables:
-  CONFIG_DIR: "<DIRECTORY OR FILE WHERE YOU PUT YOUR CONFIG TO UPLOAD TO SWEAGLE>"
+  CONFIG_DIR: "./conf"
   # ex: CONFIG_DIR: "./conf"
-  SWEAGLE_SCRIPTS_DIR: "<DIRECTORY WHERE YOU PUT YOUR SWEAGLE SCRIPTS>"
+  SWEAGLE_SCRIPTS_DIR: "./scripts"
   # ex: SWEAGLE_SCRIPTS_DIR: "./scripts"
-  SWEAGLE_PATH: "<PATH IN DATA MODEL WHERE YOU WANT TO PUT YOUR CONFIG DATA, EACH NODE SEPARATED BY COMMA>"
+  SWEAGLE_PATH: "ora-dtsi,network"
   # ex: SWEAGLE_PATH: "dimension,node1,node2"
-  SWEAGLE_MDS: "<METADATASET YOU WANT TO GET CONFIG DATA FROM>"
+  SWEAGLE_MDS: "ora-dtsi"
   # ex: SWEAGLE_MDS: "dimension" or SWEAGLE_MDS:$APP_NAME-$ENV_NAME (if they have been defined before)
-  SWEAGLE_VALIDATORS: "<OPTIONAL, LIST OF CUSTOM VALIDATORS, SEPARATED BY SPACES, USED TO CHECK YOUR CONFIG>"
+  #SWEAGLE_VALIDATORS: "noDevValues noEmptyValues passwordChecker"
+  SWEAGLE_VALIDATORS: ""
   # ex: SWEAGLE_VALIDATORS: "noDevValues noEmptyValues passwordChecker"
-  SWEAGLE_EXPORTER: "<EXPORTER USED TO RETRIEVE YOUR CONFIG>"
+  SWEAGLE_EXPORTER: "returnDataForNodeName"
   # ex: SWEAGLE_EXPORTER: "all" or SWEAGLE_EXPORTER: "returnDataForNodeName"
-  SWEAGLE_EXPORTER_ARGS: "<OPTIONAL, EXPORTER ARGUMENTS IF ANY, SEPARATED BY COMMA>"
+  SWEAGLE_EXPORTER_ARGS: "F5"
   # ex: SWEAGLE_EXPORTER_ARGS: "" or SWEAGLE_EXPORTER_ARGS: "node1"
-  SWEAGLE_EXPORTER_FORMAT: "<OPTIONAL, FORMAT USED FOR DOWNLOADED CONFIG, PROPS (DEFAULT), YAML, JSON, XML>"
+  SWEAGLE_EXPORTER_FORMAT: "YAML"
   # ex: SWEAGLE_EXPORTER_FORMAT: "YAML"
-  SWEAGLE_EXPORTER_OUTPUT: "<OPTIONAL, TARGET FILE TO EXPORT CONFIG DATA TO, DEFAULT OUTPUT IS SCREEN>"
-  # ex: SWEAGLE_EXPORTER_OUTPUT: "" or SWEAGLE_EXPORTER_OUTPUT: "./release"
+  SWEAGLE_EXPORTER_OUTPUT: "./release/F5.yml"
+  # ex: SWEAGLE_EXPORTER_OUTPUT: ""
+  GITLAB_TARGET_DIR: "/release"
+  # ex: GITLAB_TARGET_DIR: "/release"
 
 #build:
 #  stage: build
@@ -48,15 +53,15 @@ uploadConfiguration:
   when: on_success
   # possible values always, on_success, on_failure, manual
 
-deployTestEnvironment:
-  stage: test
+getConfig:
+  stage: validate and store config
   only:
   - master
   variables:
     # specific variables for this step
   before_script:
     - echo **********
-    - echo *** Check configuration from Sweagle
+    - echo *** Check configuration from SWEAGLE
     - chmod +x $SWEAGLE_SCRIPTS_DIR/*.sh
     - $SWEAGLE_SCRIPTS_DIR/checkAllConfigByMdsValidator.sh $SWEAGLE_MDS $SWEAGLE_VALIDATORS
     # you may create your own wrapper of Sweagle scripts to match an App or Env to an MDS
@@ -64,11 +69,30 @@ deployTestEnvironment:
     - echo *** SWEAGLE will also fill token values, if any
     # Store your config snapshot in order to be able to retrieve it
     - $SWEAGLE_SCRIPTS_DIR/storeConfigSnapshotByMds.sh $SWEAGLE_MDS
+  script:
     # Download your config using exporter
     - $SWEAGLE_SCRIPTS_DIR/getConfigByMdsParserArgs.sh $SWEAGLE_MDS $SWEAGLE_EXPORTER args=$SWEAGLE_EXPORTER_ARGS format=$SWEAGLE_EXPORTER_FORMAT output=$SWEAGLE_EXPORTER_OUTPUT
+    # Store config back in Gitlab repository
+    #- $SWEAGLE_SCRIPTS_DIR/StoreFileInGitlab.sh $SWEAGLE_EXPORTER_OUTPUT $GITLAB_TARGET_DIR
+  artifacts:
+    # Store config in GitLab Artifact
+    paths:
+    - $SWEAGLE_EXPORTER_OUTPUT
+  when: on_success
+  # possible values always, on_success, on_failure, manual
+
+deployTestEnvironment:
+  stage: deploy
+  only:
+  - master
+  variables:
+    # specific variables for this step
   script:
     - echo deploy TEST environment
-    - echo run tests
+    - echo upload deployed config to SWEAGLE
+    # Store deployed config back in SWEAGLE (file is taken from artifacts)
+    - chmod +x $SWEAGLE_SCRIPTS_DIR/*.sh
+    - $SWEAGLE_SCRIPTS_DIR/uploadFileToSweagle.sh $SWEAGLE_PATH,deployed $SWEAGLE_EXPORTER_OUTPUT
   when: on_success
   # possible values always, on_success, on_failure, manual
 
