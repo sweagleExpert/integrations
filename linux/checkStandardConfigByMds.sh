@@ -41,9 +41,11 @@ fi
 errorFound=$(echo "$response" | jsonValue $argControl)
 if [[ $response = "{\"error\":"* ]]; then
     echo -e "\n********** ERROR: Unable to validate MDS: $argMds with standard validators:"
+    echo "SWEAGLE response: $response"
     exit 1
 elif [ "$errorFound" != 0 ]; then
     echo "********** ERROR: BROKEN configuration data detected for MDS: $argMds for standard validators:"
+    echo "SWEAGLE response: $response"
     exit 1
 fi
 
