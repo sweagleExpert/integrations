@@ -8,6 +8,11 @@ source $(dirname "$0")/sweagle.env
 ############# Inputs: See error message below
 ############# Output: 0 if no errors, 1 + Details of errors if any
 ##########################################################################
+if ! ([ -x "$(command -v python)" ] || [ -x "$(command -v jq)" ]) ; then
+  echo "********** ERROR: PYTHON or JQ IS REQUIRED FOR THIS SCRIPT"
+  exit 1
+fi
+
 if [ "$#" -lt "2" ]; then
     echo "********** ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
     echo "********** YOU SHOULD PROVIDE 1- PARSER FILENAME AND 2- PARSER TYPE"
@@ -53,6 +58,14 @@ function getParsers {
 
 #Return Parser Id from Parsers list identified by its name
 function getParserIdFromName {
+# Try first to get Id with JQ if present
+if [ -x "$(command -v jq)" ] ; then
+  parserName="$1"
+  jsonValue="$2"
+  id=$(echo ${jsonValue} | jq --arg parser_name ${parserName} '.entities[].properties | select(.name|index($parser_name)) | .id')
+  echo ${id}
+else
+# Else, do it with PYTHON
 parserName="$1" jsonValue="$2" python - <<EOF_PYTHON
 #!/usr/bin/python
 import json
@@ -64,6 +77,7 @@ for item in json1["entities"]:
   if item["properties"]["name"] == parserName:
       print item["properties"]["id"]
 EOF_PYTHON
+fi
 }
 
 # Create parser from file and put new created Id in variable parserId

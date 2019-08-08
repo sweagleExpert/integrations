@@ -17,6 +17,10 @@ argSourceDir=$1
 argParserType=$2
 
 sweagleScriptDir="$PWD"/$(dirname "$0")
+# OR
+#SCRIPT_NAME=$(readlink -f $0)
+#SCRIPT_DIR=$( dirname ${SCRIPT_NAME} )
+#SCRIPT_NAME=${SCRIPT_NAME##*/}
 
 if [[ -f "$argSourceDir" ]] ; then
   # the arg is a file, call the upload script only once

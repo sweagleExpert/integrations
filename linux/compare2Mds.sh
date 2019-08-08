@@ -10,6 +10,10 @@ source $(dirname "$0")/sweagle.env
 ############# Input: MDS to compare
 ############# Output: 0 if no errors, 1 + Details of errors if any
 ##########################################################################
+if ! [ -x "$(command -v python)" ] ; then
+  echo "********** ERROR: PYTHON v2.7.15 (or higher) IS REQUIRED FOR THIS SCRIPT"
+  exit 1
+fi
 
 if [ "$#" -lt "2" ]; then
     echo "********** ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
