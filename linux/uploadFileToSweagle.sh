@@ -24,7 +24,7 @@ fi
 
 function apiUrl() {
 cat <<EOF
-$sweagleURL/api/v1/data/bulk-operations/dataLoader/upload?nodePath=$argNodePath&format=$argFormat&allowDelete=$argDeleteData&onlyParent=$argOnlyParent&autoApprove=$argDcsApprove&storeSnapshotResults=$argSnapshotCreate&validationLevel=$argSnapshotLevel&encoding=$argEncoding
+$sweagleURL/api/v1/data/bulk-operations/dataLoader/upload?nodePath=$argNodePath&format=$argFormat&allowDelete=$argDeleteData&onlyParent=$argOnlyParent&autoApprove=$argDcsApprove&storeSnapshotResults=$argSnapshotCreate&validationLevel=$argSnapshotLevel&encoding=$argEncoding&identifierWords=$argIdentifierWords
 EOF
 }
 
@@ -33,6 +33,9 @@ function loadDefaultSettings () {
     argDcsApprove="true"
     argDeleteData="false"
     argEncoding="utf-8"
+    # This parameter can be used for XML, JSON, or YAML files, in order to identify uniquely a parameter in a list or array
+    # Uniqueness guarantees that parameter will be exported properly
+    argIdentifierWords=""
     argOnlyParent="true"
     # don't store snapshot now to be able to validate with custom validators later
     argSnapshotCreate="false"
@@ -72,12 +75,16 @@ loadDefaultSettings
 #deployDateTime=$( date '+%F %H:%M:%S' )
 
 echo -e "\n**********"
-echo "*** Call Sweagle API to upload configuration data & store snapshot for file: $filename"
+echo "*** Call SWEAGLE API to upload configuration data & store snapshot for file: $filename"
 # For debugging purpose only, use echo below
-#echo "(curl -s -X POST '$(apiUrl)' -H '$(apiToken)' -H 'Content-Type: $argContentType' --data-binary '@$argFile')"
-response=$(curl -s -X POST "$(apiUrl)" -H "$(apiToken)" -H "Content-Type: $argContentType" --data-binary "@$argFile")
-echo "Sweagle response: "$response
-if [[ $response = "{\"error\":"* ]]; then
- 	echo -e "\n********** ERROR: Unable to upload configuration file: $filename\n"
-  exit 1
-fi
+#echo "(curl -sw '%{http_code}' -X POST '$(apiUrl)' -H '$(apiToken)' -H 'Content-Type: $argContentType' --data-binary '@$argFile')"
+response=$(curl -sw "%{http_code}" -X POST "$(apiUrl)" -H "$(apiToken)" -H "Content-Type: $argContentType" --data-binary "@$argFile")
+
+# check curl exit code
+rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
+
+# check http return code, it's ok if 200 (OK) or 201 (created)
+get_httpreturn httpcode response; if [[ "${httpcode}" != 20* ]]; then echo $response; exit 1; fi;
+
+echo "SWEAGLE response: "$response
+echo "*** File uploaded successfully"
