@@ -19,9 +19,8 @@ Recent BIGIP equipment supports API calls to export configuration as xml files.
 If possible, prefer this method as XML is natively supported by SWEAGLE and you don't need and formatting script.
 
 Legacy BIGIP configuration files are highly proprietary scripts with a mix of instructions to run and configuration to apply.
-Strategy depends on legacy file format:
-- for legacy format that are text files containing { and with indentation (see example1.txt), use bigip2json.sh
-- second, not try to understand each CISCO keywords and values, but import them as raw values to be able to handle any format and language version.
+For legacy format that are text files containing { and with indentation (see example1.txt), use bigip2json.sh
+The script doesn't try to understand each keywords and values, but import them as raw values to be able to handle any format and language version.
 
 Please, note this approach may not be adapted to all use cases.
 
