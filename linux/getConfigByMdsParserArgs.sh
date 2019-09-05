@@ -24,6 +24,7 @@ fi
 argMds=$1
 argParser=$2
 template="false"
+picture="false"
 while [[ "$#" > "0" ]]
 do
   case $1 in
