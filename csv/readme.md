@@ -15,6 +15,9 @@ You should use the scripts provided here with the scripts provided under the lin
 
 CONTENT
 
+/csv2json-1col.sh : Transform first column of a comma separated file (CSV) into JSON format. This only transforms first colmun as a JSON array with an optional argument to rename the column.
+Launch without arguments to get help.
+
 /csv2json-1key.awk : Transform a comma separated file (CSV) into JSON format. This is simplified version of csv2json.awk that only takes first column as key.
 You can change the separator (default is ,) by editing value of FS parameter (line 5 of the script).
 To use it: awk -f csv2json-1key.awk <your csv file>
