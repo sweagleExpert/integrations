@@ -16,6 +16,6 @@ You should use the scripts provided here with the scripts provided under the lin
 CONTENT
 
 /system2ini.sh : export various linux configuration items into ini and json files
-=> DEPRECATED - This is no more maintained, please use system2json.Sh instead
+=> DEPRECATED - This is no more maintained, please use system2json.sh instead
 
 /system2json.sh : export various linux configuration items into json file

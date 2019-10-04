@@ -15,14 +15,16 @@ output=$1
 
 # List of files to parse, put a line with empty value to remove it
 #CONF_EXECS is an array of execs files to control vs a template configuration
-CONF_EXECS=("/PATH/TO/EXECS1"
-  "/PATH/TO/EXECS1")
+#Example:
+#CONF_EXECS=("/PATH/TO/EXECS1"
+#  "/PATH/TO/EXECS1")
+CONF_EXECS=
 CONF_GROUP=/etc/group
 CONF_HOSTS=/etc/hosts
-if  [ -f /etc/sssd ]; then
- CONF_LDAP=/etc/sssd
-else
- CONF_LDAP=/etc/ldap/ldap.conf
+if  [ -f /etc/sssd ]; then CONF_LDAP=/etc/sssd
+elif [ -f /etc/ldap/ldap.conf ]; then CONF_LDAP=/etc/ldap/ldap.conf
+elif [ -f /etc/openldap/ldap.conf ]; then CONF_LDAP=/etc/openldap/ldap.conf
+else CONF_LDAP=
 fi
 CONF_LIMITS=/etc/security/limits.conf
 CONF_NETWORK=
@@ -70,6 +72,10 @@ function expand_ipv6() {
 dir=$(dirname "${output}")
 mkdir -p $dir
 
+hostname=$(hostname -s | head -n 1)
+hostnames=$(hostname)
+echo -e "{\"${hostname}\" : {\"hostname\": \"${hostnames}\"" > $output
+
 if [ -f /etc/redhat-release ]; then
     os="redhat"
 else
@@ -77,7 +83,7 @@ else
 fi
 case $os in
   "CentOS Linux"|"redhat")
-    echo -e '{"os":{' > $output
+    echo -e ',"os":{' >> $output
     echo '"DISTRIB_DESCRIPTION":"'$(cat /etc/redhat-release)'",'  >> $output
     uname -a | awk '{print "\"uname\":\""$3"\","}' >> $output
     # replace last , by } to end json element
@@ -330,5 +336,5 @@ sed -i '$ s/.$/}/' $output
 fi
 
 # End the JSON file
-echo -e '\n}' >> $output
+echo -e '\n}}' >> $output
 rm $output.tmp
