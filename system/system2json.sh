@@ -74,7 +74,9 @@ mkdir -p $dir
 
 hostname=$(hostname -s | head -n 1)
 hostnames=$(hostname)
-echo -e "{\"${hostname}\" : {\"hostname\": \"${hostnames}\"" > $output
+scanDate=`date '+%Y-%m-%dT%H:%M:%S'`
+echo -e "{\"${hostname}\": {\"hostname\": \"${hostnames}\",\"scanDate\":\"${scanDate}\"" > $output
+echo -e ",\"system\": {" >> $output
 
 if [ -f /etc/redhat-release ]; then
     os="redhat"
@@ -336,5 +338,5 @@ sed -i '$ s/.$/}/' $output
 fi
 
 # End the JSON file
-echo -e '\n}}' >> $output
+echo -e '\n}}}' >> $output
 rm $output.tmp
