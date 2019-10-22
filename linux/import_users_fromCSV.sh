@@ -42,6 +42,11 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 
+# get input FILE
+argSourceFile=$1
+# check if a column separator arg was provided
+if [ $# -lt 2 ]; then separator=','; else separator=$2; fi
+
 ##########################################################
 #               FILES AND VARIABLES
 ##########################################################
@@ -51,8 +56,6 @@ host=${1:-}
 # load sweagle host specific variables like aToken, sweagleURL, ...
 source $(dirname "$0")/sweagle.env
 
-# check if a column separator arg was provided
-if [ $# -lt 2 ]; then separator=','; else separator=$2; fi
 # Define number regex
 numberRegex='^[0-9]+$'
 
@@ -144,8 +147,10 @@ function create_user() {
 		--data-urlencode "roles=${roles}")
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-    # check http return code
+  # check http return code
 	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then echo ${res}; exit 1; fi;
+  # return id of created user
+  echo "$res" | jsonValue "id"
 }
 
 # arg1: id (user id)
@@ -180,6 +185,23 @@ function update_user() {
 	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then echo ${res}; exit 1; fi;
 }
 
+# arg1: user_id
+# arg2: api_id
+function add_user_api() {
+	user_id=${1}
+	api_id=${2}
+
+	# Add api token to an existing user
+	res=$(\
+		curl -sw "%{http_code}" "$sweagleURL/api/v1/user/${user_id}/api" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+		--data "apiUsers=${api_id}")
+	# check curl exit code
+	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
+  # check http return code
+	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then echo ${res}; exit 1; fi;
+}
+
+
 
 ##########################################################
 #               BEGINNING OF MAIN
@@ -190,8 +212,22 @@ set -o nounset # exit when script tries to use undeclared variables
 # Get list of existing users in SWEAGLE
 users_list=$(get_users)
 
+# remove windows BOM and CR in file
+echo "### Remove BOM and CR in CSV"
+sed -i 's/^M//g' "${argSourceFile}"
+sed -i 's/\r//g' "${argSourceFile}"
+if [ -x "$(command -v iconv)" ] ; then
+  echo "### Convert input CSV file to UTF-8"
+  iconv -t UTF-8 -o "${argSourceFile}.tmp" "${argSourceFile}"
+  mv -f "${argSourceFile}.tmp" "${argSourceFile}"
+else
+  echo "#########################################################################################"
+  echo "########## WARNING: ICONV not found, unable to convert to UTF-8"
+  echo "#########################################################################################"
+fi
+
 # read CSV file skipping first line which is header
-sed 1d $1 | while IFS=${separator} read -r username password email name role
+sed 1d "${argSourceFile}" | while IFS=${separator} read -r username password email name role api
 do
 	#echo "### Read line $username, $email, $name, $role"
 	userID=$(get_user_from_username ${username})
@@ -232,7 +268,25 @@ do
         echo "Found role with ID: ${roleID}"
     		res=$(create_user "${username}" "${email}" "${name}" "${password}" false "PERSON" "${roleID}")
       fi
-  		rc=$?; if [[ "${rc}" -ne 0 ]]; then echo "CREATION FAILED WITH ERROR: $res"; else echo "CREATION SUCCESSFULL";  fi
+  		rc=$?; if [[ "${rc}" -ne 0 ]]; then
+        echo "CREATION FAILED WITH ERROR: $res"
+        userID=""
+      else
+        # Get ID of created user
+        echo "CREATION SUCCESSFULL OF USER (${res})"
+        userID=${res}
+      fi
+    fi
+  fi
+  if [ -n "$api" ] && [ ! -z "${userID}" ] && [[ $userID =~ $numberRegex ]]; then
+    echo "### There is an API, try to assign API (${api}) to user (${username})"
+    apiID=$(get_user_from_username ${api})
+    if [ ! -z "${apiID}" ] && [[ $apiID =~ $numberRegex ]]; then
+      echo "add API (${apiID}) to user (${userID})"
+      res=$(add_user_api ${userID} ${apiID})
+      rc=$?; if [[ "${rc}" -ne 0 ]]; then echo "API ADDITION FAILED WITH ERROR: $res"; else echo "API ADDITION SUCCESSFULL";  fi
+    else
+      echo "### ERROR : API USER (${api}) NOT FOUND !"
     fi
   fi
 done
