@@ -60,20 +60,6 @@ numberRegex='^[0-9]+$'
 #                    FUNCTIONS
 ##########################################################
 
-# arg1: http result (incl. http code)
-# arg2: httpcode (by reference)
-function get_httpreturn() {
-	local -n __http=${1}
-	local -n __res=${2}
-
-	__http="${__res:${#__res}-3}"
-    if [ ${#__res} -eq 3 ]; then
-      __res=""
-    else
-      __res="${__res:0:${#__res}-3}"
-    fi
-}
-
 # arg1: rolename
 # Global variable users_list is also used
 function get_role() {
