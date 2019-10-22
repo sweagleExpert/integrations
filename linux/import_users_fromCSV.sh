@@ -51,6 +51,11 @@ host=${1:-}
 # load sweagle host specific variables like aToken, sweagleURL, ...
 source $(dirname "$0")/sweagle.env
 
+# check if a column separator arg was provided
+if [ $# -lt 2 ]; then separator=','; else separator=$2; fi
+# Define number regex
+numberRegex='^[0-9]+$'
+
 ##########################################################
 #                    FUNCTIONS
 ##########################################################
@@ -126,7 +131,6 @@ function get_user_from_email() {
 	echo ${id}
 }
 
-
 # arg1: username
 # arg2: email
 # arg3: name
@@ -199,12 +203,6 @@ function update_user() {
 #set -o errexit # exit after first line that fails
 set -o nounset # exit when script tries to use undeclared variables
 
-# Define number regex
-numberRegex='^[0-9]+$'
-
-# check if a column separator arg was provided
-if [ $# -lt 2 ]; then separator=','; else separator=$2; fi
-
 # Get list of existing users in SWEAGLE
 users_list=$(get_users)
 
@@ -241,7 +239,7 @@ do
       if [[ $role =~ $numberRegex ]]; then
         # If role is already a number, use it as role ID
         roleID=${role}
-      elif [ -x "$(command -v jq)" ] ; then 
+      elif [ -x "$(command -v jq)" ] ; then
         roleID=$(get_role ${role})
       fi
       if [ -z "${roleID}" ]; then
