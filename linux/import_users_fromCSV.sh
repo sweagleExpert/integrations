@@ -45,7 +45,7 @@ fi
 # get input FILE
 argSourceFile=$1
 # check if a column separator arg was provided
-if [ $# -lt 2 ]; then separator=','; else separator=$2; fi
+if [ $# -lt 2 ]; then separator=';'; else separator=$2; fi
 
 ##########################################################
 #               FILES AND VARIABLES
@@ -186,21 +186,36 @@ function update_user() {
 }
 
 # arg1: user_id
-# arg2: api_id
-function add_user_api() {
+# arg2: apis_id (apis id separated by commas)
+function add_user_apis() {
 	user_id=${1}
-	api_id=${2}
+	apis_id=${2}
 
-	# Add api token to an existing user
+	# Add apis token to an existing user
 	res=$(\
 		curl -sw "%{http_code}" "$sweagleURL/api/v1/user/${user_id}/api" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
-		--data "apiUsers=${api_id}")
+		--data "apiUsers=${apis_id}")
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
   # check http return code
 	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then echo ${res}; exit 1; fi;
 }
 
+# arg1: user_id
+# arg2: roles_id (roles id separated by commas)
+function add_user_roles() {
+	user_id=${1}
+	roles_id=${2}
+
+	# Add roles to an existing user
+	res=$(\
+		curl -sw "%{http_code}" "$sweagleURL/api/v1/user/${user_id}/assignRoles" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+		--data "roles=${roles_id}")
+	# check curl exit code
+	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
+  # check http return code
+	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then echo ${res}; exit 1; fi;
+}
 
 
 ##########################################################
@@ -255,20 +270,9 @@ do
       fi
     else
       echo "### No existing user ${username}, create it"
-      roleID="";
-      if [[ $role =~ $numberRegex ]]; then
-        # If role is already a number, use it as role ID
-        roleID=${role}
-      elif [ -x "$(command -v jq)" ] ; then
-        roleID=$(get_role ${role})
-      fi
-      if [ -z "${roleID}" ]; then
-        res=$(create_user "${username}" "${email}" "${name}" "${password}" false "PERSON")
-      else
-        echo "Found role with ID: ${roleID}"
-    		res=$(create_user "${username}" "${email}" "${name}" "${password}" false "PERSON" "${roleID}")
-      fi
-  		rc=$?; if [[ "${rc}" -ne 0 ]]; then
+      res=$(create_user "${username}" "${email}" "${name}" "${password}" false "PERSON")
+  		rc=$?;
+      if [[ "${rc}" -ne 0 ]]; then
         echo "CREATION FAILED WITH ERROR: $res"
         userID=""
       else
@@ -278,15 +282,36 @@ do
       fi
     fi
   fi
-  if [ -n "$api" ] && [ ! -z "${userID}" ] && [[ $userID =~ $numberRegex ]]; then
-    echo "### There is an API, try to assign API (${api}) to user (${username})"
-    apiID=$(get_user_from_username ${api})
-    if [ ! -z "${apiID}" ] && [[ $apiID =~ $numberRegex ]]; then
-      echo "add API (${apiID}) to user (${userID})"
-      res=$(add_user_api ${userID} ${apiID})
-      rc=$?; if [[ "${rc}" -ne 0 ]]; then echo "API ADDITION FAILED WITH ERROR: $res"; else echo "API ADDITION SUCCESSFULL";  fi
-    else
-      echo "### ERROR : API USER (${api}) NOT FOUND !"
+
+  if [ ! -z "${userID}" ] && [[ $userID =~ $numberRegex ]]; then
+    if [ -n "$role" ]; then
+      echo "# There is a role, try to assign role (${role}) to user (${username})"
+      roleID="";
+      if [[ $role =~ $numberRegex ]]; then
+        # If role is already a number, use it as role ID
+        roleID=${role}
+      elif [ -x "$(command -v jq)" ] ; then
+        roleID=$(get_role ${role})
+      fi
+      if [ ! -z "${roleID}" ] && [[ $roleID =~ $numberRegex ]]; then
+        echo "add role (${roleID}) to user (${userID})"
+        res=$(add_user_roles ${userID} ${roleID})
+        rc=$?; if [[ "${rc}" -ne 0 ]]; then echo "ROLE ADDITION FAILED WITH ERROR: $res"; else echo "ROLE ADDITION SUCCESSFULL";  fi
+      else
+        echo "### ERROR : ROLE (${role}) NOT FOUND !"
+      fi
+    fi
+
+    if [ -n "$api" ]; then
+      echo "# There is an API, try to assign API (${api}) to user (${username})"
+      apiID=$(get_user_from_username ${api})
+      if [ ! -z "${apiID}" ] && [[ $apiID =~ $numberRegex ]]; then
+        echo "add API (${apiID}) to user (${userID})"
+        res=$(add_user_apis ${userID} ${apiID})
+        rc=$?; if [[ "${rc}" -ne 0 ]]; then echo "API ADDITION FAILED WITH ERROR: $res"; else echo "API ADDITION SUCCESSFULL";  fi
+      else
+        echo "### ERROR : API USER (${api}) NOT FOUND !"
+      fi
     fi
   fi
 done
