@@ -13,7 +13,7 @@
 #				- tested in bash 4.4
 #
 # PURPOSE:	Import users from CSV with a default role
-#						CSV columns must be USERNAME, EMAIL, NAME, ROLE
+#						CSV columns must be LOGIN,PASSWORD,EMAIL,NAME,ROLE
 #
 # REV LIST:
 #        DATE: DATE_of_REVISION
@@ -21,7 +21,7 @@
 #        MODIFICATION: Describe what was modified, new features, etc--
 #
 #
-# set -n   # Uncomment to check script syntax, without execution.
+# set -n   # Uncomment to check script syntax, without execution
 #          # NOTE: Do not forget to put the # comment back in or
 #          #       the shell script will never execute!
 #set -x   # Uncomment to debug this shell script
@@ -37,7 +37,7 @@ fi
 
 if [ $# -lt 1 ]; then
     echo "########## ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "********** YOU SHOULD PROVIDE 1- CSV FILE WITH COLUMNS USERNAME,EMAIL,NAME,ROLE"
+    echo "********** YOU SHOULD PROVIDE 1- CSV FILE WITH COLUMNS LOGIN,PASSWORD,EMAIL,NAME,ROLE"
 		echo "********** YOU MAY PROVIDE 2- COLUMN SEPARATOR (OPTIONAL, DEFAULT IS ,)"
     exit 1
 fi
@@ -169,7 +169,6 @@ function create_user() {
 # arg5: currentPassword
 # arg6: newPassword
 # arg7: disabled (true, false)
-# arg8: roles (comma separated list of roles)
 function update_user() {
 	id=${1}
 	username=${2-}
@@ -178,7 +177,6 @@ function update_user() {
 	currentPassword=${5:-"testtest"}
 	newPassword=${6:-}
 	disabled=${7:-false}
-	roles=${8:-}
 
 	# Update an existing user
 	res=$(\
@@ -207,7 +205,7 @@ set -o nounset # exit when script tries to use undeclared variables
 users_list=$(get_users)
 
 # read CSV file skipping first line which is header
-sed 1d $1 | while IFS=${separator} read -r username email name role
+sed 1d $1 | while IFS=${separator} read -r username password email name role
 do
 	#echo "### Read line $username, $email, $name, $role"
 	userID=$(get_user_from_username ${username})
@@ -227,7 +225,7 @@ do
       # User already exists, check if we got his id or just result of a grep
       if [[ $userID =~ $numberRegex ]]; then
         echo "### user ${email} already exits, update it"
-    		res=$(update_user ${userID} "${username}" "   " "${name}")
+    		res=$(update_user ${userID} "${username}" "${email}" "${name}")
     		rc=$?; if [[ "${rc}" -ne 0 ]]; then echo "UPDATE FAILED WITH ERROR: $res"; else echo "UPDATE SUCCESSFULL"; fi
       else
         # We got only result of a grep, skip it
@@ -243,10 +241,10 @@ do
         roleID=$(get_role ${role})
       fi
       if [ -z "${roleID}" ]; then
-        res=$(create_user "${username}" "${email}" "${name}" "testtest" false "PERSON")
+        res=$(create_user "${username}" "${email}" "${name}" "${password}" false "PERSON")
       else
         echo "Found role with ID: ${roleID}"
-    		res=$(create_user "${username}" "${email}" "${name}" "testtest" false "PERSON" "${roleID}")
+    		res=$(create_user "${username}" "${email}" "${name}" "${password}" false "PERSON" "${roleID}")
       fi
   		rc=$?; if [[ "${rc}" -ne 0 ]]; then echo "CREATION FAILED WITH ERROR: $res"; else echo "CREATION SUCCESSFULL";  fi
     fi
