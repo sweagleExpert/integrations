@@ -70,10 +70,9 @@ function get_role() {
 
   # Get all tenant roles
 	res=$(curl -sw "%{http_code}" "$sweagleURL/api/v1/tenant/role" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
-
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-    # check http return code
+	# check http return code
 	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then exit 1; fi;
 
   id=$(echo ${res} | jq --arg attr_rolename ${rolename} '.entities[].properties | select(.name|index($attr_rolename)) | .id')
@@ -83,11 +82,10 @@ function get_role() {
 function get_users() {
 	# Get all tenant users
 	res=$(curl -sw "%{http_code}" "$sweagleURL/api/v1/user" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
-
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-    # check http return code
-	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then echo $res; exit 1; fi;
+	# check http return code
+	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then echo ${res}; exit 1; fi;
 
 	echo ${res}
 }
@@ -224,17 +222,18 @@ function add_user_roles() {
 #set -o errexit # exit after first line that fails
 set -o nounset # exit when script tries to use undeclared variables
 
-# Get list of existing users in SWEAGLE
+echo "### Get list of existing users"
 users_list=$(get_users)
+rc=$?; if [[ "${rc}" -ne 0 ]]; then echo "UNABLE TO GET LIST OF USERS, ERROR IS: $users_list"; exit 1; fi
 
-# remove windows BOM and CR in file
 echo "### Remove BOM and CR in CSV"
+encoding=$(file -bi ${argSourceFile} | cut -f 2 -d";" | cut -f 2 -d=)
 sed -i 's/^M//g' "${argSourceFile}"
 sed -i 's/\r//g' "${argSourceFile}"
-if [ -x "$(command -v iconv)" ] ; then
-  echo "### Convert input CSV file to UTF-8"
-  iconv -t UTF-8 -o "${argSourceFile}.tmp" "${argSourceFile}"
-  mv -f "${argSourceFile}.tmp" "${argSourceFile}"
+if [ -x "$(command -v iconv)" ]; then
+    echo "### Convert input CSV file to UTF-8"
+    iconv -f ${encoding} -t UTF-8 -o "${argSourceFile}.tmp" "${argSourceFile}"
+    mv -f "${argSourceFile}.tmp" "${argSourceFile}"
 else
   echo "#########################################################################################"
   echo "########## WARNING: ICONV not found, unable to convert to UTF-8"
@@ -244,8 +243,9 @@ fi
 # read CSV file skipping first line which is header
 sed 1d "${argSourceFile}" | while IFS=${separator} read -r username password email name role api
 do
-	#echo "### Read line $username, $email, $name, $role"
-	userID=$(get_user_from_username ${username})
+  if [ -z "$username" ]; then echo "### No username, skip line"; continue; fi
+  #echo "### Read line $username, $email, $name, $role"
+  userID=$(get_user_from_username ${username})
   if [ ! -z "$userID" ]; then
     # User already exists, check if we got his id or just result of a grep
     if [[ $userID =~ $numberRegex ]]; then

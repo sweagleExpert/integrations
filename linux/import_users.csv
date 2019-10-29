@@ -1,0 +1,3 @@
+LOGIN;PASSWORD;EMAIL;NAME;ROLE;API
+toto;testtest;toto@test.com;toto titi;DEFAULT_ROLE;api_testing
+titi;password;titi@test.com;tata titi;DEFAULT_ROLE;dfinas_api
