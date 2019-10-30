@@ -72,50 +72,21 @@ node {
       for (i=0; i<validators.length; i++) {
         println("# Check with validator: "+validators[i])
         def api = "/api/v1/tenant/metadata-parser/validate?mds="+SWEAGLE_MDS+"&parser="+validators[i]+"&forIncoming="+forIncoming
-        def sweagleCall = new URL(SWEAGLE_TENANT + api).openConnection() as HttpURLConnection
-        sweagleCall.setRequestMethod('POST')
-        sweagleCall.setRequestProperty("Authorization", 'Bearer ' + SWEAGLE_TOKEN)
-        sweagleCall.setRequestProperty("Accept", '*/*')
-        sweagleCall.setRequestProperty("Content-Type", 'application/json')
-        println sweagleCall
-        sweagleCall.connect()
-
-        def response = [:]
-        println "API responseCode: "+sweagleCall.responseCode
-        if (sweagleCall.responseCode == 200 || sweagleCall.responseCode == 201) {
-          // This is ok (code 2xx)
-          response = new JsonSlurper().parseText(sweagleCall.inputStream.getText('UTF-8'))
-          println "# Validator "+validators[i]+" passed successfully"
+        def response = new JsonSlurper().parseText(callSweagleAPI('POST', api))
+        println ("API response="+response)
+        if (response.errorFound && response.description.error == 'NotFoundException') {
+          println "### No pending metadataset, validate last snapshot instead"
+          forIncoming = false
+          api="/api/v1/tenant/metadata-parser/validate?mds="+SWEAGLE_MDS+"&parser="+validators[i]+"&forIncoming="+forIncoming
+          response = new JsonSlurper().parseText(callSweagleAPI('POST', api))
+        }
+        if (response.errorFound) {
+          // This is parser failure
+          errorFound = errorFound + 1
+          println "# Validator "+validators[i]+" failed with error:"+response.description
         } else {
-          response = new JsonSlurper().parseText(sweagleCall.errorStream.getText('UTF-8'))
-          println "response: "+response
-          if (response.error == 'NotFoundException') {
-            println "### No pending metadataset, validate last snapshot instead"
-            forIncoming = false
-            api="/api/v1/tenant/metadata-parser/validate?mds="+SWEAGLE_MDS+"&parser="+validators[i]+"&forIncoming="+forIncoming
-            sweagleCall = new URL(SWEAGLE_TENANT + api).openConnection() as HttpURLConnection
-            sweagleCall.setRequestMethod('POST')
-            sweagleCall.setRequestProperty("Authorization", 'Bearer ' + SWEAGLE_TOKEN)
-            sweagleCall.setRequestProperty("Accept", '*/*')
-            sweagleCall.setRequestProperty("Content-Type", 'application/json')
-            println sweagleCall
-            sweagleCall.connect()
-
-            int status = sweagleCall.getResponseCode();
-            println "API responseCode: "+status
-            if (status == HttpURLConnection.HTTP_OK) {
-              // This is ok (code 2xx)
-              println "# Validator "+validators[i]+" passed successfully"
-            } else {
-              // This is parser failure
-              errorFound = errorFound + 1;
-              response = new JsonSlurper().parseText(sweagleCall.errorStream.getText('UTF-8'))
-              println "# Validator "+validators[i]+" failed with error:"+response
-            }
-          } else {
-            errorFound = errorFound + 1;
-            println "# Validator "+validators[i]+" failed with error:"+response
-          }
+          // This is ok (code 2xx)
+          println "# Validator "+validators[i]+" passed successfully"
         }
       }
       if (errorFound > 0) { error("### VALIDATION FAILED. NB OF VALIDATORS FAILED: "+errorFound) }
@@ -123,47 +94,6 @@ node {
     }
 
     stage('DownloadConfig') {
-      echo '######################################################'
-      echo '### Retrieve lastest valid configuration from SWEAGLE'
-      echo '### SWEAGLE will also fill token values, if any'
-      println "# Store the config snapshot in order to be able to retrieve it"
-      def api="/api/v1/data/include/snapshot/byname?name="+SWEAGLE_MDS+"&level=warn"
-      def sweagleCall = new URL(SWEAGLE_TENANT + api).openConnection() as HttpURLConnection
-      sweagleCall.setRequestMethod('POST')
-      sweagleCall.setRequestProperty("Authorization", 'Bearer ' + SWEAGLE_TOKEN)
-      sweagleCall.setRequestProperty("Accept", '*/*')
-      sweagleCall.setRequestProperty("Content-Type", 'application/json')
-      sweagleCall.connect()
-      def response = [:]
-      println "API responseCode: "+sweagleCall.responseCode
-      if (sweagleCall.responseCode != 200 && sweagleCall.responseCode != 201) {
-        response = new JsonSlurper().parseText(sweagleCall.errorStream.getText('UTF-8'))
-        println "API response: "+response
-        error("### SNAPSHOT FAILED")
-      }
-
-      println "# Snapshot successfull, get last config"
-      api="/api/v1/tenant/metadata-parser/parse?mds="+SWEAGLE_MDS+"&parser="+SWEAGLE_EXPORTER+ \
-      "&args="+SWEAGLE_EXPORTER_ARGS+"&format="+SWEAGLE_EXPORTER_FORMAT+"&tag="+SWEAGLE_SNAPSHOT_TAG+"&picture=false"
-      sweagleCall = new URL(SWEAGLE_TENANT + api).openConnection() as HttpURLConnection
-      sweagleCall.setRequestMethod('POST')
-      sweagleCall.setRequestProperty("Authorization", 'Bearer ' + SWEAGLE_TOKEN)
-      sweagleCall.setRequestProperty("Accept", '*/*')
-      sweagleCall.setRequestProperty("Content-Type", 'application/json')
-      sweagleCall.connect()
-      println "API responseCode: "+sweagleCall.responseCode
-      if (sweagleCall.responseCode == 200 || sweagleCall.responseCode == 201) {
-        //response = new JsonSlurper().parseText(sweagleCall.inputStream.getText('UTF-8'))
-        println "response file: "+sweagleCall.inputStream.getText('UTF-8')
-        println("### DOWNLOAD SUCCESSFULL")
-      } else {
-        response = new JsonSlurper().parseText(sweagleCall.errorStream.getText('UTF-8'))
-        println "API response: "+response
-        error("### DOWNLOAD FAILED")
-      }
-    }
-
-    stage('DownloadConfig2') {
       echo '######################################################'
       echo '### Retrieve lastest valid configuration from SWEAGLE'
       echo '### SWEAGLE will also fill token values, if any'
@@ -213,7 +143,8 @@ def callSweagleAPI(method, api) {
     response = "Redirect to: "+sweagleCall.getHeaderField("Location");
   } else {
     errorFound = true
-    response = new JsonSlurper().parseText(sweagleCall.errorStream.getText('UTF-8'))
+    //response = new JsonSlurper().parseText(sweagleCall.errorStream.getText('UTF-8'))
+    response = sweagleCall.errorStream.getText('UTF-8')
   }
   return '{"errorFound":'+errorFound+', "description":'+response+'}'
 }
