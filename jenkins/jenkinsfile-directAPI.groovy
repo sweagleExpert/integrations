@@ -1,18 +1,14 @@
 import groovy.json.JsonSlurper
 
-def SWEAGLE_TENANT = "https://testing.sweagle.com"
-def SWEAGLE_TOKEN = "02eb161a-d8e6-43a6-883e-affcdd0b5975"
-
-def CONFIG_FILE = "./conf/toto.json"
-def CONFIG_FORMAT = "json"
-def SWEAGLE_PATH = "test-token"
-def SWEAGLE_MDS = "test-token"
-def SWEAGLE_VALIDATORS = "noEmptyValues noDevValue"
-def SWEAGLE_EXPORTER = "all"
-def SWEAGLE_EXPORTER_ARGS = ""
-def SWEAGLE_EXPORTER_FORMAT = "JSON"
+def CONFIG_DIR = "<DIRECTORY OR FILE WHERE YOU PUT YOUR CONFIG TO UPLOAD TO SWEAGLE> ex: ./conf"
+def SWEAGLE_PATH = "<PATH IN DATA MODEL WHERE YOU WANT TO PUT YOUR CONFIG DATA> ex: dimension,node1,node2"
+def SWEAGLE_MDS = "<METADATASET YOU WANT TO GET CONFIG DATA FROM> ex: $APP_NAME-$ENV_NAME or dimension"
+def SWEAGLE_VALIDATORS = "<OPTIONAL, LIST OF CUSTOM VALIDATORS, SEPARATED BY SPACES, USED TO CHECK YOUR CONFIG> ex: noDevValues noEmptyValues passwordChecker"
+def SWEAGLE_EXPORTER = "<EXPORTER USED TO RETRIEVE YOUR CONFIG> ex: all or returnDataForNode"
+def SWEAGLE_EXPORTER_ARGS = "<OPTIONAL, EXPORTER ARGUMENTS IF ANY, SEPARATED BY COMMA> ex: node1"
+def SWEAGLE_EXPORTER_FORMAT = "<OPTIONAL, FORMAT USED FOR DOWNLOADED CONFIG: PROPS (DEFAULT), YAML, JSON, XML> ex: JSON"
 def SWEAGLE_EXPORTER_OUTPUT = "<OPTIONAL, TARGET FILE TO EXPORT CONFIG DATA TO, DEFAULT OUTPUT IS SCREEN> ex: /release/node1-conf.json"
-def SWEAGLE_SNAPSHOT_TAG = ""
+def SWEAGLE_SNAPSHOT_TAG = "<OPTIONAL,TAG OF SNAPSHOT TO GET, DEFAULT IS LATEST SNAPSHOT> ex: v2"
 
 
 node {
@@ -42,25 +38,10 @@ node {
         "&format="+CONFIG_FORMAT+"&allowDelete="+argDeleteData+"&onlyParent="+argOnlyParent+"&autoApprove="+argDcsApprove+
         "&storeSnapshotResults="+argSnapshotCreate+"&validationLevel="+argSnapshotLevel+"&encoding="+argEncoding+
         "&identifierWords="+argIdentifierWords
-      def sweagleUrl = new URL(SWEAGLE_TENANT + api)
-      println ("sweagleUrl="+sweagleUrl)
-      def sweagleCall = sweagleUrl.openConnection() as HttpURLConnection
-      sweagleCall.setRequestMethod('POST')
-      sweagleCall.setDoOutput(true)
-      sweagleCall.setRequestProperty("Accept", '*/*')
-      sweagleCall.setRequestProperty("Content-Type", 'application/json')
-      sweagleCall.setRequestProperty("Authorization", 'Bearer ' + SWEAGLE_TOKEN)
-      sweagleCall.outputStream.write(body.getBytes("UTF-8"))
-      sweagleCall.connect()
-      def response = [:]
-      println "API responseCode: "+sweagleCall.responseCode
-      if (sweagleCall.responseCode == 200 || sweagleCall.responseCode == 201) {
-        println "# Upload successfull"
-      } else {
-        response = new JsonSlurper().parseText(sweagleCall.errorStream.getText('UTF-8'))
-        println "API response: "+response
-        error("### Upload failed.")
-      }
+      def response = new JsonSlurper().parseText(callSweagleAPI('POST', api, body))
+      println "API response: "+response
+      if (response.errorFound) { error("### UPLOAD FAILED") }
+      else { println "### UPLOAD SUCCESSFULL" }
     }
 
     stage('CheckConfig') {
@@ -122,15 +103,19 @@ node {
 }
 
 // Function to call a SWEAGLE API
-def callSweagleAPI(method, api) {
+def callSweagleAPI(method, api, def body=null) {
   def errorFound = false
-  def SWEAGLE_TENANT = "https://testing.sweagle.com"
-  def SWEAGLE_TOKEN = "02eb161a-d8e6-43a6-883e-affcdd0b5975"
+  def SWEAGLE_TENANT = "<YOUR SWEAGLE TENANT> ex: https://testing.sweagle.com"
+  def SWEAGLE_TOKEN = "<YOUR API TOKEN, ENSURE IT HAS SUFFICIENT PRIVILEGES> ex: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
   def sweagleCall = new URL(SWEAGLE_TENANT + api).openConnection() as HttpURLConnection
   sweagleCall.setRequestMethod(method)
   sweagleCall.setRequestProperty("Accept", '*/*')
   sweagleCall.setRequestProperty("Content-Type", 'application/json')
   sweagleCall.setRequestProperty("Authorization", 'Bearer ' + SWEAGLE_TOKEN)
+  if (body != null) {
+    sweagleCall.setDoOutput(true)
+    sweagleCall.outputStream.write(body.getBytes("UTF-8"))
+  }
   sweagleCall.connect()
   def response = [:]
   int status = sweagleCall.getResponseCode();
