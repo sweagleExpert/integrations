@@ -223,9 +223,7 @@ function delete_type_attribute() {
 
 	# delete attribute
 	deleteURL="$sweagleURL/api/v1/model/attribute/${attr_id}?changeset=${changeset}&type=${type_id}"
-	res=$(\
-		curl -sw "%{http_code}" "$deleteURL" --request DELETE --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
-
+	res=$(curl -sw "%{http_code}" "$deleteURL" --request DELETE --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
 	# check http return code, it's ok if 200 (OK) or 201 (created)
@@ -355,7 +353,7 @@ function approve_model_changeset() {
 	res=$(curl -sw "%{http_code}" "$sweagleURL/api/v1/model/changeset/${changeset}/approve" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-    # check http return code
+  # check http return code
 	get_httpreturn httpcode res; if [ ${httpcode} -eq "200" ]; then return 0; else return 1; fi;
 }
 
