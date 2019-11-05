@@ -1,12 +1,21 @@
 
 # format of the ouput yaml or json are supported
 if [ "$#" -lt "1" ]; then
+  echo "### No target directory defined, will use . as default"
+  TARGET_DIR="."
+else
+  TARGET_DIR=$1
+  if [ ! -d "$TARGET_DIR" ]; then
+    echo "### ERROR: ($1) is not a directory !"
+    exit 1
+  fi
+fi
+if [ "$#" -lt "2" ]; then
   echo "### No format defined, will use json as default"
   FORMAT="json"
 else
-  FORMAT=$1
+  FORMAT=$2
 fi
-TARGET_DIR="."
 K8S_CONFIG=("deployments" "services")
 
 for CONFIG in "${K8S_CONFIG[@]}"
