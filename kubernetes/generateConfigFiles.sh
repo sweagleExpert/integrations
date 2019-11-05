@@ -1,6 +1,11 @@
 
 # format of the ouput yaml or json are supported
-FORMAT=$1
+if [ "$#" -lt "1" ]; then
+  echo "### No format defined, will use json as default"
+  FORMAT="json"
+else
+  FORMAT=$1
+fi
 TARGET_DIR="."
 K8S_CONFIG=("deployments" "services")
 
@@ -14,8 +19,7 @@ do
   do
     # don't do anything on first line as it is header
     # extract deployment and service configuration for other lines
-    if [[ $LINE_NB -gt 1 ]];
-    then
+    if [[ $LINE_NB -gt 1 ]]; then
       read -r -a array <<< "$LINE"
       #For debug
       #echo "kubectl get $CONFIG ${array[1]} --namespace=${array[0]} -o=$FORMAT > $TARGET_DIR/${array[1]}-$CONFIG.$FORMAT"
@@ -24,8 +28,5 @@ do
     LINE_NB=$(( $LINE_NB + 1 ))
   done < <(printf '%s\n' "$DEP_LIST")
 done
-
-
-
 
 #kubectl get deployment k8s-nginx-ingress-controller --namespace=webportal1-k8s -o=yaml > deployment.yaml
