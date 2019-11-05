@@ -11,13 +11,13 @@ source $(dirname "$0")/sweagle.env
 ############# Output: 0 if no errors, 1 + Details of errors if any
 ##########################################################################
 if ! [ -x "$(command -v python)" ] ; then
-  echo "********** ERROR: PYTHON v2.7.15 (or higher) IS REQUIRED FOR THIS SCRIPT"
+  echo "########## ERROR: PYTHON v2.7.15 (or higher) IS REQUIRED FOR THIS SCRIPT"
   exit 1
 fi
 
 if [ "$#" -lt "2" ]; then
-    echo "********** ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "********** YOU SHOULD PROVIDE 1-MDS1 AND 2-MDS2"
+    echo "########## ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "########## YOU SHOULD PROVIDE 1-MDS1 AND 2-MDS2"
     exit 1
 fi
 
@@ -32,8 +32,8 @@ $sweagleURL/api/v1/data/include/diff?fromName=$argMdsFrom&toName=$argMdsTo&simpl
 EOF
 }
 
-echo -e "\n**********"
-echo "*** Call Sweagle API to compare configuration from MDS (Old): $argMdsFrom to MDS (New): $argMdsTo"
+echo -e "\n##########"
+echo "### Call Sweagle API to compare configuration from MDS (Old): $argMdsFrom to MDS (New): $argMdsTo"
 #echo "curl -s -X GET '$(apiUrl)' -H '$(apiToken)'"
 response=$(curl -s -X GET "$(apiUrl)" -H "$(apiToken)")
 
@@ -57,7 +57,7 @@ EOF_PYTHON
 
 # if only keys are compared, remove all values comparison results
 if [ "$argKeysOnly" == "true" ]; then
-   echo "********** Compare only keys, ignoring values comparison results"
+   echo "########## Compare only keys, ignoring values comparison results"
    # for txt/csv format of response
    #response=`echo "$response" | sed '/"modified",/d'`
 
@@ -73,8 +73,8 @@ if [ "$argKeysOnly" == "true" ]; then
    rm -f "comparisonResult*.tmp"
 fi
 
-echo -e "\n**********"
-echo "*** Show result"
+echo -e "\n##########"
+echo "### Show result"
 # using jq formatter
 #echo "$response" | jq
 # using python mjson formatter

@@ -10,8 +10,8 @@ source $(dirname "$0")/sweagle.env
 ##########################################################################
 
 if [ "$#" -lt "1" ]; then
-    echo "********** ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "********** YOU SHOULD PROVIDE 1-MDS"
+    echo "########## ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "########## YOU SHOULD PROVIDE 1-MDS"
     exit 1
 fi
 
@@ -26,8 +26,8 @@ $sweagleURL/api/v1/data/include/validate?name=$argMds&format=json
 EOF
 }
 
-echo -e "\n**********"
-echo "*** Call Sweagle API to check configuration status for MDS: $argMds"
+echo -e "\n##########"
+echo "### Call Sweagle API to check configuration status for MDS: $argMds"
 response=$(curl -s -X GET "$(apiUrl)&forIncoming=true" -H "$(apiToken)")
 #echo "Response: " $response
 
@@ -40,11 +40,11 @@ fi
 
 errorFound=$(echo "$response" | jsonValue $argControl)
 if [[ $response = "{\"error\":"* ]]; then
-    echo -e "\n********** ERROR: Unable to validate MDS: $argMds with standard validators:"
+    echo -e "\n########## ERROR: Unable to validate MDS: $argMds with standard validators:"
     echo "SWEAGLE response: $response"
     exit 1
 elif [ "$errorFound" != 0 ]; then
-    echo "********** ERROR: BROKEN configuration data detected for MDS: $argMds for standard validators:"
+    echo "########## ERROR: BROKEN configuration data detected for MDS: $argMds for standard validators:"
     echo "SWEAGLE response: $response"
     exit 1
 fi

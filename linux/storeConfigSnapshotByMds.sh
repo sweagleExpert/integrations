@@ -9,10 +9,10 @@ source $(dirname "$0")/sweagle.env
 ############# Output: 0 if no errors, 1 + Details of errors if any
 ##########################################################################
 if [ "$#" -lt "1" ]; then
-    echo "********** ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "********** YOU SHOULD PROVIDE 1- MDS"
-    echo "********** (OPTIONAL) 2- DESCRIPTION"
-    echo "********** (OPTIONAL) 3- TAG"
+    echo "########## ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "########## YOU SHOULD PROVIDE 1- MDS"
+    echo "########## (OPTIONAL) 2- DESCRIPTION"
+    echo "########## (OPTIONAL) 3- TAG"
     exit 1
 fi
 
@@ -34,8 +34,8 @@ $sweagleURL/api/v1/data/include/snapshot/byname?name=$argMds&level=$argLevel
 EOF
 }
 
-echo -e "\n**********"
-echo "*** Call SWEAGLE API to store configuration snapshot for MDS: $argMds with description: $argDescription and tag: $argTag"
+echo -e "\n##########"
+echo "### Call SWEAGLE API to store configuration snapshot for MDS: $argMds with description: $argDescription and tag: $argTag"
 # For debugging
 #echo "(curl -s -X POST "$(apiUrl)" --data-urlencode "description=$argDescription" -H "$(apiToken)")"
 response=$(curl -sw "%{http_code}" "$(apiUrl)" -X POST --data-urlencode "description=$argDescription" --data-urlencode "tag=$argTag" -H "$(apiToken)")
@@ -46,4 +46,4 @@ rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
 # check http return code, it's ok if 200 (OK) or 201 (created)
 get_httpreturn httpcode response; if [[ "${httpcode}" != 20* ]]; then echo $response; exit 1; fi;
 
-echo "*** Snapshot created successfully"
+echo "### Snapshot created successfully"

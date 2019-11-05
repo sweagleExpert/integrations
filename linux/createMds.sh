@@ -10,8 +10,8 @@ source $(dirname "$0")/sweagle.env
 ##########################################################################
 
 if [ "$#" -lt "2" ]; then
-    echo "********** ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "********** YOU SHOULD PROVIDE 1-NAME OF MDS AND 2-NODE PATH of MDS (node separated by commas)"
+    echo "########## ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "########## YOU SHOULD PROVIDE 1-NAME OF MDS AND 2-NODE PATH of MDS (node separated by commas)"
     exit 1
 fi
 
@@ -28,8 +28,8 @@ function createChangeset {
     csId=$(echo $response | jsonValue "id")
     echo "Created changeset $csId"
   else
-    echo -e "\n**********"
-    echo "*** Error creating Changeset: $errorFound"
+    echo -e "\n##########"
+    echo "### Error creating Changeset: $errorFound"
     exit 1
   fi
 }
@@ -40,9 +40,9 @@ function createMDS {
   # Check if any error before continue
   errorFound=$(echo $response | jsonValue "error_description")
   if [[ ! -z $errorFound ]]; then
-    echo -e "\n**********"
-    echo "*** Error creating metadata set: $errorFound"
-    echo "*** Delete changeset before exiting"
+    echo -e "\n##########"
+    echo "### Error creating metadata set: $errorFound"
+    echo "### Delete changeset before exiting"
     deleteChangeset
     exit 1
   else
@@ -60,17 +60,17 @@ function approveChangeset
     # Extract ChangeSet Id generated for the creation
     echo " changeset $csId approved"
   else
-    echo -e "\n**********"
-    echo "*** Error approving Changeset: $errorFound"
+    echo -e "\n##########"
+    echo "### Error approving Changeset: $errorFound"
     exit 1
   fi
 }
 
 function deleteChangeset
 {
-  echo "*** Deleting changeset $csId"
+  echo "### Deleting changeset $csId"
   response=$(curl -s -X DELETE -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" "$sweagleURL/api/v1/data/changeset/$csId")
-  echo "*** Changeset $csId deleted"
+  echo "### Changeset $csId deleted"
 }
 
 createChangeset

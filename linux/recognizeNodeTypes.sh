@@ -30,8 +30,8 @@
 
 # Check command line arguments
 if [ "$#" -lt "1" ]; then
-    echo "********** ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "********** YOU SHOULD PROVIDE 1-NODEPATH"
+    echo "########## ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "########## YOU SHOULD PROVIDE 1-NODEPATH"
     exit 1
 fi
 this_script=$(basename $0)

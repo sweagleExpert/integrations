@@ -10,8 +10,8 @@ source $(dirname "$0")/sweagle.env
 ##########################################################################
 
 if [ "$#" -lt "2" ]; then
-    echo "********** ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "********** YOU SHOULD PROVIDE 1-MDS AND 2-VALIDATOR"
+    echo "########## ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "########## YOU SHOULD PROVIDE 1-MDS AND 2-VALIDATOR"
     exit 1
 fi
 argMds=$1
@@ -19,8 +19,8 @@ argCustomValidator=$2
 argControl=result
 argError=error
 
-echo -e "\n**********"
-echo "*** Call Sweagle API to check configuration status for MDS: $argMds and VALIDATOR: $argCustomValidator"
+echo -e "\n##########"
+echo "### Call Sweagle API to check configuration status for MDS: $argMds and VALIDATOR: $argCustomValidator"
 
 function apiUrl() {
 cat <<EOF
@@ -43,10 +43,10 @@ fi
 
 rc=$(echo "$response" | jsonValue $argControl)
 if [[ $response = "{\"error\":"* ]]; then
-    echo -e "\n********** ERROR: Unable to validate MDS: $argMds with validator: $argCustomValidator \n"
+    echo -e "\n########## ERROR: Unable to validate MDS: $argMds with validator: $argCustomValidator \n"
     exit 1
 elif [ "$rc" = false ]; then
-    echo "********** ERROR: BROKEN configuration data detected for validator: " $argCustomValidator
+    echo "########## ERROR: BROKEN configuration data detected for validator: " $argCustomValidator
     exit 1
 fi
 

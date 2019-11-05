@@ -9,14 +9,14 @@ source $(dirname "$0")/sweagle.env
 ############# Output: 0 if no errors, 1 + Details of errors if any
 ##########################################################################
 if [ "$#" -lt "2" ]; then
-    echo "********** ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "********** YOU SHOULD PROVIDE 1- MDS AND 2- PARSER"
-    echo "********** (optional) PARSER ARGUMENTS, put args=all_values_separated_by_comma"
-    echo "********** (optional) FORMAT, put format=JSON (or YAML, or XML, or PROPS, or INI, or YAML_SWEAGLE, or JSON_SWEAGLE)"
-    echo "********** (optional) FILE OUT, put output=complete_filename_with_path"
-    echo "********** (optional) TEMPLATE PARSER, put template=true (default is false)"
-    echo "********** (optional) TAG, put tag=complete_tag_name"
-    echo "********** (optional) PICTURE, put picture=true (default is false)"
+    echo "########## ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "########## YOU SHOULD PROVIDE 1- MDS AND 2- PARSER"
+    echo "########## (optional) PARSER ARGUMENTS, put args=all_values_separated_by_comma"
+    echo "########## (optional) FORMAT, put format=JSON (or YAML, or XML, or PROPS, or INI, or YAML_SWEAGLE, or JSON_SWEAGLE)"
+    echo "########## (optional) FILE OUT, put output=complete_filename_with_path"
+    echo "########## (optional) TEMPLATE PARSER, put template=true (default is false)"
+    echo "########## (optional) TAG, put tag=complete_tag_name"
+    echo "########## (optional) PICTURE, put picture=true (default is false)"
     exit 1
 fi
 
@@ -47,9 +47,9 @@ EOF
 
 echo -e "\n**********"
 if [ -z "$tag" ]; then
-  echo "*** Call SWEAGLE API to get configuration for MDS: $argMds"
+  echo "### Call SWEAGLE API to get configuration for MDS: $argMds"
 else
-  echo "*** Call SWEAGLE API to get configuration for MDS: $argMds and tag: $tag"
+  echo "### Call SWEAGLE API to get configuration for MDS: $argMds and tag: $tag"
 fi
 # For debugging
 #echo "curl -s -X POST '$(apiUrl)' -H '$(apiToken)'"
@@ -62,10 +62,10 @@ rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
 get_httpreturn httpcode response; if [[ "${httpcode}" != 20* ]]; then echo $response; exit 1; fi;
 
 if [ "$output" != "" ]; then
-  echo "*** Store response to file: $output"
+  echo "### Store response to file: $output"
   dir=$(dirname "${output}")
   mkdir -p $dir
   echo "$response" > $output
 else
-  echo -e "*** SWEAGLE response:\n$response"
+  echo -e "### SWEAGLE response:\n$response"
 fi
