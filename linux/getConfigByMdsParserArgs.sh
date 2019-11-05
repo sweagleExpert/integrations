@@ -45,7 +45,7 @@ EOF
   fi
 }
 
-echo -e "\n**********"
+echo -e "\n##########"
 if [ -z "$tag" ]; then
   echo "### Call SWEAGLE API to get configuration for MDS: $argMds"
 else
