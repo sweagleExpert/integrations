@@ -10,15 +10,15 @@ source $(dirname "$0")/sweagle.env
 ############# Output: 0 if no errors, 1 + Details of errors if any
 ##########################################################################
 if [ "$#" -lt "2" ]; then
-    echo "********** ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "********** YOU SHOULD PROVIDE 1-NODEPATH AND 2-FILE TO UPLOAD"
+    echo "########## ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "########## YOU SHOULD PROVIDE 1-NODEPATH AND 2-FILE TO UPLOAD"
     exit 1
 fi
 argNodePath=$1
 argFile=$2
 
 if ! [[ -f "${argFile}" ]] ; then
-    echo "********** ERROR: Argument $argFile is not a file, exiting";
+    echo "########## ERROR: Argument $argFile is not a file, exiting";
     exit 1
 fi
 
@@ -74,7 +74,7 @@ loadDefaultSettings
 #set the values for each of the configuration data items
 #deployDateTime=$( date '+%F %H:%M:%S' )
 
-echo -e "\n**********"
+echo -e "\n##########"
 echo "*** Call SWEAGLE API to upload configuration data & store snapshot for file: $filename"
 # For debugging purpose only, use echo below
 #echo "(curl -sw '%{http_code}' -X POST '$(apiUrl)' -H '$(apiToken)' -H 'Content-Type: $argContentType' --data-binary '@$argFile')"
@@ -87,4 +87,4 @@ rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
 get_httpreturn httpcode response; if [[ "${httpcode}" != 20* ]]; then echo $response; exit 1; fi;
 
 echo "SWEAGLE response: "$response
-echo "*** File uploaded successfully"
+echo "### File uploaded successfully"

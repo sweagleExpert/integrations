@@ -11,10 +11,10 @@
 ############# Output: 0 if no errors, 1 + Details of errors if any
 ##########################################################################
 if [ "$#" -lt "2" ]; then
-    echo "********** ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "********** YOU SHOULD PROVIDE 1-NODEPATH AND 2-DIRECTORY OR FILE TO UPLOAD"
-    echo "********** (OPTIONAL) YOU MAY PROVIDE ALSO 3- FILE EXTENSION TO FILTER DIRECTORY"
-    echo "********** (OPTIONAL) YOU MAY PROVIDE ALSO 4- -R TO DO RECURSIVE SEARCH"
+    echo "########## ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "########## YOU SHOULD PROVIDE 1-NODEPATH AND 2-DIRECTORY OR FILE TO UPLOAD"
+    echo "########## (OPTIONAL) YOU MAY PROVIDE ALSO 3- FILE EXTENSION TO FILTER DIRECTORY"
+    echo "########## (OPTIONAL) YOU MAY PROVIDE ALSO 4- -R TO DO RECURSIVE SEARCH"
     exit 1
 fi
 argNodePath=$1
@@ -48,9 +48,9 @@ elif [[ -d "$2" ]] ; then
         #echo "dirname=$dirname"
         # remove case where there is no result and "*" is returned
         if [ "$filename" == "*" ]; then
-          echo "********** No file with extension: $argFileExtension"
-          echo "********** In directory: $2"
-          echo "********** Exiting without error"
+          echo "########## No file with extension: $argFileExtension"
+          echo "########## In directory: $2"
+          echo "########## Exiting without error"
           exit 0
         fi
         $sweagleScriptDir/uploadFileToSweagle.sh "$argNodePath,$dirname,$filename" "$file"
@@ -61,9 +61,9 @@ elif [[ -d "$2" ]] ; then
         filename=$(basename "${file%.*}")
         # remove case where there is no result and "*" is returned
         if [ "$filename" == "*" ]; then
-          echo "********** No file with extension: $argFileExtension"
-          echo "********** In directory: $2"
-          echo "********** Exiting without error"
+          echo "########## No file with extension: $argFileExtension"
+          echo "########## In directory: $2"
+          echo "########## Exiting without error"
           exit 0
         fi
         $sweagleScriptDir/uploadFileToSweagle.sh "$argNodePath,$filename" "$file"
@@ -79,6 +79,6 @@ elif [[ -d "$2" ]] ; then
   fi
 
 else
-    echo "********** ERROR: Argument $2 is not a directory or file, exiting";
+    echo "########## ERROR: Argument $2 is not a directory or file, exiting";
     exit 1
 fi
