@@ -53,13 +53,13 @@ else
 fi
 # For debugging
 #echo "curl -s -X POST '$(apiUrl)' -H '$(apiToken)'"
-response=$(curl -sw "%{http_code}" -X POST "$(apiUrl)" -H "$(apiToken)")
+response=$(curl -s -X POST "$(apiUrl)" -H "$(apiToken)")
 
 # check curl exit code
 rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
 
 # check http return code, it's ok if 200 (OK) or 201 (created)
-get_httpreturn httpcode response; if [[ "${httpcode}" != 20* ]]; then echo $response; exit 1; fi;
+#get_httpreturn httpcode response; if [[ "${httpcode}" != 20* ]]; then echo $response; exit 1; fi;
 
 if [ "$output" != "" ]; then
   echo "### Store response to file: $output"
