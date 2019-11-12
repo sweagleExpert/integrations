@@ -12,6 +12,7 @@ if [ "$#" -lt "2" ]; then
     echo "########## ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
     echo "########## YOU SHOULD PROVIDE 1- MDS AND 2- PARSER"
     echo "########## (optional) PARSER ARGUMENTS, put args=all_values_separated_by_comma"
+    echo "########## (optional) MDS ARGUMENTS, put mdsArgs=all_values_separated_by_comma"
     echo "########## (optional) FORMAT, put format=JSON (or YAML, or XML, or PROPS, or INI, or YAML_SWEAGLE, or JSON_SWEAGLE)"
     echo "########## (optional) FILE OUT, put output=complete_filename_with_path"
     echo "########## (optional) TEMPLATE PARSER, put template=true (default is false)"
@@ -36,7 +37,7 @@ done
 function apiUrl() {
   if [ "$template" != "true" ]; then
 cat <<EOF
-$sweagleURL/api/v1/tenant/metadata-parser/parse?mds=$argMds&parser=$argParser&args=$args&format=$format&tag=$tag&picture=$picture
+$sweagleURL/api/v1/tenant/metadata-parser/parse?mds=$argMds&parser=$argParser&args=$args&mdsArgs=$mdsArgs&format=$format&tag=$tag&picture=$picture
 EOF
   else
 cat <<EOF
