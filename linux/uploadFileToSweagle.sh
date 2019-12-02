@@ -12,6 +12,7 @@ source $(dirname "$0")/sweagle.env
 if [ "$#" -lt "2" ]; then
     echo "########## ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
     echo "########## YOU SHOULD PROVIDE 1-NODEPATH AND 2-FILE TO UPLOAD"
+    echo "########## (OPTIONAL) YOU MAY PROVIDE 3-FILE FORMAT"
     exit 1
 fi
 argNodePath=$1
@@ -20,6 +21,34 @@ argFile=$2
 if ! [[ -f "${argFile}" ]] ; then
     echo "########## ERROR: Argument $argFile is not a file, exiting";
     exit 1
+fi
+if [ -z "$3" ]; then
+  echo "### Define config format based on file extension"
+  filename=$(basename "$argFile")
+  extension="${filename##*.}"
+  #file name without extension if you want to add it to node path
+  #filename=$(basename "${argFile%.*}")
+  if [ "$extension" == "json" ]; then
+    argFormat="json"
+    argContentType="application/json"
+  elif [ "$extension" == "xml" ]; then
+    argFormat="xml"
+    argContentType="application/xml"
+  elif [ "$extension" == "yml" ] || [ "$extension" == "yaml" ]; then
+    argFormat="yml"
+    argContentType="application/x-yaml"
+  elif [ "$extension" == "ini" ]; then
+    argFormat="ini"
+    argContentType="text/plain"
+  else
+    # if not identified, consider file as property file
+    argFormat="properties"
+    argContentType="text/x-java-properties"
+  fi
+  echo "File extension detected is: "$argFormat
+else
+  echo "### Use file format defined as input"
+  argFormat=$3
 fi
 
 function apiUrl() {
@@ -45,40 +74,16 @@ function loadDefaultSettings () {
     # cf. https://support.sweagle.com/t/36fkd5/2017-09-08-release
 }
 
-echo "*** Define config format based on file extension"
-filename=$(basename "$argFile")
-extension="${filename##*.}"
-#file name without extension if you want to add it to node path
-#filename=$(basename "${argFile%.*}")
-if [ "$extension" == "json" ]; then
-  argFormat="json"
-  argContentType="application/json"
-elif [ "$extension" == "xml" ]; then
-  argFormat="xml"
-  argContentType="application/xml"
-elif [ "$extension" == "yml" ] || [ "$extension" == "yaml" ]; then
-  argFormat="yml"
-  argContentType="application/x-yaml"
-elif [ "$extension" == "ini" ]; then
-  argFormat="ini"
-  argContentType="text/plain"
-else
-  # if not identified, consider file as property file
-  argFormat="properties"
-  argContentType="text/x-java-properties"
-fi
-echo "File extension detected is: "$argFormat
-
 echo "load API default settings..."
 loadDefaultSettings
 #set the values for each of the configuration data items
 #deployDateTime=$( date '+%F %H:%M:%S' )
 
 echo -e "\n##########"
-echo "*** Call SWEAGLE API to upload configuration data & store snapshot for file: $filename"
+echo "### Call SWEAGLE API to upload configuration data & store snapshot for file: $filename"
 # For debugging purpose only, use echo below
-#echo "(curl -sw '%{http_code}' -X POST '$(apiUrl)' -H '$(apiToken)' -H 'Content-Type: $argContentType' --data-binary '@$argFile')"
-response=$(curl -sw "%{http_code}" -X POST "$(apiUrl)" -H "$(apiToken)" -H "Content-Type: $argContentType" --data-binary "@$argFile")
+#echo "(curl -skw '%{http_code}' -X POST '$(apiUrl)' -H '$(apiToken)' -H 'Content-Type: $argContentType' --data-binary '@$argFile')"
+response=$(curl -skw "%{http_code}" -X POST "$(apiUrl)" -H "$(apiToken)" -H "Content-Type: $argContentType" --data-binary "@$argFile")
 
 # check curl exit code
 rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;

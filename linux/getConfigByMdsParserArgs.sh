@@ -53,8 +53,8 @@ else
   echo "### Call SWEAGLE API to get configuration for MDS: $argMds and tag: $tag"
 fi
 # For debugging
-#echo "curl -s -X POST '$(apiUrl)' -H '$(apiToken)'"
-response=$(curl -s -X POST "$(apiUrl)" -H "$(apiToken)")
+#echo "curl -s -k -X POST '$(apiUrl)' -H '$(apiToken)'"
+response=$(curl -s -k -X POST "$(apiUrl)" -H "$(apiToken)")
 
 # check curl exit code
 rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;

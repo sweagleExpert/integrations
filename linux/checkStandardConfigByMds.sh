@@ -28,13 +28,13 @@ EOF
 
 echo -e "\n##########"
 echo "### Call Sweagle API to check configuration status for MDS: $argMds"
-response=$(curl -s -X GET "$(apiUrl)&forIncoming=true" -H "$(apiToken)")
+response=$(curl -s -k -X GET "$(apiUrl)&forIncoming=true" -H "$(apiToken)")
 #echo "Response: " $response
 
 ec=$(echo "$response" | jsonValue $argError)
 if [ "$ec" = "NotFoundException" ]; then
   echo "No pending MDS found, relaunch API to get last snapshot result instead"
-  response=$(curl -s -X GET "$(apiUrl)&forIncoming=false" -H "$(apiToken)")
+  response=$(curl -s -k -X GET "$(apiUrl)&forIncoming=false" -H "$(apiToken)")
   echo "SWEAGLE response: $response"
 fi
 

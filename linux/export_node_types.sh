@@ -55,7 +55,7 @@ fi
 function get_all_node_types() {
 
 	res=$(\
-	  curl -sw "%{http_code}" "$sweagleURL/api/v1/model/type" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	  curl -skw "%{http_code}" "$sweagleURL/api/v1/model/type" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
 		)
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
@@ -72,7 +72,7 @@ function get_all_attributes() {
 
 	# Get a type attributes based on type id
 	res=$(\
-	  curl -sw "%{http_code}" "$sweagleURL/api/v1/model/attribute?type=$id" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	  curl -skw "%{http_code}" "$sweagleURL/api/v1/model/attribute?type=$id" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
 		)
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
@@ -88,7 +88,7 @@ function get_all_allowed_child_types() {
 	id=${1}
 
 	res=$(\
-	  curl -sw "%{http_code}" "$sweagleURL/api/v1/model/type/$id/childTypes" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	  curl -skw "%{http_code}" "$sweagleURL/api/v1/model/type/$id/childTypes" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
 		)
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;

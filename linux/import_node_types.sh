@@ -53,7 +53,7 @@ function create_modelchangeset() {
 
 	# Create and open a new changeset
 	res=$(\
-		curl -sw "%{http_code}" "$sweagleURL/api/v1/model/changeset" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+		curl -skw "%{http_code}" "$sweagleURL/api/v1/model/changeset" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
 		--data-urlencode "title=${title}" \
 		--data-urlencode "description=${description}")
 	# check exit code
@@ -73,7 +73,7 @@ function get_node_type() {
   # Replace any space in name by %20 as data-urlencode doesn't seem to work for GET
   name=${name//" "/"%20"}
 	res=$(\
-	  curl -sw "%{http_code}" "$sweagleURL/api/v1/model/type?name=${name}" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' )
+	  curl -skw "%{http_code}" "$sweagleURL/api/v1/model/type?name=${name}" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' )
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
   # check http return code
@@ -91,7 +91,7 @@ function get_type_attribute() {
 
 	# Get a type attributes based on type id
 	res=$(\
-	  curl -sw "%{http_code}" "$sweagleURL/api/v1/model/attribute?type=$id" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	  curl -skw "%{http_code}" "$sweagleURL/api/v1/model/attribute?type=$id" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
 		)
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
@@ -144,7 +144,7 @@ function create_type_attribute() {
 
 	# Create a new type_attribute
 	res=$(\
-		curl -sw "%{http_code}" "$createURL" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+		curl -skw "%{http_code}" "$createURL" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
 		--data "changeset=${changeset}" \
 		--data "type=${type_id}" \
 		--data-urlencode "name=${name}" \
@@ -191,7 +191,7 @@ function create_node_type() {
 
 	# Create a new node_type
 	res=$(\
-		curl -sw "%{http_code}" "$createURL" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+		curl -skw "%{http_code}" "$createURL" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
 		--data "changeset=${changeset}" \
 		--data-urlencode "name=${name}" \
 		--data-urlencode "description=${description}" \
@@ -223,7 +223,7 @@ function delete_type_attribute() {
 
 	# delete attribute
 	deleteURL="$sweagleURL/api/v1/model/attribute/${attr_id}?changeset=${changeset}&type=${type_id}"
-	res=$(curl -sw "%{http_code}" "$deleteURL" --request DELETE --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
+	res=$(curl -skw "%{http_code}" "$deleteURL" --request DELETE --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
 	# check http return code, it's ok if 200 (OK) or 201 (created)
@@ -269,7 +269,7 @@ function update_type_attribute() {
 
 	# update a type_attribute
 	res=$(\
-		curl -sw "%{http_code}" "$updateURL" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+		curl -skw "%{http_code}" "$updateURL" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
 		--data "changeset=${changeset}" \
 		--data "type=${type_id}" \
 		--data-urlencode "name=${name}" \
@@ -332,7 +332,7 @@ function update_node_type() {
 
 # Update an existing node_type
 	res=$(\
-		curl -sw "%{http_code}" "$updateURL" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+		curl -skw "%{http_code}" "$updateURL" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
 		--data "changeset=${changeset}" \
 		--data-urlencode "name=${name}" \
 		--data-urlencode "description=${description}" \
@@ -350,7 +350,7 @@ function update_node_type() {
 function approve_model_changeset() {
 	changeset=${1}
 	# Create and open a new changeset
-	res=$(curl -sw "%{http_code}" "$sweagleURL/api/v1/model/changeset/${changeset}/approve" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
+	res=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/model/changeset/${changeset}/approve" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
   # check http return code

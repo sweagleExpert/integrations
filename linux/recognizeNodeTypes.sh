@@ -49,7 +49,7 @@ function recognize_node_types() {
 	nodepath=${1}
 
 	res=$(\
-	  curl -sw "%{http_code}" "$sweagleURL/api/v1/data/ml/recognize?" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	  curl -skw "%{http_code}" "$sweagleURL/api/v1/data/ml/recognize?" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
 			--data "downLimit=100" \
 			--data "path=$nodepath" )
 	# check curl exit code

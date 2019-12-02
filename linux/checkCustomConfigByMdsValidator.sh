@@ -31,13 +31,13 @@ EOF
 # For debugging
 #echo "curl -s -X POST '$(apiUrl)&forIncoming=true' -H '$(apiToken)'"
 # First, check result for pending MDS
-response=$(curl -s -X POST "$(apiUrl)&forIncoming=true" -H "$(apiToken)")
+response=$(curl -s -k -X POST "$(apiUrl)&forIncoming=true" -H "$(apiToken)")
 echo "Response: " $response
 
 ec=$(echo "$response" | jsonValue $argError)
 if [ "$ec" = "NotFoundException" ]; then
   echo "No pending MDS found, relaunch API to get last snapshot result instead"
-  response=$(curl -s -X POST "$(apiUrl)&forIncoming=false" -H "$(apiToken)")
+  response=$(curl -s -k -X POST "$(apiUrl)&forIncoming=false" -H "$(apiToken)")
   echo "Response: " $response
 fi
 

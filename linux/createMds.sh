@@ -20,7 +20,7 @@ mdsPath=$2
 
 function createChangeset {
   echo "1- Creating changeset"
-  response=$(curl -s -X POST -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" "$sweagleURL/api/v1/data/changeset" -d "title=Create+new+MDS+$mdsName")
+  response=$(curl -s -k -X POST -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" "$sweagleURL/api/v1/data/changeset" -d "title=Create+new+MDS+$mdsName")
   # Check if any error before continue
   errorFound=$(echo $response | jsonValue "error_description")
   if [[ -z $errorFound ]]; then
@@ -36,7 +36,7 @@ function createChangeset {
 
 function createMDS {
   echo "2- Creating metadataset"
-  response=$(curl -s -X POST "$sweagleURL/api/v1/data/include/byPath?changeset=$csId&name=$mdsName&referenceNode=$mdsPath" -H "Authorization: bearer $aToken" -H "Content-Type: application/vnd.siren+json;charset=UTF-8")
+  response=$(curl -s -k -X POST "$sweagleURL/api/v1/data/include/byPath?changeset=$csId&name=$mdsName&referenceNode=$mdsPath" -H "Authorization: bearer $aToken" -H "Content-Type: application/vnd.siren+json;charset=UTF-8")
   # Check if any error before continue
   errorFound=$(echo $response | jsonValue "error_description")
   if [[ ! -z $errorFound ]]; then
@@ -53,7 +53,7 @@ function createMDS {
 function approveChangeset
 {
   echo "3- Approving changeset $csId"
-  response=$(curl -s -X POST -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" "$sweagleURL/api/v1/data/changeset/$csId/approve")
+  response=$(curl -s -k -X POST -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" "$sweagleURL/api/v1/data/changeset/$csId/approve")
   # Check if any error before exit
   errorFound=$(echo $response | jsonValue "error_description")
   if [[ -z $errorFound ]]; then
@@ -69,7 +69,7 @@ function approveChangeset
 function deleteChangeset
 {
   echo "### Deleting changeset $csId"
-  response=$(curl -s -X DELETE -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" "$sweagleURL/api/v1/data/changeset/$csId")
+  response=$(curl -s -k -X DELETE -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" "$sweagleURL/api/v1/data/changeset/$csId")
   echo "### Changeset $csId deleted"
 }
 

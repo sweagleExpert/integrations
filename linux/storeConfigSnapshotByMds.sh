@@ -38,7 +38,7 @@ echo -e "\n##########"
 echo "### Call SWEAGLE API to store configuration snapshot for MDS: $argMds with description: $argDescription and tag: $argTag"
 # For debugging
 #echo "(curl -s -X POST "$(apiUrl)" --data-urlencode "description=$argDescription" -H "$(apiToken)")"
-response=$(curl -sw "%{http_code}" "$(apiUrl)" -X POST --data-urlencode "description=$argDescription" --data-urlencode "tag=$argTag" -H "$(apiToken)")
+response=$(curl -skw "%{http_code}" "$(apiUrl)" -X POST --data-urlencode "description=$argDescription" --data-urlencode "tag=$argTag" -H "$(apiToken)")
 
 # check curl exit code
 rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;

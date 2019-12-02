@@ -69,7 +69,7 @@ function get_role() {
   rolename=${1}
 
   # Get all tenant roles
-	res=$(curl -sw "%{http_code}" "$sweagleURL/api/v1/tenant/role" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
+	res=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/tenant/role" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
 	# check http return code
@@ -81,7 +81,7 @@ function get_role() {
 
 function get_users() {
 	# Get all tenant users
-	res=$(curl -sw "%{http_code}" "$sweagleURL/api/v1/user" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
+	res=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/user" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
 	# check http return code
@@ -135,7 +135,7 @@ function create_user() {
 	roles=${7:-}
 
 	res=$(\
-		curl -sw "%{http_code}" "$sweagleURL/api/v1/user" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+		curl -skw "%{http_code}" "$sweagleURL/api/v1/user" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
 		--data "username=${username}" \
 		--data-urlencode "email=${email}" \
 		--data-urlencode "name=${name}" \
@@ -169,7 +169,7 @@ function update_user() {
 
 	# Update an existing user
 	res=$(\
-		curl -sw "%{http_code}" "$sweagleURL/api/v1/user/${id}" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+		curl -skw "%{http_code}" "$sweagleURL/api/v1/user/${id}" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
 		--data "username=${username}" \
 		--data-urlencode "email=${email}" \
 		--data-urlencode "name=${name}" \
@@ -191,7 +191,7 @@ function add_user_apis() {
 
 	# Add apis token to an existing user
 	res=$(\
-		curl -sw "%{http_code}" "$sweagleURL/api/v1/user/${user_id}/api" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+		curl -skw "%{http_code}" "$sweagleURL/api/v1/user/${user_id}/api" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
 		--data "apiUsers=${apis_id}")
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
@@ -207,7 +207,7 @@ function add_user_roles() {
 
 	# Add roles to an existing user
 	res=$(\
-		curl -sw "%{http_code}" "$sweagleURL/api/v1/user/${user_id}/assignRoles" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+		curl -skw "%{http_code}" "$sweagleURL/api/v1/user/${user_id}/assignRoles" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
 		--data "roles=${roles_id}")
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
