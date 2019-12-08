@@ -1,0 +1,426 @@
+#!/usr/bin/env bash
+##########################################################
+# SCRIPT: sweagle_lib
+# AUTHOR: dimitris@sweagle.com, stefan@sweagle.com
+# DATE:   December 2019
+# REV:    1.0.D (Valid are A, B, D, T, Q, and P)
+#               (For Alpha, Beta, Dev, Test, QA, and Production)
+#
+# PLATFORM: Not platform dependent
+#
+# REQUIREMENTS:	- jq is required for this shell script to work.
+#               (see: https://stedolan.github.io/jq/)
+#				- tested in bash 4.4 on Mac OS X
+#
+# PURPOSE:		Libraries of common SWEAGLE functions
+#
+# REV LIST:
+#        DATE: DATE_of_REVISION
+#        BY:   AUTHOR_of_MODIFICATION
+#        MODIFICATION: Describe what was modified, new features, etc--
+#
+#
+# set -n   # Uncomment to check script syntax, without execution.
+#          # NOTE: Do not forget to put the # comment back in or
+#          #       the shell script will never execute!
+# set -x   # Uncomment to debug this shell script
+##########################################################
+#
+#               FILES AND VARIABLES
+##########################################################
+OK=0
+SYSTEM_ERROR=1
+INSUFFICIENT_ARGS=2
+SYNTAX_ERROR=3
+FILE_NOT_FOUND=4
+SWEAGLE_ERROR=5
+
+##########################################################
+#                    UTILITIES FUNCTIONS
+#               (USED BY SWEAGLE API FUNCTIONS)
+##########################################################
+
+# manage errors from CURL to SWEAGLE
+# inputs are curl returned code and response
+function handleErrors() {
+  rc=$1
+  response=$2
+  # check curl exit code
+  rc=$?; if [ ${rc} -ne 0 ]; then echo "ERROR: CURL exit code ${rc}"; return ${rc}; fi;
+  # check http_code returned
+  http_code=$(echo "$response"| tail -c 4)
+  response=$(echo "${response::-3}")
+  if [[ "${http_code}" != 20* ]]; then echo "ERROR HTTP ${http_code}: SWEAGLE response ${response}"; return ${http_code}; fi;
+  # check sweagle error
+  errorFound=$(echo $response | jsonValue "error_description")
+  if [[ -z $errorFound ]]; then
+    echo "$response"
+    return $OK
+  else
+    echo "### ERROR IN SWEAGLE: $errorFound"
+    return $SWEAGLE_ERROR
+  fi
+}
+
+# extract the value of a json key from json string (if present)
+# inputs are key to search for, and number of the occurrence to extract (default 1 if none provided)
+function jsonValue() {
+   key=$1
+   if [[ -z "$2" ]]; then
+      num=1
+   else
+      num=$2
+   fi
+   awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/\042'$key'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${num}p
+}
+
+# encode a string for HTTP URL
+# (used for upload to workaround issues with data-binary conflict with data-urlencode)
+function urlencode() {
+  # urlencode <string>
+  old_lc_collate=$LC_COLLATE
+  LC_COLLATE=C
+
+  local length="${#1}"
+  for (( i = 0; i < length; i++ )); do
+      local c="${1:i:1}"
+      case $c in
+          [a-zA-Z0-9.~_-]) printf "$c" ;;
+          *) printf '%%%02X' "'$c" ;;
+      esac
+  done
+  LC_COLLATE=$old_lc_collate
+}
+
+##########################################################
+#                    SWEAGLE API FUNCTIONS
+##########################################################
+function approveChangeset() {
+  if [ $# -ne 1 ]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo -e "\n########## YOU SHOULD PROVIDE 1-CHANGESET ID TO APPROVE"
+    return $INSUFFICIENT_ARGS
+  fi
+
+  # echo "Approving changeset $csId"
+  response=$(curl -skw "%{http_code}" -X POST "${sweagleURL}/api/v1/data/changeset/$1/approve" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  # No specific response processing, just return it
+  rc=$?; echo "${response}"; return ${rc}
+}
+
+
+function createChangeset() {
+  if [ $# -lt 1 ]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "### YOU SHOULD PROVIDE 1-TITLE, (OPTIONAL) 2-DESCRIPTION"
+    return $INSUFFICIENT_ARGS
+  fi
+
+  title=${1}
+	description=${2:-}
+
+  #echo "Creating changeset"
+  response=$(curl -skw "%{http_code}" -X POST "${sweagleURL}/api/v1/data/changeset" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" \
+    --data-urlencode "title=${title}" \
+    --data-urlencode "description=${description}")
+
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+  csId=$(echo $response | jsonValue "id")
+  echo ${csId}
+  return $OK
+}
+
+
+function createMds() {
+  if [ $# -lt 3 ]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "### YOU SHOULD PROVIDE 1-CHANGESET ID, 2-NAME OF MDS, 3-NODE PATH OF MDS (node separated by commas)"
+    return $INSUFFICIENT_ARGS
+  fi
+  csId=$1
+  mdsName=$2
+  mdsPath=$3
+
+  response=$(curl -skw "%{http_code}" -X POST "${sweagleURL}/api/v1/data/include/byPath?changeset=$csId&name=$mdsName&referenceNode=$mdsPath" -H "Authorization: bearer $aToken" -H "Content-Type: application/vnd.siren+json;charset=UTF-8")
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+  echo "Created metadataset: $mdsName"
+  return $OK
+}
+
+
+function createNode {
+  if [ $# -ne 3 ]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "### YOU SHOULD PROVIDE 1-NEW NODE NAME, 2-PARENT NODE ID, 3-CHANGESET ID"
+    return $INSUFFICIENT_ARGS
+  fi
+
+  response=$(curl -skw "%{http_code}" -X POST "${sweagleURL}/api/v1/data/node?name=$1&parentNode=$3&changeset=$4" -H "Authorization: bearer $aToken")
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+  newNodeId=$(echo "$response" | jq --raw-output .master.id )
+  echo $newNodeId
+  return $OK
+}
+
+
+function createNodefromType {
+  if [ $# -ne 4 ]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "### YOU SHOULD PROVIDE 1-NEW NODE NAME, 2-TYPE NAME, 3-PARENT NODE ID, 4-CHANGESET ID"
+    return $INSUFFICIENT_ARGS
+  fi
+
+  response=$(curl -skw "%{http_code}" -X POST "${sweagleURL}/api/v1/data/node?name=$1&typeName=$2&parentNode=$3&changeset=$4" -H "Authorization: bearer $aToken")
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+  newNodeId=$(echo "$response" | jq --raw-output .master.id )
+  echo $newNodeId
+  return $OK
+}
+
+
+function deleteChangeset() {
+  if [ $# -ne 1 ]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "### YOU SHOULD PROVIDE 1-CHANGESET ID TO DELETE"
+    return $INSUFFICIENT_ARGS
+  fi
+
+  response=$(curl -skw "%{http_code}" -X DELETE "${sweagleURL}/api/v1/data/changeset/$1" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+  echo "### Changeset $1 deleted"
+  return $OK
+}
+
+
+function getConfig {
+  if [[ $# -lt 2 ]]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "### YOU SHOULD PROVIDE 1-MDS, 2-PARSER"
+    echo "### (OPTIONAL) YOU MAY PROVIDE ANY OTHER API OPTIONS IN THE FORMAT <option>=<value> (ex: template=true)"
+    return $INSUFFICIENT_ARGS
+  fi
+
+  argMds=$1
+  argParser=$2
+  while [[ "$#" > "0" ]]
+  do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+  shift
+  done
+  # Check if args null to replace by default values
+  template=${template:-false}
+
+  if [ "$template" != "true" ]; then
+    response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/tenant/metadata-parser/parse?mds=${argMds}&parser=${argParser}&tag=${tag}&args=${args}&format=${format}&mdsArgs=${mdsArgs}&mdsTags=${mdsTags}")
+  else
+    response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/tenant/template-parser/replace?mds=${argMds}&parser=${argParser}&tag=${tag}")
+  fi
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  # No specific response processing, just return it
+  rc=$?; echo "${response}"; return ${rc}
+}
+
+
+function getNodeId {
+  if [[ $# -ne 1 ]]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "### YOU SHOULD PROVIDE 1-NODE PATH (COMMA SEPARATED)"
+    return $INSUFFICIENT_ARGS
+  fi
+
+  response=$(curl -skw "%{http_code}" -X GET -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/node?path=${1}" )
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+  nodeId=$(echo "$response" | jq --raw-output '._entities[].id')
+  echo $nodeId
+  return $OK
+}
+
+
+function recognizeNodeTypes {
+  if [[ $# -lt 1 ]]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "### YOU SHOULD PROVIDE 1-NODE PATH"
+    echo "### (OPTIONAL) YOU MAY PROVIDE ANY OTHER API OPTIONS WITH <option>=<value> (ex: downLimit=100)"
+    return $INSUFFICIENT_ARGS
+  fi
+
+  while [[ "$#" > "0" ]]
+  do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+  shift
+  done
+  # Check if args null to replace by default values
+  downLimit=${downLimit:-100}
+
+  response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/ml/recognize" \
+  --data-urlencode "path=$1" --data "downLimit=${downLimit}")
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, extract changeset generated from response
+  #changesetId=$(echo "$response" | jq --raw-output '._entities[].id')
+  #echo $changesetId
+  echo "${response}"
+  return $OK
+}
+
+
+function storeSnapshot {
+  if [[ $# -lt 1 ]]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "### YOU SHOULD PROVIDE 1-MDS NAME TO SNAPSHOT"
+    echo "### (OPTIONAL) YOU MAY PROVIDE ANY OTHER API OPTIONS IN THE FORMAT <option>=<value> (ex: level=warn)"
+    return $INSUFFICIENT_ARGS
+  fi
+  argMds=$1
+  # Get all other optional arguments
+  while [[ "$#" > "0" ]]; do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+  shift
+  done
+  # Check if args null to replace by default values
+  description=${description:-false}
+  level=${level:-"error"}
+
+  response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/snapshot/byname?name=${argMds}" \
+    --data-urlencode "description=${description}" \
+    --data "level=${level}")
+
+  response=$(handleErrors $? "${response}")
+  # No specific response processing, just return it
+  rc=$?; echo "${response}"; return ${rc}
+}
+
+
+function uploadFile {
+  if [[ $# -lt 2 ]]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "### YOU SHOULD PROVIDE 1-FILE TO UPLOAD, 2-NODE PATH TO UPLOAD TO(COMMA SEPARATED)"
+    echo "### (OPTIONAL) YOU MAY PROVIDE ANY OTHER API OPTIONS IN THE FORMAT <option>=<value> (ex: allowDelete=true)"
+    return $INSUFFICIENT_ARGS
+  fi
+
+  argFile=$1
+  if [[ -z ${argFile} ]]; then echo "### ERROR: FILE COULD NOT BE EMPTY"; return $INSUFFICIENT_ARGS; fi
+  argNodePath=$(urlencode $2)
+  if [[ -z ${argNodePath} ]]; then echo "### ERROR: NODE PATH COULD NOT BE EMPTY"; return $INSUFFICIENT_ARGS; fi
+  # Get all other optional arguments
+  while [[ "$#" > "0" ]]; do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+  shift
+  done
+  # Check if args null to replace by default values
+  allowDelete=${allowDelete:-false}
+  autoApprove=${autoApprove:-false}
+  encoding=${encoding:-utf-8}
+  format=${format:-props}
+  onlyParent=${onlyParent:-true}
+  runRecognition=${runRecognition:-false}
+  storeSnapshotResults=${storeSnapshotResults:-false}
+  validationLevel=${validationLevel:-"warn"}
+
+  # Put format in lowercase and check it to set content type
+  case ${format,,} in
+    ini)
+      contentType="text/plain" ;;
+    json)
+      contentType="application/json" ;;
+    xml)
+      contentType="application/xml" ;;
+    yaml)
+      contentType="application/x-yaml" ;;
+    yml)
+      contentType="application/x-yaml" ;;
+    *)
+      # if not identified, consider file as property file
+      contentType="text/x-java-properties" ;;
+  esac
+  description=$(urlencode $description)
+
+  response=$(curl -skw "%{http_code}" "${sweagleURL}/api/v1/data/bulk-operations/dataLoader/upload?nodePath=${argNodePath}&allowDelete=${allowDelete}&autoApprove=${autoApprove}&changeset=${changeset}&description=${description}&encoding=${encoding}&format=${format}&identifierWords=${identifierWords}&onlyParent=${onlyParent}&runRecognition=${runRecognition}&storeSnapshotResults=${storeSnapshotResults}&tag=${tag}&validationLevel=${validationLevel}" \
+    --request POST -H "Authorization: bearer $aToken" -H "Content-Type: $contentType" --data-binary "@$argFile")
+
+  response=$(handleErrors $? "${response}")
+  # No specific response processing, just return it
+  rc=$?; echo "${response}"; return ${rc}
+}
+
+
+function validateConfig {
+  if [[ $# -lt 1 ]]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "### YOU SHOULD PROVIDE 1-MDS"
+    echo "### (OPTIONAL) YOU MAY PROVIDE ANY OTHER API OPTIONS IN THE FORMAT <option>=<value> (ex: parser=myParser, forIncoming=false)"
+    return $INSUFFICIENT_ARGS
+  fi
+
+  while [[ "$#" > "0" ]]
+  do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+  shift
+  done
+  # Check if args null to replace by default values
+  forIncoming=${forIncoming:-true}
+  autoswitch=${autoswitch:-true}
+  format=${format:-json}
+
+  if [[ -z ${parser} ]]; then
+    # No parser provided, check the standard validator status
+    response=$(curl -skw "%{http_code}" -X GET -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/validate" \
+    --data "name=$1" --data "format=${format}" --data "forIncoming=${forIncoming}")
+  else
+    response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/tenant/metadata-parser/validate" \
+      --data "mds=$1" --data "parser=${parser}" --data "forIncoming=${forIncoming}")
+  fi
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  # If autoswitch to true and error is "NotFound" (no incoming snapshot), then check last snapshot instead
+  rc=$?; if [ ${forIncoming} = true ] && [ ${rc} -ne 0 ] && [ ${autoswitch} = true ]; then
+    ec=$(echo "${response}" | jsonValue error)
+    if [ "${ec}" = "NotFoundException" ]; then
+      if [[ -z ${parser} ]]; then
+        # No parser provided, check the standard validator status
+        response=$(curl -skw "%{http_code}" -X GET -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/validate" \
+        --data "name=$1" --data "format=${format}" --data "forIncoming=false")
+        rc=$?
+      else
+        response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/tenant/metadata-parser/validate" \
+          --data "mds=$1" --data "parser=${parser}" --data "forIncoming=false")
+        rc=$?
+      fi
+    fi
+  fi
+  # No specific response processing, just return it
+  echo "${response}"; return ${rc}
+}
