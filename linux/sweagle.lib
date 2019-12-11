@@ -306,10 +306,11 @@ function storeSnapshot {
   shift
   done
   # Check if args null to replace by default values
-  description=${description:-false}
+  description=${description:-}
   level=${level:-"error"}
 
   response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/snapshot/byname?name=${argMds}" \
+    --data-urlencode "tag=${tag}" \
     --data-urlencode "description=${description}" \
     --data "level=${level}")
 
