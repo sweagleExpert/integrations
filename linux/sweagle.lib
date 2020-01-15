@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ##########################################################
-# SCRIPT: sweagle_lib
-# AUTHOR: dimitris@sweagle.com, stefan@sweagle.com
+# SCRIPT: sweagle.lib
+# AUTHOR: dimitris@sweagle.com
 # DATE:   December 2019
 # REV:    1.0.D (Valid are A, B, D, T, Q, and P)
 #               (For Alpha, Beta, Dev, Test, QA, and Production)
@@ -23,7 +23,7 @@
 # set -n   # Uncomment to check script syntax, without execution.
 #          # NOTE: Do not forget to put the # comment back in or
 #          #       the shell script will never execute!
-# set -x   # Uncomment to debug this shell script
+#  set -x   # Uncomment to debug this shell script
 ##########################################################
 #
 #               FILES AND VARIABLES
@@ -46,7 +46,7 @@ function handleErrors() {
   rc=$1
   response=$2
   # check curl exit code
-  rc=$?; if [ ${rc} -ne 0 ]; then echo "ERROR: CURL exit code ${rc}"; return ${rc}; fi;
+  if [ ${rc} -ne 0 ]; then echo "ERROR: CURL exit code ${rc}"; return ${rc}; fi;
   # check http_code returned
   http_code=$(echo "$response"| tail -c 4)
   response=$(echo "${response::-3}")
@@ -136,6 +136,37 @@ function createChangeset() {
 }
 
 
+function createInclude {
+  if [ $# -lt 2 ]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "### YOU SHOULD PROVIDE parentNode=<value> referenceNode=<value>"
+    echo "### (OPTIONAL) YOU MAY ALSO PROVIDE changeset=<value>"
+    return $INSUFFICIENT_ARGS
+  fi
+
+  while [[ "$#" > "0" ]]
+  do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+  shift
+  done
+  # Check if args null to replace by default values
+  changeset=${changeset:-}
+  parentNode=${parentNode:-}
+  referenceNode=${referenceNode:-}
+
+  if [ -z "${changeset}" ]; then changeset=$(createChangeset "Include ${referenceNode} in node ${parentNode}"); fi
+
+  response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "$sweagleURL/api/v1/data/include/byPath?changeset=${changeset}&parentNode=${parentNode}&referenceNode=${referenceNode}")
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  echo ${changeset}
+  return $OK
+}
+
+
 function createMds() {
   if [ $# -lt 3 ]; then
     echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
@@ -163,7 +194,7 @@ function createNode {
     return $INSUFFICIENT_ARGS
   fi
 
-  response=$(curl -skw "%{http_code}" -X POST "${sweagleURL}/api/v1/data/node?name=$1&parentNode=$3&changeset=$4" -H "Authorization: bearer $aToken")
+  response=$(curl -skw "%{http_code}" -X POST "${sweagleURL}/api/v1/data/node?name=$1&parentNode=$2&changeset=$3" -H "Authorization: bearer $aToken")
   # Handle errors
   response=$(handleErrors $? "${response}")
   rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
@@ -364,7 +395,7 @@ function uploadFile {
     case $1 in
       (*=*) eval $1;;
     esac
-  shift
+    shift
   done
   # Check if args null to replace by default values
   allowDelete=${allowDelete:-false}
@@ -397,9 +428,9 @@ function uploadFile {
   response=$(curl -skw "%{http_code}" "${sweagleURL}/api/v1/data/bulk-operations/dataLoader/upload?nodePath=${argNodePath}&allowDelete=${allowDelete}&autoApprove=${autoApprove}&changeset=${changeset}&description=${description}&encoding=${encoding}&format=${format}&identifierWords=${identifierWords}&onlyParent=${onlyParent}&runRecognition=${runRecognition}&storeSnapshotResults=${storeSnapshotResults}&tag=${tag}&validationLevel=${validationLevel}" \
     --request POST -H "Authorization: bearer $aToken" -H "Content-Type: $contentType" --data-binary "@$argFile")
 
-  response=$(handleErrors $? "${response}")
+  return $(handleErrors $? "${response}")
   # No specific response processing, just return it
-  rc=$?; echo "${response}"; return ${rc}
+  #rc=$?; echo "${response}"; return ${rc}
 }
 
 
@@ -410,7 +441,7 @@ function validateConfig {
     echo "### (OPTIONAL) YOU MAY PROVIDE ANY OTHER API OPTIONS IN THE FORMAT <option>=<value> (ex: parser=myParser, forIncoming=false)"
     return $INSUFFICIENT_ARGS
   fi
-  argMds=${1}
+  argMds=$1
 
   while [[ "$#" > "0" ]]
   do
