@@ -52,10 +52,12 @@ fi
 #                    FUNCTIONS
 ##########################################################
 
-function get_all_node_types() {
+# arg1: type id
+function get_all_allowed_child_types() {
+	id=${1}
 
 	res=$(\
-	  curl -skw "%{http_code}" "$sweagleURL/api/v1/model/type" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	  curl -skw "%{http_code}" "$sweagleURL/api/v1/model/type/$id/childTypes" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
 		)
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
@@ -83,12 +85,10 @@ function get_all_attributes() {
 }
 
 
-# arg1: type id
-function get_all_allowed_child_types() {
-	id=${1}
+function get_all_node_types() {
 
 	res=$(\
-	  curl -skw "%{http_code}" "$sweagleURL/api/v1/model/type/$id/childTypes" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	  curl -skw "%{http_code}" "$sweagleURL/api/v1/model/type" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
 		)
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
@@ -97,6 +97,7 @@ function get_all_allowed_child_types() {
 
 	echo ${res}
 }
+
 
 ##########################################################
 #               BEGINNING OF MAIN
