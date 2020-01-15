@@ -259,10 +259,10 @@ function getNodeId {
 }
 
 
-function recognizeNodeTypes {
+function recognizeFromNodeId {
   if [[ $# -lt 1 ]]; then
     echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "### YOU SHOULD PROVIDE 1-NODE PATH"
+    echo "### YOU SHOULD PROVIDE 1-NODE ID"
     echo "### (OPTIONAL) YOU MAY PROVIDE ANY OTHER API OPTIONS WITH <option>=<value> (ex: downLimit=100)"
     return $INSUFFICIENT_ARGS
   fi
@@ -287,6 +287,32 @@ function recognizeNodeTypes {
   #echo $changesetId
   echo "${response}"
   return $OK
+}
+
+
+function recognizeFromPath {
+  if [[ $# -lt 1 ]]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "### YOU SHOULD PROVIDE 1-NODE PATH"
+    echo "### (OPTIONAL) YOU MAY PROVIDE ANY OTHER API OPTIONS WITH <option>=<value> (ex: downLimit=100)"
+    return $INSUFFICIENT_ARGS
+  fi
+
+  while [[ "$#" > "0" ]]
+  do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+  shift
+  done
+  # Check if args null to replace by default values
+  downLimit=${downLimit:-100}
+
+  # Get NodeID from PATH
+
+  # Call the function to recognize from Id
+  $(recognizeFromNodeId $nodeId $#)
+  return $?
 }
 
 
@@ -329,6 +355,7 @@ function uploadFile {
   fi
 
   argFile=$1
+  extension="${argFile##*.}"
   if [[ -z ${argFile} ]]; then echo "### ERROR: FILE COULD NOT BE EMPTY"; return $INSUFFICIENT_ARGS; fi
   argNodePath=$(urlencode $2)
   if [[ -z ${argNodePath} ]]; then echo "### ERROR: NODE PATH COULD NOT BE EMPTY"; return $INSUFFICIENT_ARGS; fi
@@ -343,7 +370,7 @@ function uploadFile {
   allowDelete=${allowDelete:-false}
   autoApprove=${autoApprove:-false}
   encoding=${encoding:-utf-8}
-  format=${format:-props}
+  format=${format:-$extension}
   onlyParent=${onlyParent:-true}
   runRecognition=${runRecognition:-false}
   storeSnapshotResults=${storeSnapshotResults:-false}
@@ -383,6 +410,7 @@ function validateConfig {
     echo "### (OPTIONAL) YOU MAY PROVIDE ANY OTHER API OPTIONS IN THE FORMAT <option>=<value> (ex: parser=myParser, forIncoming=false)"
     return $INSUFFICIENT_ARGS
   fi
+  argMds=${1}
 
   while [[ "$#" > "0" ]]
   do
@@ -399,10 +427,10 @@ function validateConfig {
   if [[ -z ${parser} ]]; then
     # No parser provided, check the standard validator status
     response=$(curl -skw "%{http_code}" -X GET -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/validate" \
-    --data "name=$1" --data "format=${format}" --data "forIncoming=${forIncoming}")
+    --data "name=${argMds}" --data "format=${format}" --data "forIncoming=${forIncoming}")
   else
     response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/tenant/metadata-parser/validate" \
-      --data "mds=$1" --data "parser=${parser}" --data "forIncoming=${forIncoming}")
+      --data "mds=${argMds}" --data "parser=${parser}" --data "forIncoming=${forIncoming}")
   fi
   # Handle errors
   response=$(handleErrors $? "${response}")
@@ -422,6 +450,14 @@ function validateConfig {
       fi
     fi
   fi
-  # No specific response processing, just return it
-  echo "${response}"; return ${rc}
+
+  echo $response
+  rc=$(echo "$response" | jsonValue "result")
+  if [[ $response = "{\"error\":"* ]]; then
+      echo "********** ERROR: Unable to validate MDS: $argMds with validator: ${parser}"
+      exit 1
+  elif [ "$rc" = false ]; then
+      echo "********** ERROR: BROKEN configuration data detected for validator: " ${parser}
+      exit 1
+  fi
 }
