@@ -429,9 +429,9 @@ function uploadFile {
   response=$(curl -skw "%{http_code}" "${sweagleURL}/api/v1/data/bulk-operations/dataLoader/upload?nodePath=${argNodePath}&allowDelete=${allowDelete}&autoApprove=${autoApprove}&changeset=${changeset}&description=${description}&encoding=${encoding}&format=${format}&identifierWords=${identifierWords}&onlyParent=${onlyParent}&runRecognition=${runRecognition}&storeSnapshotResults=${storeSnapshotResults}&tag=${tag}&validationLevel=${validationLevel}" \
     --request POST -H "Authorization: bearer $aToken" -H "Content-Type: $contentType" --data-binary "@$argFile")
 
-  return $(handleErrors $? "${response}")
+  response=$(handleErrors $? "${response}")
   # No specific response processing, just return it
-  #rc=$?; echo "${response}"; return ${rc}
+  rc=$?; echo "${response}"; return ${rc}
 }
 
 
