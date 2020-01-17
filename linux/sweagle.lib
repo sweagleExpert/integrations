@@ -360,11 +360,12 @@ function storeSnapshot {
     case $1 in
       (*=*) eval $1;;
     esac
-  shift
+    shift
   done
   # Check if args null to replace by default values
   description=${description:-}
   level=${level:-"error"}
+  tag=${tag:-}
 
   response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/snapshot/byname?name=${argMds}" \
     --data-urlencode "tag=${tag}" \
