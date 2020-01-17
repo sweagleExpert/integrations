@@ -473,11 +473,11 @@ function validateConfig {
       if [[ -z ${parser} ]]; then
         # No parser provided, check the standard validator status
         response=$(curl -skw "%{http_code}" -X GET -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/validate" \
-        --data "name=$1" --data "format=${format}" --data "forIncoming=false")
+        --data "name=${argMds}" --data "format=${format}" --data "forIncoming=false")
         rc=$?
       else
         response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/tenant/metadata-parser/validate" \
-          --data "mds=$1" --data "parser=${parser}" --data "forIncoming=false")
+          --data "mds=${argMds}" --data "parser=${parser}" --data "forIncoming=false")
         rc=$?
       fi
     fi
