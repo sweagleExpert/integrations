@@ -149,7 +149,7 @@ function createInclude {
     case $1 in
       (*=*) eval $1;;
     esac
-  shift
+    shift
   done
   # Check if args null to replace by default values
   changeset=${changeset:-}
@@ -255,7 +255,7 @@ function getConfig {
     case $1 in
       (*=*) eval $1;;
     esac
-  shift
+    shift
   done
   # Check if args null to replace by default values
   template=${template:-false}
@@ -303,7 +303,7 @@ function recognizeFromNodeId {
     case $1 in
       (*=*) eval $1;;
     esac
-  shift
+    shift
   done
   # Check if args null to replace by default values
   downLimit=${downLimit:-100}
@@ -334,7 +334,7 @@ function recognizeFromPath {
     case $1 in
       (*=*) eval $1;;
     esac
-  shift
+    shift
   done
   # Check if args null to replace by default values
   downLimit=${downLimit:-100}
@@ -365,7 +365,6 @@ function storeSnapshot {
   # Check if args null to replace by default values
   description=${description:-}
   level=${level:-"error"}
-  tag=${tag:-}
 
   response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/snapshot/byname?name=${argMds}" \
     --data-urlencode "tag=${tag}" \
@@ -389,7 +388,8 @@ function uploadFile {
   argFile=$1
   extension="${argFile##*.}"
   if [[ -z ${argFile} ]]; then echo "### ERROR: FILE COULD NOT BE EMPTY"; return $INSUFFICIENT_ARGS; fi
-  argNodePath=$(urlencode $2)
+  argNodePath=$2
+  #argNodePath=$(urlencode $2)
   if [[ -z ${argNodePath} ]]; then echo "### ERROR: NODE PATH COULD NOT BE EMPTY"; return $INSUFFICIENT_ARGS; fi
   # Get all other optional arguments
   while [[ "$#" > "0" ]]; do
@@ -449,20 +449,23 @@ function validateConfig {
     case $1 in
       (*=*) eval $1;;
     esac
-  shift
+    shift
   done
   # Check if args null to replace by default values
-  forIncoming=${forIncoming:-true}
+  arg=${arg:-}
   autoswitch=${autoswitch:-true}
+  forIncoming=${forIncoming:-true}
   format=${format:-json}
+  mdsArgs=${mdsArgs:-}
+  mdsTags=${mdsTags:-}
+  withCustomValidations=${withCustomValidations:-false}
 
   if [[ -z ${parser} ]]; then
     # No parser provided, check the standard validator status
-    response=$(curl -skw "%{http_code}" -X GET -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/validate" \
-    --data "name=${argMds}" --data "format=${format}" --data "forIncoming=${forIncoming}")
+    response=$(curl -skw "%{http_code}" -X GET -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/validate?name=${argMds}&format=${format}&forIncoming=${forIncoming}&withCustomValidations=${withCustomValidations}")
   else
     response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/tenant/metadata-parser/validate" \
-      --data "mds=${argMds}" --data "parser=${parser}" --data "forIncoming=${forIncoming}")
+      --data "mds=${argMds}" --data "parser=${parser}" --data "arg=${arg}" --data "mdsArgs=${mdsArgs}" --data "mdsTags=${mdsTags}" --data "forIncoming=${forIncoming}")
   fi
   # Handle errors
   response=$(handleErrors $? "${response}")
@@ -472,12 +475,11 @@ function validateConfig {
     if [ "${ec}" = "NotFoundException" ]; then
       if [[ -z ${parser} ]]; then
         # No parser provided, check the standard validator status
-        response=$(curl -skw "%{http_code}" -X GET -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/validate" \
-        --data "name=${argMds}" --data "format=${format}" --data "forIncoming=false")
+        response=$(curl -skw "%{http_code}" -X GET -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/validate?name=${argMds}&format=${format}&forIncoming=false&withCustomValidations=${withCustomValidations}")
         rc=$?
       else
         response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/tenant/metadata-parser/validate" \
-          --data "mds=${argMds}" --data "parser=${parser}" --data "forIncoming=false")
+          --data "mds=${argMds}" --data "parser=${parser}"  --data "arg=${arg}" --data "mdsArgs=${mdsArgs}" --data "mdsTags=${mdsTags}" --data "forIncoming=false")
         rc=$?
       fi
     fi
