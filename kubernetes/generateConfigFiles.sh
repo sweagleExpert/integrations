@@ -42,9 +42,11 @@ do
       #For debug
       #echo "kubectl get $CONFIG ${array[1]} --namespace=${array[0]} -o=$FORMAT > $TARGET_DIR/${array[1]}-$CONFIG.$FORMAT"
       if [ -z ${NAMESPACE} ]; then
-        kubectl get $CONFIG ${array[1]} --namespace=${array[0]} -o=$FORMAT > $TARGET_DIR/${array[1]}-$CONFIG.$FORMAT
+        mkdir -p ${TARGET_DIR}/${array[0]}/${CONFIG}
+        kubectl get $CONFIG ${array[1]} --namespace=${array[0]} -o=$FORMAT > ${TARGET_DIR}/${array[0]}/${CONFIG}/${array[1]}-$CONFIG.$FORMAT
       else
-        kubectl get $CONFIG ${array[0]} --namespace=${NAMESPACE} -o=$FORMAT > $TARGET_DIR/${array[0]}-$CONFIG.$FORMAT
+        mkdir -p ${TARGET_DIR}/${NAMESPACE}/${CONFIG}
+        kubectl get $CONFIG ${array[0]} --namespace=${NAMESPACE} -o=$FORMAT > ${TARGET_DIR}/${NAMESPACE}/${CONFIG}/${array[0]}-$CONFIG.$FORMAT
       fi
     fi
     LINE_NB=$(( $LINE_NB + 1 ))
