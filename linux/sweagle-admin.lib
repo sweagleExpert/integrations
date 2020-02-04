@@ -138,8 +138,10 @@ function set_preferences {
   args=""
   while [[ "$#" > "0" ]]
   do
-    args="${args}&$1"
-  shift
+    case $1 in
+      (*=*) args="${args}&$1";;
+    esac
+    shift
   done
   echo "ARGS=${args}"
 
