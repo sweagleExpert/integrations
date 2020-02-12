@@ -136,6 +136,51 @@ function createChangeset() {
 }
 
 
+function createConfigData() {
+  # Get all arguments
+  nbArgs=$#
+  while [[ "$#" > "0" ]]; do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+    shift
+  done
+  # Check if args null to replace by default values
+  attributeKey=${attributeKey:-}
+  attributeValue=${attributeValue:-}
+  changeset=${changeset:-}
+  isSensitive=${isSensitive:-false}
+  mdiTypeId=${mdiTypeId:-}
+  #mdiTypeName=${mdiTypeName:-}
+  node=${node:-}
+  path=${path:-}
+
+  # Check if insufficient args
+  # or attributeKey or attributeValue empty
+  if [ ${nbArgs} -lt 3 ] || [ -z "${attributeKey}" ] || [ -z "${attributeValue}" ]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "### YOU SHOULD PROVIDE attributeKey=<key>, attributeValue=<value> and path or node where to store it"
+    return $INSUFFICIENT_ARGS
+  fi
+
+  # Check if changeset not provided, then create it
+  if [ -z ${changeset} ]; then changeset=$(createChangeset "Change key ${attributeKey}"); fi
+
+  # Check if mdiTypeName provided and id empty, will search for Id
+
+
+  response=$(curl -skw "%{http_code}" -X POST "${sweagleURL}/api/v1/data/metadata" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" \
+    --data-urlencode "attributeKey=${attributeKey}" \
+    --data-urlencode "attributeValue=${attributeValue}" \
+    --data "changeset=${changeset}&isSensitive=${isSensitive}&mdiTypeId=${mdiTypeId}&node=${node}&path=${path}")
+
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  return $OK
+}
+
+
 function createInclude {
   if [ $# -lt 2 ]; then
     echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
@@ -272,6 +317,66 @@ function getConfig {
 }
 
 
+function getConfigData() {
+  nbArgs=$#
+  while [[ "$#" > "0" ]]; do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+    shift
+  done
+  # Check if args null to replace by default values
+  attributeKey=${attributeKey:-}
+  changeset=${changeset:-}
+  path=${path:-}
+
+  # Check if insufficient args
+  if [ ${nbArgs} -lt 1 ] || [ -z "${path}" ]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "### YOU SHOULD PROVIDE path=<node path>, and optionnaly attributeKey=<keyName>"
+    return $INSUFFICIENT_ARGS
+  fi
+
+  response=$(curl -skw "%{http_code}" -X GET "${sweagleURL}/api/v1/data/metadata" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" \
+    --data-urlencode "attributeKey=${attributeKey}" \
+    --data "changeset=${changeset}&path=${path}")
+
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; echo "${response}"; return ${rc};
+}
+
+
+function getConfigDataId() {
+  nbArgs=$#
+  while [[ "$#" > "0" ]]; do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+    shift
+  done
+  # Check if args null to replace by default values
+  attributeKey=${attributeKey:-}
+  changeset=${changeset:-}
+  path=${path:-}
+
+  # Check if insufficient args
+  if [ ${nbArgs} -lt 2 ] || [ -z "${path}" ] || [ -z "${attributeKey}" ]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "### YOU SHOULD PROVIDE path=<node path> and attributeKey=<key name>"
+    return $INSUFFICIENT_ARGS
+  fi
+
+  response=$(curl -skw "%{http_code}" -X GET "${sweagleURL}/api/v1/data/metadata" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" \
+    --data-urlencode "attributeKey=${attributeKey}" \
+    --data "changeset=${changeset}&path=${path}")
+
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; echo "${response}"; return ${rc};
+}
+
+
 function getNodeId {
   if [[ $# -ne 1 ]]; then
     echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
@@ -386,8 +491,8 @@ function uploadFile {
   fi
 
   argFile=$1
-  extension="${argFile##*.}"
   if [[ -z ${argFile} ]]; then echo "### ERROR: FILE COULD NOT BE EMPTY"; return $INSUFFICIENT_ARGS; fi
+  extension="${argFile##*.}"
   argNodePath=$2
   #argNodePath=$(urlencode $2)
   if [[ -z ${argNodePath} ]]; then echo "### ERROR: NODE PATH COULD NOT BE EMPTY"; return $INSUFFICIENT_ARGS; fi
@@ -401,6 +506,7 @@ function uploadFile {
   # Check if args null to replace by default values
   allowDelete=${allowDelete:-false}
   autoApprove=${autoApprove:-false}
+  description=${description:-}
   encoding=${encoding:-utf-8}
   format=${format:-$extension}
   onlyParent=${onlyParent:-true}
@@ -484,7 +590,6 @@ function validateConfig {
       fi
     fi
   fi
-
   echo $response
   rc=$(echo "$response" | jsonValue "result")
   if [[ $response = "{\"error\":"* ]]; then
