@@ -138,7 +138,6 @@ function createChangeset() {
 
 function createConfigData() {
   # Get all arguments
-  nbArgs=$#
   while [[ "$#" > "0" ]]; do
     case $1 in
       (*=*) eval $1;;
@@ -151,24 +150,20 @@ function createConfigData() {
   changeset=${changeset:-}
   isSensitive=${isSensitive:-false}
   mdiTypeId=${mdiTypeId:-}
-  #mdiTypeName=${mdiTypeName:-}
+  mdiTypeName=${mdiTypeName:-}
   node=${node:-}
   path=${path:-}
 
   # Check if insufficient args
-  # or attributeKey or attributeValue empty
-  if [ ${nbArgs} -lt 3 ] || [ -z "${attributeKey}" ] || [ -z "${attributeValue}" ]; then
-    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "### YOU SHOULD PROVIDE attributeKey=<key>, attributeValue=<value> and path or node where to store it"
-    return $INSUFFICIENT_ARGS
-  fi
+  if [[ -z "${attributeKey}" ]] || [[ -z "${attributeValue}" ]]; then echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"; echo "### YOU MUST PROVIDE attributeKey=<key> and attributeValue=<value>"; return $INSUFFICIENT_ARGS; fi
+  if [[ -z "${node}" ]] && [[ -z "${path}" ]]; then echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"; echo "### YOU MUST PROVIDE path or node where to store key"; return $INSUFFICIENT_ARGS; fi
 
   # Check if changeset not provided, then create it
-  if [ -z ${changeset} ]; then changeset=$(createChangeset "Change key ${attributeKey}"); fi
+  if [[ -z ${changeset} ]]; then changeset=$(createChangeset "Create key ${attributeKey}"); fi
 
   # Check if mdiTypeName provided and id empty, will search for Id
 
-
+  #echo "Creating changeset"
   response=$(curl -skw "%{http_code}" -X POST "${sweagleURL}/api/v1/data/metadata" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" \
     --data-urlencode "attributeKey=${attributeKey}" \
     --data-urlencode "attributeValue=${attributeValue}" \
@@ -176,8 +171,7 @@ function createConfigData() {
 
   # Handle errors
   response=$(handleErrors $? "${response}")
-  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
-  return $OK
+  rc=$?; echo "${response}"; return ${rc}
 }
 
 
@@ -206,7 +200,7 @@ function createInclude {
   response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "$sweagleURL/api/v1/data/include/byPath?changeset=${changeset}&parentNode=${parentNode}&referenceNode=${referenceNode}")
   # Handle errors
   response=$(handleErrors $? "${response}")
-  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  rc=$?; echo "${response}"; return ${rc}
   echo ${changeset}
   return $OK
 }
@@ -281,6 +275,18 @@ function deleteChangeset() {
   rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
   # no errors, handle response
   echo "### Changeset $1 deleted"
+  return $OK
+}
+
+
+function deleteConfigData() {
+  if [ $# -ne 1 ]; then echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"; echo "### YOU SHOULD PROVIDE 1-CONFIG DATA ID TO DELETE"; return $INSUFFICIENT_ARGS; fi
+
+  response=$(curl -skw "%{http_code}" -X DELETE "${sweagleURL}/api/v1/data/metadata/$1" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  echo "### metadata $1 deleted"
   return $OK
 }
 
@@ -478,6 +484,41 @@ function storeSnapshot {
 
   response=$(handleErrors $? "${response}")
   # No specific response processing, just return it
+  rc=$?; echo "${response}"; return ${rc}
+}
+
+
+function updateConfigData() {
+  # Get all arguments
+  id=$1
+  while [[ "$#" > "0" ]]; do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+    shift
+  done
+  # Check if args null to replace by default values
+  attributeKey=${attributeKey:-}
+  attributeValue=${attributeValue:-}
+  changeset=${changeset:-}
+
+  # Check if insufficient args
+  # or attributeKey or attributeValue empty
+  if [[ -z "${attributeKey}" ]] && [[ -z "${attributeValue}" ]]; then echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"; echo "### YOU MUST PROVIDE attributeKey=<key> or attributeValue=<value>"; return $INSUFFICIENT_ARGS; fi
+
+  # Check if changeset not provided, then create it
+  if [[ -z ${changeset} ]]; then changeset=$(createChangeset "Update key ${attributeKey}"); fi
+
+  # Check if mdiTypeName provided and id empty, will search for Id
+
+  #echo "Creating changeset"
+  response=$(curl -skw "%{http_code}" -X POST "${sweagleURL}/api/v1/data/metadata/${id}" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" \
+    --data-urlencode "attributeKey=${attributeKey}" \
+    --data-urlencode "attributeValue=${attributeValue}" \
+    --data "changeset=${changeset}&isSensitive=${isSensitive}&mdiTypeId=${mdiTypeId}")
+
+  # Handle errors
+  response=$(handleErrors $? "${response}")
   rc=$?; echo "${response}"; return ${rc}
 }
 
