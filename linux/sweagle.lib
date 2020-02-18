@@ -377,6 +377,8 @@ function getConfigDataId() {
     --data-urlencode "attributeKey=${attributeKey}" \
     --data "changeset=${changeset}&path=${path}")
 
+  #echo ${response} | jq ‘._entities[]|select(.identifierKey == "$cdiKeyName").id'
+
   # Handle errors
   response=$(handleErrors $? "${response}")
   rc=$?; echo "${response}"; return ${rc};
@@ -547,12 +549,16 @@ function uploadFile {
   # Check if args null to replace by default values
   allowDelete=${allowDelete:-false}
   autoApprove=${autoApprove:-false}
+  autoRecognize=${autoRecognize:-false}
   description=${description:-}
   encoding=${encoding:-utf-8}
   format=${format:-$extension}
+  identifierWords=${identifierWords:-}
+  nodePath=${nodePath:-}
   onlyParent=${onlyParent:-true}
   runRecognition=${runRecognition:-false}
   storeSnapshotResults=${storeSnapshotResults:-false}
+  tag=${tag:-}
   validationLevel=${validationLevel:-"warn"}
 
   # Put format in lowercase and check it to set content type
