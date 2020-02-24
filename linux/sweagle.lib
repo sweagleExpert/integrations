@@ -36,6 +36,18 @@ FILE_NOT_FOUND=4
 SWEAGLE_ERROR=5
 
 ##########################################################
+#
+#                    CHECK PREREQUISITES
+#               (USED BY SWEAGLE API FUNCTIONS)
+##########################################################
+if ! [ -x "$(command -v jq)" ] ; then
+  echo "#########################################################################################"
+  echo "########## ERROR: JQ is not installed"
+  echo "#########################################################################################"
+  exit 1
+fi
+
+##########################################################
 #                    UTILITIES FUNCTIONS
 #               (USED BY SWEAGLE API FUNCTIONS)
 ##########################################################
@@ -206,22 +218,22 @@ function createInclude {
 }
 
 
-function createMds() {
+function createCds() {
   if [ $# -lt 3 ]; then
     echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "### YOU SHOULD PROVIDE 1-CHANGESET ID, 2-NAME OF MDS, 3-NODE PATH OF MDS (node separated by commas)"
+    echo "### YOU SHOULD PROVIDE 1-CHANGESET ID, 2-NAME OF CDS, 3-NODE PATH (nodes separated by commas)"
     return $INSUFFICIENT_ARGS
   fi
   csId=$1
-  mdsName=$2
-  mdsPath=$3
+  cdsName=$2
+  cdsPath=$3
 
-  response=$(curl -skw "%{http_code}" -X POST "${sweagleURL}/api/v1/data/include/byPath?changeset=$csId&name=$mdsName&referenceNode=$mdsPath" -H "Authorization: bearer $aToken" -H "Content-Type: application/vnd.siren+json;charset=UTF-8")
+  response=$(curl -skw "%{http_code}" -X POST "${sweagleURL}/api/v1/data/include/byPath?changeset=$csId&name=$cdsName&referenceNode=$cdsPath" -H "Authorization: bearer $aToken" -H "Content-Type: application/vnd.siren+json;charset=UTF-8")
   # Handle errors
   response=$(handleErrors $? "${response}")
   rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
   # no errors, handle response
-  echo "Created metadataset: $mdsName"
+  echo "Created configdataset: $cdsName"
   return $OK
 }
 
