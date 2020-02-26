@@ -415,6 +415,36 @@ function getNodeId {
 }
 
 
+function getValidationStatus {
+  if [[ $# -lt 1 ]]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "### YOU SHOULD PROVIDE name=<MDS NAME>"
+    return $INSUFFICIENT_ARGS
+  fi
+  while [[ "$#" > "0" ]]
+  do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+    shift
+  done
+  # Check if args null to replace by default values
+  name=${name:-}
+  forIncoming=${forIncoming:-true}
+  format=${format:-json}
+  withCustomValidations=${withCustomValidations:-true}
+
+  response=$(curl -skw "%{http_code}" -X GET -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/validate?\
+name=${name}&forIncoming=${forIncoming}&format=${format}&withCustomValidations=${withCustomValidations}")
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?
+  #if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  echo "${response}"
+  return ${rc}
+}
+
+
 function recognizeFromNodeId {
   if [[ $# -lt 1 ]]; then
     echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
