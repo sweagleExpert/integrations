@@ -397,6 +397,46 @@ function getConfigDataId() {
 }
 
 
+function getConfigDataSetIdFromName {
+  if [ $# -lt 1 ]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "### YOU SHOULD PROVIDE cdsName=<configdataset name>, (OPTIONAL)forIncoming=true or false"
+    return $INSUFFICIENT_ARGS
+  fi
+  # Get all arguments
+  while [[ "$#" > "0" ]]; do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+    shift
+  done
+  cdsName=${cdsName:-}
+  forIncoming=${forIncoming:-}
+  response=$(getConfigDataSets "forIncoming=${forIncoming}")
+  id=$(echo ${response} | jq --arg cds_name ${cdsName} '.entities[].properties | select(.identifierKey == $cds_name) | .id')
+  echo ${id}
+}
+
+
+function getConfigDataSets {
+  # Get all arguments
+  while [[ "$#" > "0" ]]; do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+    shift
+  done
+  # Check if args null to replace by default values
+  forIncoming=${forIncoming:-false}
+
+  response=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/data/include?forIncoming=${forIncoming}" \
+    -X GET  -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; echo "${response}" | jq .; return ${rc}
+}
+
+
 function getNodeId {
   if [[ $# -ne 1 ]]; then
     echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"

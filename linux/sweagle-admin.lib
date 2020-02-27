@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+source $(dirname "$0")/sweagle.lib
 ##########################################################
 # SCRIPT: sweagle-admin.lib
 # AUTHOR: dimitris@sweagle.com
@@ -34,6 +35,18 @@ INSUFFICIENT_ARGS=2
 SYNTAX_ERROR=3
 FILE_NOT_FOUND=4
 SWEAGLE_ERROR=5
+
+##########################################################
+#
+#                    CHECK PREREQUISITES
+#               (USED BY SWEAGLE API FUNCTIONS)
+##########################################################
+if ! [ -x "$(command -v jq)" ] ; then
+  echo "#########################################################################################"
+  echo "########## ERROR: JQ is not installed"
+  echo "#########################################################################################"
+  exit 1
+fi
 
 ##########################################################
 #                    UTILITIES FUNCTIONS
@@ -97,7 +110,7 @@ function urlencode() {
 ##########################################################
 
 # arg1: changeset ID
-function approve_model_changeset() {
+function approveModelChangeset() {
 	changeset=${1}
 	# Create and open a new changeset
 	res=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/model/changeset/${changeset}/approve" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
@@ -110,7 +123,7 @@ function approve_model_changeset() {
 
 # arg1: title
 # arg2: description
-function create_model_changeset() {
+function createModelChangeset() {
 	title=${1}
 	description=${2}
 
@@ -129,7 +142,7 @@ function create_model_changeset() {
 }
 
 
-function set_preferences {
+function setPreferences {
   if [ $# -lt 1 ]; then
     echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
     echo "### YOU SHOULD PROVIDE AT LEAST ONE ARG WITH FORMAT <preference_key1>=<value1> <preference_key2>=<value2> ..."
@@ -155,7 +168,7 @@ function set_preferences {
 
 
 ##########################################################
-#                    SWEAGLE API FUNCTIONS FOR MDI TYPES
+#                    SWEAGLE API FUNCTIONS FOR CDI TYPES
 ##########################################################
 
 # arg1: changeset ID
@@ -166,7 +179,7 @@ function set_preferences {
 # arg6: sensitive
 # arg7: regex
 # arg8: listOfValues
-function create_mdi_type() {
+function createCdiType() {
 	changeset=${1}
 	name=${2}
 	description=${3:-}
@@ -194,7 +207,7 @@ function create_mdi_type() {
 	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then echo ${res}; exit 1; fi;
 }
 
-function get_all_mdi_types() {
+function getAllMdiTypes() {
 	# Get all mdi_types
 	res=$(curl -sw "%{http_code}" "$sweagleURL/api/v1/model/mdiType" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
 	# check curl exit code
@@ -206,7 +219,7 @@ function get_all_mdi_types() {
 }
 
 # arg1: id
-function get_mdi_type_from_id() {
+function getMdiTypeFromId() {
   id=${1}
 
 	# Get one mdi_type based on its id
@@ -221,7 +234,7 @@ function get_mdi_type_from_id() {
 
 
 # arg1: name
-function get_mdi_type_from_name() {
+function getMdiTypeFromName() {
 	name=${1}
 
 	# Get a mdi_type based on its name
@@ -249,7 +262,7 @@ function get_mdi_type_from_name() {
 # arg7: sensitive
 # arg8: regex
 # arg9: listOfValues
-function update_mdi_type() {
+function updateMdiType() {
 	changeset=${1}
 	id=${2}
 	name=${3}
@@ -285,7 +298,7 @@ function update_mdi_type() {
 
 # arg1: changeset ID
 # arg2: name
-function create_node_type() {
+function createNodeType() {
 	changeset=${1}
 	name=${2}
 
@@ -342,7 +355,7 @@ function create_node_type() {
 # arg9: dateFormat
 # arg10: defaultValue
 # arg11: referenceTypeName
-function create_type_attribute() {
+function createTypeAttribute() {
 	changeset=${1}
 	type_id=${2}
 	name=${3}
@@ -359,7 +372,7 @@ function create_type_attribute() {
   # Calculate URL depending on referenceType, because both referenceType or valueType must not be present at same time
 	if [[ -n "${referenceTypeName}" && "${referenceTypeName}" != "null" ]]; then
 		# if there is a reference name, then find referenced type
-		referenceTypeId=$(get_node_type "$referenceTypeName")
+		referenceTypeId=$(getNodeType "$referenceTypeName")
 		createURL="$sweagleURL/api/v1/model/attribute?referenceType=${referenceTypeId}"
 	else
 		createURL="$sweagleURL/api/v1/model/attribute?valueType=${valueType}"
@@ -389,13 +402,13 @@ function create_type_attribute() {
 # arg1: changeset ID
 # arg2: type ID
 # arg3: name
-function delete_type_attribute() {
+function deleteTypeAttribute() {
 	changeset=${1}
 	type_id=${2}
 	name=${3}
 
 	# get attribute ID from name
-	attr_id=$(get_type_attribute $type_id "${name}")
+	attr_id=$(getTypeAttribute $type_id "${name}")
 
 	# delete attribute
 	deleteURL="$sweagleURL/api/v1/model/attribute/${attr_id}?changeset=${changeset}&type=${type_id}"
@@ -408,7 +421,7 @@ function delete_type_attribute() {
 
 
 # arg1: type id
-function get_all_allowed_child_types() {
+function getAllAllowedChildTypes() {
 	id=${1}
 
 	res=$(\
@@ -424,7 +437,7 @@ function get_all_allowed_child_types() {
 
 
 # arg1: type id
-function get_all_attributes() {
+function getAllAttributes() {
 	id=${1}
 
 	# Get a type attributes based on type id
@@ -440,7 +453,7 @@ function get_all_attributes() {
 }
 
 
-function get_all_node_types() {
+function getAllNodeTypes() {
 
 	res=$(\
 	  curl -skw "%{http_code}" "$sweagleURL/api/v1/model/type" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
@@ -456,7 +469,7 @@ function get_all_node_types() {
 
 # Get a node_type based on its name
 # arg1: name
-function get_node_type() {
+function getNodeType() {
 	name=${1}
 
   # Replace any space in name by %20 as data-urlencode doesn't seem to work for GET
@@ -474,7 +487,7 @@ function get_node_type() {
 
 # arg1: type id
 # arg2: name
-function get_type_attribute() {
+function getTypeAttribute() {
 	id=${1}
 	name=${2:-}
 
@@ -497,18 +510,275 @@ function get_type_attribute() {
 	echo ${attr_id}
 }
 
+
+# arg1: changeset ID
+# arg2: type ID
+# arg3: attribute ID
+# arg4: name
+# arg5: description
+# arg6: valueType
+# arg7: required
+# arg8: sensitive
+# arg9: regex
+# arg10: dateFormat
+# arg11: defaultValue
+# arg12: referenceTypeName
+function updateTypeAttribute() {
+	changeset=${1}
+	type_id=${2}
+	attr_id=${3}
+	name=${4}
+	description=${5:-}
+	valueType=${6:-Text}
+	required=${7:-false}
+	sensitive=${8:-false}
+	regex=${9:-}
+	listOfValues=${10:-}
+	dateFormat=${11:-}
+	defaultValue=${12:-}
+	referenceTypeName=${13:-}
+
+  # Calculate URL depending on referenceType, because both referenceType or valueType must not be present at same time
+	if [ -n "${referenceTypeName}" ]; then
+		# if there is a refence name, then find referenced type
+		referenceTypeId=$(getNodeType "$referenceTypeName")
+		updateURL="$sweagleURL/api/v1/model/attribute/$attr_id?referenceType=${referenceTypeId}"
+	else
+		updateURL="$sweagleURL/api/v1/model/attribute/$attr_id?valueType=${valueType}"
+	fi
+
+	# update a type_attribute
+	res=$(\
+		curl -skw "%{http_code}" "$updateURL" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+		--data "changeset=${changeset}" \
+		--data "type=${type_id}" \
+		--data-urlencode "name=${name}" \
+		--data-urlencode "description=${description}" \
+		--data "required=${required}" \
+		--data "sensitive=${sensitive}" \
+		--data-urlencode "regex=${regex}" \
+		--data-urlencode "listOfValues=${listOfValues}" \
+		--data-urlencode "dateFormat=${dateFormat}" \
+		--data-urlencode "defaultValue=${defaultValue}")
+
+	# check curl exit code
+	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
+  # check http return code
+	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then echo ${res}; exit 1; fi;
+}
+
+
 ##########################################################
-#                    SWEAGLE API FUNCTIONS FOR PARSERS
+#                    SWEAGLE API FUNCTIONS FOR PARSERS AND TEMPLATES
 ##########################################################
 
 
+function assignParserToCds {
+  if [ $# -lt 2 ]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "### YOU SHOULD PROVIDE parserId=<parser ID>, cdsId=<ConfigDataSet ID>"
+    return $INSUFFICIENT_ARGS
+  fi
+  # Get all arguments
+  while [[ "$#" > "0" ]]; do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+    shift
+  done
+
+  response=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/tenant/metadata-parser/${parserId}/metadatasets?metadataset=${cdsId}" \
+    -X POST  -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; echo "${response}" | jq .; return ${rc}
+}
+
+
+function assignParserToCdsByName {
+  if [ $# -lt 2 ]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "### YOU SHOULD PROVIDE parserName=<parser name>, cdsName=<ConfigDataSet name>"
+    return $INSUFFICIENT_ARGS
+  fi
+  # Get all arguments
+  while [[ "$#" > "0" ]]; do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+    shift
+  done
+
+  cdsId=$(getConfigDataSetIdFromName "cdsName=${cdsName}")
+  parserId=$(getParserIdFromName "parserName=${parserName}")
+  response=$(assignParserToCds parserId=${parserId} cdsId=${cdsId})
+  rc=$?; echo "${response}" | jq .; return ${rc}
+}
+
+
+function createParser {
+  local argName=$1
+  local argDescription=$2
+  local argScript=$3
+  echo "### Create parser with name: $argName"
+  if [ "$argParserType" = "TEMPLATE" ]; then
+    #for debug
+    #echo "curl -sk -X POST '$sweagleURL/api/v1/tenant/template-parser?name=$filename&parserType=$argParserType&errorDescriptionDraft=error+in+parser+$filename' --data-urlencode 'description=$argDescription' --data-urlencode 'template=$argScript' -H 'Authorization: bearer $aToken' -H 'Accept: application/vnd.siren+json'"
+    response=$(curl -sk -X POST "$sweagleURL/api/v1/tenant/template-parser?name=$filename" --data-urlencode "description=$argDescription" --data-urlencode "template=$argScript" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  else
+    response=$(curl -sk -X POST "$sweagleURL/api/v1/tenant/metadata-parser?name=$filename&parserType=$argParserType&errorDescriptionDraft=error+in+parser+$filename" --data-urlencode "description=$argDescription" --data-urlencode "scriptDraft=$argScript" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  fi
+  # Check if any error before continue
+  errorFound=$(echo $response | jsonValue "error_description")
+  if [[ -z $errorFound ]]; then
+    parserId=$(echo "$response" | jsonValue "id")
+    echo "### Created parser with id: $parserId"
+  else
+    echo -e "\n###########"
+    echo "### Error creating parser: $errorFound"
+  fi
+}
+
+
+function deleteParser {
+  local argId=$1
+  if [ "$argParserType" = "TEMPLATE" ]; then
+    response=$(curl -sk -X DELETE "$sweagleURL/api/v1/tenant/template-parser/$argId" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  else
+    response=$(curl -sk -X DELETE "$sweagleURL/api/v1/tenant/metadata-parser/$argId" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  fi
+  # Check if any error before continue
+  errorFound=$(echo $response | jsonValue "error_description")
+  if [[ -z $errorFound ]]; then
+    echo "### Parser $argId deleted"
+  else
+    echo -e "\n###########"
+    echo "### Error deleting parser: $errorFound"
+    exit 1
+  fi
+}
+
+
+function getNextParserId {
+  echo "### Get parser list"
+  if [ "$argParserType" = "TEMPLATE" ]; then
+    response=$(curl -sk -X GET -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" "$sweagleURL/api/v1/tenant/template-parser")
+  else
+    response=$(curl -sk -X GET -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" "$sweagleURL/api/v1/tenant/metadata-parser")
+  fi
+  # Check if any error before continue
+  errorFound=$(echo $response | jsonValue "error_description")
+  if [[ -z $errorFound ]]; then
+    # Extract next Parser Id from list
+    parserId=$(echo $response | jsonValue "id")
+    echo "Next parser Id is $parserId"
+  else
+    echo -e "\n###########"
+    echo "### Error getting parser list: $errorFound"
+    exit 1
+  fi
+}
+
+
+function getParserIdFromName {
+  if [ $# -lt 1 ]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "### YOU SHOULD PROVIDE parserName=<parser name>, (OPTIONAL)parserType=EXPORTER or VALIDATOR, status=PUBLISHED OR ALL"
+    return $INSUFFICIENT_ARGS
+  fi
+  # Get all arguments
+  while [[ "$#" > "0" ]]; do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+    shift
+  done
+  parserName=${parserName:-}
+  parserType=${parserType:-}
+  status=${status:-}
+  response=$(getParsers "parserType=${parserType}" "status=${status}")
+  #id=$(echo ${response} | jq --arg parser_name ${parserName} '.entities[].properties | select(.name|index($parser_name)) | .id')
+  id=$(echo ${response} | jq --arg parser_name ${parserName} '.entities[].properties | select(.name == $parser_name) | .id')
+  echo ${id}
+}
+
+
+function getParsers {
+  # Get all arguments
+  while [[ "$#" > "0" ]]; do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+    shift
+  done
+  # Check if args null to replace by default values
+  parserType=${parserType:-}
+  status=${status:-}
+
+  response=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/tenant/metadata-parser?parserType=${parserType}&status=${status}" \
+    -X GET  -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; echo "${response}" | jq .; return ${rc}
+}
+
+
+function getTemplates {
+  response=$(curl  -skw "%{http_code}" -X GET "$sweagleURL/api/v1/tenant/template-parser" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; echo "${response}"; return ${rc}
+}
+
+
+function publishParser {
+  local argId=$1
+  local argScript=$2
+  echo "### Publish parser with id: $argId"
+  if [ "$argParserType" = "TEMPLATE" ]; then
+    response=$(curl -sk -X POST "$sweagleURL/api/v1/tenant/template-parser/$argId/publish" --data-urlencode "template=$argScript" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" )
+  else
+    response=$(curl -sk -X POST "$sweagleURL/api/v1/tenant/metadata-parser/$argId/publish" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" )
+  fi
+  errorFound=$(echo $response | jsonValue "error_description")
+  if [[ -z $errorFound ]]; then
+    echo "### Published parser $argId"
+  else
+    echo -e "\n###########"
+    echo "### Error publishing parser: $errorFound"
+  fi
+}
+
+
+function updateParser {
+  local argId=$1
+  local argDescription=$2
+  local argScript=$3
+  echo "### Update parser $argId"
+  # to debug
+  #echo "curl -sk -X POST '$sweagleURL/api/v1/tenant/metadata-parser/$argId' --data-urlencode 'description=$argDescription' --data-urlencode 'scriptDraft=$argScript' -H 'Authorization: bearer $aToken' -H 'Accept: application/vnd.siren+json'"
+  if [ "$argParserType" = "TEMPLATE" ]; then
+    response=$(curl -sk -X POST "$sweagleURL/api/v1/tenant/template-parser/$argId" --data-urlencode "description=$argDescription" --data-urlencode "template=$argScript" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  else
+    response=$(curl -sk -X POST "$sweagleURL/api/v1/tenant/metadata-parser/$argId" --data-urlencode "description=$argDescription" --data-urlencode "scriptDraft=$argScript" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  fi
+  # Check if any error before continue
+  errorFound=$(echo $response | jsonValue "error_description")
+  if [[ -z $errorFound ]]; then
+    echo "### Updated parser with id: $argId"
+  else
+    echo -e "\n**********"
+    echo "### Error updating parser: $errorFound"
+  fi
+}
+
 
 ##########################################################
-#                    SWEAGLE API FUNCTIONS FOR USER
+#                    SWEAGLE API FUNCTIONS FOR USER AND ROLES
 ##########################################################
 # arg1: user_id
 # arg2: apis_id (apis id separated by commas)
-function add_user_apis() {
+function addUserApis() {
 	user_id=${1}
 	apis_id=${2}
 
@@ -524,7 +794,7 @@ function add_user_apis() {
 
 # arg1: user_id
 # arg2: roles_id (roles id separated by commas)
-function add_user_roles() {
+function addUserRoles() {
 	user_id=${1}
 	roles_id=${2}
 
@@ -546,7 +816,7 @@ function add_user_roles() {
 # arg5: disabled (true, false)
 # arg6: userType (PERSON, API, SYSTEM)
 # arg7: roles (comma separated list of roles)
-function create_user() {
+function createUser() {
 	username=${1}
 	email=${2}
 	name=${3}
@@ -574,7 +844,7 @@ function create_user() {
 
 
 # arg1: rolename
-function get_role() {
+function getRole() {
   rolename=${1}
 
   # Get all tenant roles
@@ -588,7 +858,7 @@ function get_role() {
 	echo ${id}
 }
 
-function get_users() {
+function getUsers() {
 	# Get all tenant users
 	res=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/user" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
 	# check curl exit code
@@ -600,10 +870,10 @@ function get_users() {
 }
 
 # arg1: username
-function get_user_from_username() {
+function getUserFromUsername() {
   username=${1}
 
-  users_list=$(get_users)
+  users_list=$(getUsers)
   if [ -x "$(command -v jq)" ] ; then
     id=$(echo ${users_list} | jq --arg attr_username ${username} '.entities[].properties | select(.username|index($attr_username)) | .id')
   else
@@ -615,10 +885,10 @@ function get_user_from_username() {
 
 # arg1: email
 # Global variable users_list is also used
-function get_user_from_email() {
+function getUserFromEmail() {
   email=${1}
 
-  users_list=$(get_users)
+  users_list=$(getUsers)
   if [ -x "$(command -v jq)" ] ; then
     id=$(echo ${users_list} | jq --arg attr_email ${email} '.entities[].properties | select(.email|index($attr_email)) | .id')
   else
@@ -629,63 +899,6 @@ function get_user_from_email() {
 }
 
 
-# arg1: changeset ID
-# arg2: type ID
-# arg3: attribute ID
-# arg4: name
-# arg5: description
-# arg6: valueType
-# arg7: required
-# arg8: sensitive
-# arg9: regex
-# arg10: dateFormat
-# arg11: defaultValue
-# arg12: referenceTypeName
-function update_type_attribute() {
-	changeset=${1}
-	type_id=${2}
-	attr_id=${3}
-	name=${4}
-	description=${5:-}
-	valueType=${6:-Text}
-	required=${7:-false}
-	sensitive=${8:-false}
-	regex=${9:-}
-	listOfValues=${10:-}
-	dateFormat=${11:-}
-	defaultValue=${12:-}
-	referenceTypeName=${13:-}
-
-  # Calculate URL depending on referenceType, because both referenceType or valueType must not be present at same time
-	if [ -n "${referenceTypeName}" ]; then
-		# if there is a refence name, then find referenced type
-		referenceTypeId=$(get_node_type "$referenceTypeName")
-		updateURL="$sweagleURL/api/v1/model/attribute/$attr_id?referenceType=${referenceTypeId}"
-	else
-		updateURL="$sweagleURL/api/v1/model/attribute/$attr_id?valueType=${valueType}"
-	fi
-
-	# update a type_attribute
-	res=$(\
-		curl -skw "%{http_code}" "$updateURL" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
-		--data "changeset=${changeset}" \
-		--data "type=${type_id}" \
-		--data-urlencode "name=${name}" \
-		--data-urlencode "description=${description}" \
-		--data "required=${required}" \
-		--data "sensitive=${sensitive}" \
-		--data-urlencode "regex=${regex}" \
-		--data-urlencode "listOfValues=${listOfValues}" \
-		--data-urlencode "dateFormat=${dateFormat}" \
-		--data-urlencode "defaultValue=${defaultValue}")
-
-	# check curl exit code
-	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-  # check http return code
-	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then echo ${res}; exit 1; fi;
-}
-
-
 # arg1: id (user id)
 # arg2: username
 # arg3: email
@@ -693,7 +906,7 @@ function update_type_attribute() {
 # arg5: currentPassword
 # arg6: newPassword
 # arg7: disabled (true, false)
-function update_user() {
+function updateUser() {
 	id=${1}
 	username=${2-}
 	email=${3}
