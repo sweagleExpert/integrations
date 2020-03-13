@@ -632,6 +632,7 @@ function uploadFile {
   allowDelete=${allowDelete:-false}
   autoApprove=${autoApprove:-false}
   autoRecognize=${autoRecognize:-false}
+  changeset=${changeset:-}
   description=${description:-}
   encoding=${encoding:-utf-8}
   format=${format:-$extension}
