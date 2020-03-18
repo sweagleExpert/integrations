@@ -715,8 +715,38 @@ function getParsers {
   parserType=${parserType:-}
   status=${status:-}
 
-  response=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/tenant/metadata-parser?parserType=${parserType}&status=${status}" \
+  if [ "$ParserType" = "TEMPLATE" ]; then
+	response=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/tenant/template-parser?status=${status}" \
     -X GET  -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  else
+	response=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/tenant/metadata-parser?parserType=${parserType}&status=${status}" \
+    -X GET  -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  fi
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; echo "${response}" | jq .; return ${rc}
+}
+
+function getParser {
+  # Get all arguments
+  while [[ "$#" > "0" ]]; do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+    shift
+  done
+  # Check if args null to replace by default values
+  parserType=${parserType:-}
+  status=${status:-}
+  parserId=${parserId:-}
+
+  if [ "$ParserType" = "TEMPLATE" ]; then
+	response=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/tenant/template-parser/$parserId?status=${status}" \
+    -X GET  -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  else
+	response=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/tenant/metadata-parser/$parserId?parserType=${parserType}&status=${status}" \
+    -X GET  -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  fi
   # Handle errors
   response=$(handleErrors $? "${response}")
   rc=$?; echo "${response}" | jq .; return ${rc}
