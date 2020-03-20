@@ -24,6 +24,10 @@ BEGIN{
   # manage last column, removing end of line chars
   sub("\r","",$i)
   header[i] = ($i)
+  # DEBUG header identified
+  #for(i=1;i<=nbColumns;i++) {
+  #  printf "*** DEBUG: Header Col %s = %s\n", i, header[i] >> errorFile
+  #}
   if (nbKeyColumns != 0) {
     print "{"
   } else {
@@ -35,7 +39,7 @@ BEGIN{
 {
   if (NF != nbColumns) {
     # Skip current record as number of columns is not correct
-    print "ERROR: wrong column number, skip line ", NR >> errorFile
+    printf "ERROR: wrong column number (%s), skip line %s\n", NF, NR >> errorFile
     next
   }
   #print "\n****** DEBUG: CURRENT LINE=",NR >> errorFile
@@ -79,13 +83,14 @@ BEGIN{
     # remove double quotes
     gsub("\"","",$i)
     # escape backslash by double backslash
-    gsub("\\","\\\\\\",$i)
+    #gsub("\\","\\\\\\",$i)
+    #print "*** DEBUG: VALUE=",($i) >> errorFile
     printf "\"%s\":\"%s\", ", header[i], ($i)
   }
 
   # Manage last column
   gsub("\"","",$i)
-  gsub("\\","\\\\\\",$i)
+  #gsub("\\","\\\\\\",$i)
   sub("\r","",$i)
   printf "\"%s\":\"%s\" }", header[i], ($i)
 }
