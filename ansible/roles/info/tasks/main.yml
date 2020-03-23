@@ -1,0 +1,44 @@
+---
+
+################################################################
+#################           API MODE           #################
+################################################################
+
+- name: API - Read SWEAGLE url and token from db.json
+  set_fact:
+    sweagle_url: "{{ lookup('file','{{ db_file }}') | from_json | json_query('environment.url') }}"
+    sweagle_token: "{{ lookup('file','{{ db_file }}') | from_json | json_query('user.token') }}"
+    ignore_ssl: "{{ lookup('file','{{ db_file }}') | from_json | json_query('settings.ignoreSSL') }}"
+  when: not use_cli and use_db_file
+#- debug: msg="ignore_ssl= {{ ignore_ssl }}"
+
+- name: API - Check connection to SWEAGLE server
+  uri:
+    url: "{{ sweagle_url }}/info"
+    method: GET
+    return_content: yes
+    validate_certs: "{{ not ignore_ssl }}"
+  register: result
+  when: not use_cli
+
+- name: API - Display result
+  debug: msg="{{ result.json }}"
+  when: not use_cli
+
+################################################################
+#################           CLI MODE           #################
+################################################################
+
+- name: CLI - Install CLI
+  include_role:
+    name: CLI-install
+  when: use_cli and install_cli
+
+- name: CLI - Check connection to SWEAGLE server
+  shell: "{{ cli_installation_folder }}/sweagle info"
+  register: result
+  when: use_cli
+
+- name: CLI - Display result
+  debug: msg="{{ result.stdout }}"
+  when: use_cli

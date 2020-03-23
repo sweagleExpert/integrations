@@ -1,0 +1,34 @@
+- name: Copy SWEAGLE CLI for Mac
+  copy:
+    src: sweagle-macos
+    dest: "{{ cli_installation_folder }}/sweagle"
+    mode: a+x
+  when: ansible_os_family == 'Darwin'
+
+- name: Copy SWEAGLE CLI for Windows
+  copy:
+    src: sweagle-win.exe
+    dest: "{{ cli_installation_folder }}/sweagle.exe"
+    mode: a+x
+  when: ansible_os_family == 'Windows'
+
+- name: Copy SWEAGLE CLI for Linux
+  copy:
+    src: sweagle-linux
+    dest: "{{ cli_installation_folder }}/sweagle"
+    mode: a+x
+  when: ansible_os_family != 'Darwin' and ansible_os_family != 'Windows'
+
+- name: Copy CLI db.json
+  copy:
+    src: "{{ db_file }}"
+    dest: "{{ cli_installation_folder }}/db.json"
+  when: use_db_file
+
+- name: Setup CLI Options
+  shell: "{{ cli_installation_folder }}/sweagle options  --newenv {{ sweagle_url }} --newusername ansible --newtoken {{ sweagle_token }}"
+  when: not use_db_file
+
+- name: Setup CLI Settings
+  shell: "{{ cli_installation_folder }}/sweagle settings --ignoreSSL"
+  when: not use_db_file and ignore_ssl

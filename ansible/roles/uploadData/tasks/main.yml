@@ -1,0 +1,63 @@
+---
+
+################################################################
+#################           API MODE           #################
+################################################################
+
+- name: API - Read SWEAGLE url and token from db.json
+  set_fact:
+    sweagle_url: "{{ lookup('file','{{ db_file }}') | from_json | json_query('environment.url') }}"
+    sweagle_token: "{{ lookup('file','{{ db_file }}') | from_json | json_query('user.token') }}"
+    ignore_ssl: "{{ lookup('file','{{ db_file }}') | from_json | json_query('settings.ignoreSSL') }}"
+  when: not use_cli and use_db_file
+#- debug: msg="ignore_ssl= {{ ignore_ssl }}"
+
+- name: API - Upload file(s) to SWEAGLE server
+  uri:
+    url: "{{ sweagle_url }}/api/v1/data/bulk-operations/dataLoader/upload?\
+      allowDelete={{ item.allow_delete | default('false') }}&\
+      autoApprove={{ auto_approve | default('false') }}&\
+      autoRecognize={{ item.auto_recognize | default('false') }}&\
+      changeset={{ changeset | default('') }}&\
+      description={{ description | default('') }}&\
+      encoding={{ item.encoding | default('utf-8') }}&\
+      format={{ item.format | default('props') }}&\
+      identifierWords={{ item.identifier_words | default('') }}&\
+      nodePath={{ item.node_path }}&\
+      onlyParent={{ item.only_parent | default('false') }}&\
+      runRecognition={{ run_recognition | default('false') }}&\
+      storeSnapshotResults={{ store_snapshot_results | default('false') }}&\
+      tag={{ tag | default('false') }}&\
+      validationLevel={{ validation_level | default('warn') }}"
+    method: POST
+    src: "{{ item.file_path }}"
+    validate_certs: "{{ not ignore_ssl }}"
+    headers:
+      Accept: "*/*"
+      Authorization: "Bearer {{ sweagle_token }}"
+      Content-Type: "text/plain"
+  when: not use_cli
+  loop: "{{ from_file_list }}"
+  loop_control:
+    label: "Uploaded file {{ item.file_path }}"
+
+
+################################################################
+#################           CLI MODE           #################
+################################################################
+
+- name: CLI - Install CLI
+  include_role:
+    name: CLI-install
+  when: use_cli and install_cli
+
+- name: CLI - Upload file(s) to SWEAGLE server
+  shell: "{{ cli_installation_folder }}/sweagle uploadData \
+    --filePath {{ item.file_path }} \
+    --nodePath {{ item.node_path }} \
+    --type {{ item.format | default('props') }} \
+    --autoApprove"
+  when: use_cli
+  loop: "{{ from_file_list }}"
+  loop_control:
+    label: "Uploaded file {{ item.file_path }}"
