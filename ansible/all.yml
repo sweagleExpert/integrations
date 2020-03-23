@@ -25,10 +25,9 @@
 #    - upload
 #    - createChangeset
 #    - createCDS
-    - validate
+    - storeSnapshot
 
 ### TO DO ###
 
 #    - validate
-#    - snapshot
 #    - export

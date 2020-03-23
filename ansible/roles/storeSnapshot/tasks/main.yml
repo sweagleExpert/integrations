@@ -1,0 +1,46 @@
+---
+
+################################################################
+#################           API MODE           #################
+################################################################
+
+- name: API - Read SWEAGLE url and token from db.json
+  set_fact:
+    sweagle_url: "{{ lookup('file','{{ db_file }}') | from_json | json_query('environment.url') }}"
+    sweagle_token: "{{ lookup('file','{{ db_file }}') | from_json | json_query('user.token') }}"
+    ignore_ssl: "{{ lookup('file','{{ db_file }}') | from_json | json_query('settings.ignoreSSL') }}"
+  when: not use_cli and use_db_file
+
+- name: API - Store Snapshot
+  uri:
+    url: "{{ sweagle_url }}/api/v1/data/include/snapshot/byname"
+    body:
+      description: "{{ snapshot_description | default('') }}"
+      level: "{{ level | default('error') }}"
+      name: "{{ cds }}"
+      tag: "{{ snapshot_tag | default('') }}"
+    body_format: form-urlencoded
+    method: POST
+    validate_certs: "{{ not ignore_ssl }}"
+    headers:
+      Accept: "application/vnd.siren+json"
+      Authorization: "Bearer {{ sweagle_token }}"
+  when: not use_cli
+
+
+################################################################
+#################           CLI MODE           #################
+################################################################
+
+- name: CLI - Install CLI
+  include_role:
+    name: installCLI
+  when: use_cli and install_cli
+
+- name: CLI - Store Snapshot
+  shell: "{{ cli_installation_folder }}/sweagle storeSnapshots \
+    --metadatasetName {{ cds }} \
+    --snapshotTag {{ snapshot_tag | default ('') }} \
+    --snapshotDescription {{ snapshot_description | default('') }} \
+    --level {{ level | default('error') }}"
+  when: use_cli
