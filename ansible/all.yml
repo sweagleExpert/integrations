@@ -21,10 +21,11 @@
 - hosts: all
   roles:
 ### OK ###
-    - info
-    - upload
-    - createChangeset
-    - createCDS
+#    - info
+#    - upload
+#    - createChangeset
+#    - createCDS
+    - validate
 
 ### TO DO ###
 

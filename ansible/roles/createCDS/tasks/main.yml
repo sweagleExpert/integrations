@@ -43,7 +43,7 @@
 
 - name: CLI - Install CLI
   include_role:
-    name: CLI-install
+    name: installCLI
   when: use_cli and install_cli
 
 - name: CLI - Create Config Data Set (CDS)
