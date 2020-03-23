@@ -1,0 +1,54 @@
+---
+
+################################################################
+#################           API MODE           #################
+################################################################
+
+- name: API - Read SWEAGLE url and token from db.json
+  set_fact:
+    sweagle_url: "{{ lookup('file','{{ db_file }}') | from_json | json_query('environment.url') }}"
+    sweagle_token: "{{ lookup('file','{{ db_file }}') | from_json | json_query('user.token') }}"
+    ignore_ssl: "{{ lookup('file','{{ db_file }}') | from_json | json_query('settings.ignoreSSL') }}"
+  when: not use_cli and use_db_file
+
+- name: API - Create Changeset
+  include_role:
+    name: createChangeset
+  when: not use_cli
+
+- name: API - Create Config Data Set (CDS)
+  uri:
+    url: "{{ sweagle_url }}/api/v1/data/include/byPath"
+    body:
+      changeset: "{{ changeset }}"
+      name: "{{ cds }}"
+      referenceNode: "{{ node_path }}"
+    body_format: form-urlencoded
+    method: POST
+    validate_certs: "{{ not ignore_ssl }}"
+    headers:
+      Accept: "application/vnd.siren+json"
+      Authorization: "Bearer {{ sweagle_token }}"
+  when: not use_cli
+
+- name: API - Approve Changeset
+  include_role:
+    name: approveChangeset
+  when: not use_cli
+
+
+################################################################
+#################           CLI MODE           #################
+################################################################
+
+- name: CLI - Install CLI
+  include_role:
+    name: CLI-install
+  when: use_cli and install_cli
+
+- name: CLI - Create Config Data Set (CDS)
+  shell: "{{ cli_installation_folder }}/sweagle createMDS \
+    --metadatasetName {{ cds }} \
+    --nodePath {{ node_path }} \
+    --autoApprove"
+  when: use_cli

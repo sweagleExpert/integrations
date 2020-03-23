@@ -1,0 +1,18 @@
+---
+
+- name: Read SWEAGLE url and token from db.json
+  set_fact:
+    sweagle_url: "{{ lookup('file','{{ db_file }}') | from_json | json_query('environment.url') }}"
+    sweagle_token: "{{ lookup('file','{{ db_file }}') | from_json | json_query('user.token') }}"
+    ignore_ssl: "{{ lookup('file','{{ db_file }}') | from_json | json_query('settings.ignoreSSL') }}"
+  when: use_db_file
+
+- name: Approve Changeset
+  uri:
+    url: "{{ sweagle_url }}/api/v1/data/changeset/{{ changeset }}/approve"
+    method: POST
+    validate_certs: "{{ not ignore_ssl }}"
+    headers:
+      Accept: "application/vnd.siren+json"
+      Authorization: "Bearer {{ sweagle_token }}"
+  register: result

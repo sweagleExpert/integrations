@@ -24,10 +24,10 @@
     - info
     - upload
     - createChangeset
+    - createCDS
 
 ### TO DO ###
 
-#    - createCDS
 #    - validate
 #    - snapshot
 #    - export
