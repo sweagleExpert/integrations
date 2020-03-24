@@ -11,23 +11,30 @@
     ignore_ssl: "{{ lookup('file','{{ db_file }}') | from_json | json_query('settings.ignoreSSL') }}"
   when: not use_cli and use_db_file
 
-- name: API - Get Validation Status
-  uri:
-    url: "{{ sweagle_url }}/api/v1/data/include/validate?\
-      forIncoming={{ item.forIncoming | default(global.forIncoming) | default('false') }}&\
-      name={{ item.cds | default(global.cds) | urlencode }}&\
-      withCustomValidations={{ item.withCustomValidations | default(global.withCustomValidations) | default('true') }}"
-    method: GET
-    return_content: true
-    validate_certs: "{{ not ignore_ssl }}"
-    headers:
-      Accept: "application/vnd.siren+json"
-      Authorization: "Bearer {{ sweagle_token }}"
-  register: result
+- name: CLI - Get Validation Progress and Status
+  include_tasks: "api-getValidationStatus.yml"
   when: not use_cli
   loop: "{{ validate_cds_list }}"
   loop_control:
-    label: "For CDS: '{{ item.cds | default(global.cds) }}', result is:\n{{ result.json | default('{}') | to_nice_json }}"
+    label: "CDS '{{ item.cds | default(global.cds) }}' has finished validation"
+
+#- name: API - Get Validation Status
+#  uri:
+#    url: "{{ sweagle_url }}/api/v1/data/include/validate?\
+#      forIncoming={{ item.forIncoming | default(global.forIncoming) | default('false') }}&\
+#      name={{ item.cds | default(global.cds) | urlencode }}&\
+#      withCustomValidations={{ item.withCustomValidations | default(global.withCustomValidations) | default('true') }}"
+#    method: GET
+#    return_content: true
+#    validate_certs: "{{ not ignore_ssl }}"
+#    headers:
+#      Accept: "application/vnd.siren+json"
+#      Authorization: "Bearer {{ sweagle_token }}"
+#  register: result
+#  when: not use_cli
+#  loop: "{{ validate_cds_list }}"
+#  loop_control:
+#    label: "For CDS: '{{ item.cds | default(global.cds) }}', result is:\n{{ result.json | default('{}') | to_nice_json }}"
 
 ################################################################
 #################           CLI MODE           #################
@@ -38,14 +45,36 @@
     name: installCLI
   when: use_cli and install_cli
 
-- name: CLI - Get Validation Status
-  shell: "{{ cli_installation_folder }}/sweagle validationStatus {{ item.cds | default(global.cds) | urlencode }} \
-    {{ '--forIncoming' if item.forIncoming | default(global.forIncoming)  | default(false) }} \
-    {{ '--withData' if item.withData | default(global.withData) | default(true) }} \
-    {{ '--pretty' if item.pretty | default(global.pretty) | default(false) }}"
-  register: result
+- name: CLI - Get Validation Progress and Status
+  include_tasks: "cli-getValidationStatus.yml"
   when: use_cli
   loop: "{{ validate_cds_list }}"
   loop_control:
-    label: "For CDS: '{{ item.cds | default(global.cds) }}', result is:\n
-    {{ result.stderr if result.stdout=='' else result.stdout }}"
+    label: "CDS '{{ item.cds | default(global.cds) }}' has finished validation"
+
+## THIS IS TO HANDLE PROGRESS AND STATUS IN MAIN
+## IT REQUIRES TO DO LOOP OVER PROGRESS FIRST, THEN LOOP OVER STATUS
+#- name: CLI - Get Validation Progress
+#  shell: "{{ cli_installation_folder }}/sweagle validationProgress \"{{ item.cds | default(global.cds) }}\" \
+#    {{ '--forIncoming' if item.forIncoming | default(global.forIncoming)  | default(false) }} \
+#    {{ '--pretty' if item.pretty | default(global.pretty) | default(false) }}"
+#  register: result
+#  when: use_cli
+#  until: result.stderr!='' or result.stdout.find("FINISHED") != -1
+#  retries: 6
+#  delay: 5
+#  loop: "{{ validate_cds_list }}"
+#  loop_control:
+#    label: "CDS '{{ item.cds | default(global.cds) }}' has finished validation"
+
+#- name: CLI - Get Validation Status
+#  shell: "{{ cli_installation_folder }}/sweagle validationStatus \"{{ item.cds | default(global.cds) }}\" \
+#    {{ '--forIncoming' if item.forIncoming | default(global.forIncoming)  | default(false) }} \
+#    {{ '--withData' if item.withData | default(global.withData) | default(true) }} \
+#    {{ '--pretty' if item.pretty | default(global.pretty) | default(false) }}"
+#  register: result
+#  when: use_cli
+#  loop: "{{ validate_cds_list }}"
+#  loop_control:
+#    label: "For CDS: '{{ item.cds | default(global.cds) }}', result is:\n
+#    {{ result.stderr if result.stdout=='' else result.stdout }}"

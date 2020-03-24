@@ -1,0 +1,37 @@
+---
+
+################################################################
+#################           API MODE           #################
+################################################################
+
+- name: API - Get Validation Progress '{{ item.cds | default(global.cds) }}'
+  uri:
+    url: "{{ sweagle_url }}/api/v1/data/include/validation_progress?\
+      forIncoming={{ item.forIncoming | default(global.forIncoming) | default('false') }}&\
+      name={{ item.cds | default(global.cds) | urlencode }}"
+    method: GET
+    validate_certs: "{{ not ignore_ssl }}"
+    headers:
+      Accept: "application/vnd.siren+json"
+      Authorization: "Bearer {{ sweagle_token }}"
+  register: result
+  until: result.json=="FINISHED"
+  retries: 6
+  delay: 5
+
+- name: API - Get Validation Status '{{ item.cds | default(global.cds) }}'
+  uri:
+    url: "{{ sweagle_url }}/api/v1/data/include/validate?\
+      forIncoming={{ item.forIncoming | default(global.forIncoming) | default('false') }}&\
+      name={{ item.cds | default(global.cds) | urlencode }}&\
+      withCustomValidations={{ item.withCustomValidations | default(global.withCustomValidations) | default('true') }}"
+    method: GET
+    return_content: true
+    validate_certs: "{{ not ignore_ssl }}"
+    headers:
+      Accept: "application/vnd.siren+json"
+      Authorization: "Bearer {{ sweagle_token }}"
+  register: result
+
+- name: API - Display result for '{{ item.cds | default(global.cds) }}'
+  debug: msg="{{ result.json }}"

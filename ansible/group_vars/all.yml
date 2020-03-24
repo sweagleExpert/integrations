@@ -2,9 +2,9 @@
 # Variables shared among ALL HOSTS
 
 # Variable to use CLI instead of API`
-use_cli: yes
+use_cli: no
 # Variable to install CLI and db.json
-install_cli: yes
+install_cli: no
 
 # Folder where CLI will be installed on target host
 # Defautl is local folder where ansible commands are executed
@@ -19,7 +19,7 @@ db_file: "/Users/dimitris/git/sweagle-expert/integrations/ansible/db.json"
 # if use_db_file is set to no
 # then sweagle_url,  sweagle_token and validate_certs are used as source of connection info
 # and validate_certs is used to
-sweagle_url: "https://testing.sweagle.com"
+sweagle_url: "https://delfingen.sweagle.com"
 sweagle_token: "104e6b08-9bbf-4b66-a06a-30b7996e5d2f"
 # Tells if SSL should validate server certificate, put yes if self-signed certificate
 ignore_ssl: no

@@ -1,0 +1,31 @@
+---
+
+################################################################
+#################           CLI MODE           #################
+################################################################
+
+- name: CLI - Get Validation Progress '{{ item.cds | default(global.cds) }}'
+  shell: "{{ cli_installation_folder }}/sweagle validationProgress \"{{ item.cds | default(global.cds) }}\" \
+    {{ '--forIncoming' if item.forIncoming | default(global.forIncoming)  | default(false) }} \
+    {{ '--pretty' if item.pretty | default(global.pretty) | default(false) }}"
+  register: result
+  until: result.stderr!='' or result.stdout.find("FINISHED") != -1
+  retries: 6
+  delay: 5
+
+- name: CLI - Get Validation Status '{{ item.cds | default(global.cds) }}'
+  shell: "{{ cli_installation_folder }}/sweagle validationStatus \"{{ item.cds | default(global.cds) }}\" \
+    {{ '--forIncoming' if item.forIncoming | default(global.forIncoming)  | default(false) }} \
+    {{ '--withData' if item.withData | default(global.withData) | default(true) }} \
+    {{ '--pretty' if item.pretty | default(global.pretty) | default(false) }}"
+  register: result
+
+- name: CLI - Display result for '{{ item.cds | default(global.cds) }}'
+  debug:
+    var: result.stdout_lines
+  when: result.stdout!=''
+
+- name: CLI - Display error for '{{ item.cds | default(global.cds) }}'
+  debug:
+    var: result.stderr_lines
+  when: result.stderr!=''
