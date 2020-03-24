@@ -62,4 +62,4 @@
   when: use_cli
   loop: "{{ export_snapshot_list }}"
   loop_control:
-    label: "Exported file {{ item.file_path }}"
+    label: "Exported file {{ item.file_path | default(global.file_path) }}"

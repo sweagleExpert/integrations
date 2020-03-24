@@ -21,14 +21,14 @@
 - hosts: all
   roles:
 ### OK ###
-#    - info
-#    - upload
-#    - createChangeset
-#    - approveChangeset
-#    - createCDS
+    - info
+    - uploadData
+    - createChangeset
+    - approveChangeset
+    - createCDS
     - getValidationStatus
-#    - storeSnapshot
-#    - exportSnapshot
+    - validate
+    - storeSnapshot
+    - exportSnapshot
 
 ### TO DO ###
-#    - validate

@@ -21,8 +21,8 @@
     url: "{{ sweagle_url }}/api/v1/data/include/byPath"
     body:
       changeset: "{{ changeset }}"
-      name: "{{ cds }}"
-      referenceNode: "{{ node_path }}"
+      name: "{{ global.cds }}"
+      referenceNode: "{{ global.node_path }}"
     body_format: form-urlencoded
     method: POST
     validate_certs: "{{ not ignore_ssl }}"
@@ -48,7 +48,7 @@
 
 - name: CLI - Create Config Data Set (CDS)
   shell: "{{ cli_installation_folder }}/sweagle createMDS \
-    --metadatasetName {{ cds }} \
-    --nodePath {{ node_path }} \
+    --metadatasetName {{ global.cds }} \
+    --nodePath {{ global.node_path }} \
     --autoApprove"
   when: use_cli

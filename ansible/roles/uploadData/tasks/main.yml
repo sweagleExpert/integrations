@@ -15,20 +15,20 @@
 - name: API - Upload file(s) to SWEAGLE server
   uri:
     url: "{{ sweagle_url }}/api/v1/data/bulk-operations/dataLoader/upload?\
-      allowDelete={{ item.allow_delete | default('false') }}&\
-      autoApprove={{ auto_approve | default('false') }}&\
-      autoRecognize={{ item.auto_recognize | default('false') }}&\
-      changeset={{ changeset | default('') }}&\
-      description={{ description | default('') }}&\
-      encoding={{ item.encoding | default('utf-8') }}&\
-      format={{ item.format | default('props') }}&\
-      identifierWords={{ item.identifier_words | default('') }}&\
-      nodePath={{ item.node_path }}&\
-      onlyParent={{ item.only_parent | default('false') }}&\
-      runRecognition={{ run_recognition | default('false') }}&\
-      storeSnapshotResults={{ store_snapshot_results | default('false') }}&\
-      tag={{ tag | default('false') }}&\
-      validationLevel={{ validation_level | default('warn') }}"
+      allowDelete={{ item.allow_delete | default(global.allow_delete) | default('false') }}&\
+      autoApprove={{ item.auto_approve | default(global.auto_approve) | default('false') }}&\
+      autoRecognize={{ item.auto_recognize | default(global.auto_recognize) | default('false') }}&\
+      changeset={{ changeset | default(global.changeset) | default('') }}&\
+      description={{ description | default(global.description) | default('') }}&\
+      encoding={{ item.encoding | default(global.encoding) | default('utf-8') }}&\
+      format={{ item.format | default(global.format) | default('props') }}&\
+      identifierWords={{ item.identifier_words | default(global.identifier_words) | default('') }}&\
+      nodePath={{ item.node_path | default(global.node_path) }}&\
+      onlyParent={{ item.only_parent | default(global.only_parent) | default('false') }}&\
+      runRecognition={{ run_recognition | default(global.run_recognition) | default('false') }}&\
+      storeSnapshotResults={{ store_snapshot_results | default(global.store_snapshot_results) | default('false') }}&\
+      tag={{ item.tag | default(global.snapshot.tag) | default('') }}&\
+      validationLevel={{ validation_level | default(global.validation_level) | default('warn') }}"
     method: POST
     src: "{{ item.file_path }}"
     validate_certs: "{{ not ignore_ssl }}"
@@ -54,9 +54,9 @@
 - name: CLI - Upload file(s) to SWEAGLE server
   shell: "{{ cli_installation_folder }}/sweagle uploadData \
     --filePath {{ item.file_path }} \
-    --nodePath {{ item.node_path }} \
-    --type {{ item.format | default('props') }} \
-    --autoApprove"
+    --nodePath {{ item.node_path | default(global.node_path) }} \
+    --type {{ item.format | default(global.format) | default('props') }} \
+    {{ '--autoApprove' if item.auto_approve|default(global.auto_approve) }}"
   when: use_cli
   loop: "{{ upload_file_list }}"
   loop_control:

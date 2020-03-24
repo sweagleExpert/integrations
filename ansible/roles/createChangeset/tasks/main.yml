@@ -11,8 +11,8 @@
   uri:
     url: "{{ sweagle_url }}/api/v1/data/changeset"
     body:
-      title: "{{ changeset_title }}"
-      description: "{{ changeset_description }}"
+      title: "{{ global.changeset_title }}"
+      description: "{{ global.changeset_description }}"
     body_format: form-urlencoded
     method: POST
     validate_certs: "{{ not ignore_ssl }}"

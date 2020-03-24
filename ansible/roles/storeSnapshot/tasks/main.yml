@@ -17,7 +17,7 @@
     body:
       description: "{{ snapshot_description | default('') }}"
       level: "{{ level | default('error') }}"
-      name: "{{ cds }}"
+      name: "{{ global.cds }}"
       tag: "{{ snapshot_tag | default('') }}"
     body_format: form-urlencoded
     method: POST
@@ -39,8 +39,8 @@
 
 - name: CLI - Store Snapshot
   shell: "{{ cli_installation_folder }}/sweagle storeSnapshots \
-    --metadatasetName {{ cds }} \
-    --snapshotTag {{ snapshot_tag | default ('') }} \
-    --snapshotDescription {{ snapshot_description | default('') }} \
-    --level {{ level | default('error') }}"
+    --metadatasetName {{ global.cds }} \
+    --snapshotTag {{ global.snapshot.tag | default ('') }} \
+    --snapshotDescription {{ global.snapshot.description | default('') }} \
+    --level {{ global.level | default('error') }}"
   when: use_cli

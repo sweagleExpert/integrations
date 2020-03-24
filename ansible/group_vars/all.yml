@@ -1,6 +1,11 @@
 ---
 # Variables shared among ALL HOSTS
 
+
+################################################################
+#################         TENANT PARAMS        #################
+################################################################
+
 # Variable to use CLI instead of API`
 use_cli: no
 # Variable to install CLI and db.json
@@ -20,23 +25,29 @@ db_file: "/Users/dimitris/git/sweagle-expert/integrations/ansible/db.json"
 # then sweagle_url,  sweagle_token and validate_certs are used as source of connection info
 # and validate_certs is used to
 sweagle_url: "https://delfingen.sweagle.com"
-sweagle_token: "104e6b08-9bbf-4b66-a06a-XXXXXX"
-# Tells if SSL should validate server certificate, put yes if self-signed certificate
+sweagle_token: "104e6b08-9bbf-4b66-a06a-XXX"
+# Tells if SSL should not validate server certificate, put yes if self-signed certificate
 ignore_ssl: no
 
-changeset_title: "ansible test"
-changeset_description: "this is dimitris test with ansible"
-auto_approve: true
+
+################################################################
+#################          API PARAMS          #################
+################################################################
 
 # Global variables to be used as default if no list variable provided
 global:
   args: ""
-  cds: "samples test"
+  auto_approve: true
+  cds: "samples-test"
+  changeset_title: "ansible test"
+  changeset_description: "this is dimitris test with ansible"
   exporter: "returnDataForNode"
   forIncoming: true
   format: "props"
   node_path: "samples-frontend,environment,dev"
-  tag: ""
+  snapshot:
+    description: ""
+    tag: ""
   validator: "passwordChecker"
 
 # This list is used for uploadData role, you can put any value to overcome global values
@@ -52,7 +63,10 @@ validation_status_cds_list:
 # This list is used for validate role, you can put any value to overcome global values
 validate_cds_list:
   - { cds: "samples-dev", forIncoming: false, validator: "passwordChecker" }
+  - { cds: "samples-dev", forIncoming: false, validator: "noEmptyValues" }
+  - { cds: "samples-dev", forIncoming: false, validator: "noHTTP" }
   - { cds: "samples test" }
+  - { cds: "samples test", validator: "noHTTP"  }
 
 # This list is used for exportSnapshot role, you can put any value to overcome global values
 export_snapshot_list:
