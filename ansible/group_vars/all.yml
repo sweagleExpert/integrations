@@ -20,7 +20,7 @@ db_file: "/Users/dimitris/git/sweagle-expert/integrations/ansible/db.json"
 # then sweagle_url,  sweagle_token and validate_certs are used as source of connection info
 # and validate_certs is used to
 sweagle_url: "https://delfingen.sweagle.com"
-sweagle_token: "104e6b08-9bbf-4b66-a06a-30b7996e5d2f"
+sweagle_token: "104e6b08-9bbf-4b66-a06a-XXXXXX"
 # Tells if SSL should validate server certificate, put yes if self-signed certificate
 ignore_ssl: no
 
@@ -37,6 +37,7 @@ global:
   format: "props"
   node_path: "samples-frontend,environment,dev"
   tag: ""
+  validator: "passwordChecker"
 
 # This list is used for uploadData role, you can put any value to overcome global values
 upload_file_list:
@@ -44,8 +45,13 @@ upload_file_list:
   - { file_path: "/Users/dimitris/Documents/Clients/DELFINGEN/POC/inputs/test.properties", node_path: "samples-frontend,environment,test" }
 
 # This list is used for getValidationStatus role, you can put any value to overcome global values
-validate_cds_list:
+validation_status_cds_list:
   - { cds: "samples-dev", forIncoming: false }
+  - { cds: "samples test" }
+
+# This list is used for validate role, you can put any value to overcome global values
+validate_cds_list:
+  - { cds: "samples-dev", forIncoming: false, validator: "passwordChecker" }
   - { cds: "samples test" }
 
 # This list is used for exportSnapshot role, you can put any value to overcome global values
