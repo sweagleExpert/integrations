@@ -37,7 +37,7 @@
       Authorization: "Bearer {{ sweagle_token }}"
       Content-Type: "text/plain"
   when: not use_cli
-  loop: "{{ from_file_list }}"
+  loop: "{{ upload_file_list }}"
   loop_control:
     label: "Uploaded file {{ item.file_path }}"
 
@@ -58,6 +58,6 @@
     --type {{ item.format | default('props') }} \
     --autoApprove"
   when: use_cli
-  loop: "{{ from_file_list }}"
+  loop: "{{ upload_file_list }}"
   loop_control:
     label: "Uploaded file {{ item.file_path }}"
