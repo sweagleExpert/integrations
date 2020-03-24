@@ -20,7 +20,7 @@ db_file: "/Users/dimitris/git/sweagle-expert/integrations/ansible/db.json"
 # then sweagle_url,  sweagle_token and validate_certs are used as source of connection info
 # and validate_certs is used to
 sweagle_url: "https://testing.sweagle.com"
-sweagle_token: ""
+sweagle_token: "104e6b08-9bbf-4b66-a06a-30b7996e5d2f"
 # Tells if SSL should validate server certificate, put yes if self-signed certificate
 ignore_ssl: no
 
@@ -28,9 +28,19 @@ changeset_title: "ansible test"
 changeset_description: "this is dimitris test with ansible"
 auto_approve: true
 
-cds: "samples-dev"
-node_path: "samples-frontend,environment,dev"
+# Global variables to be used as default if no list variable provided
+global:
+  args: "dev"
+  cds: "samples-dev"
+  exporter: "returnDataForNode"
+  format: "props"
+  node_path: "samples-frontend,environment,dev"
+  tag: ""
 
-from_file_list:
+upload_file_list:
   - { file_path: "/Users/dimitris/Documents/Clients/DELFINGEN/POC/inputs/dev.properties", node_path: "samples-frontend,environment,dev" }
   - { file_path: "/Users/dimitris/Documents/Clients/DELFINGEN/POC/inputs/test.properties", node_path: "samples-frontend,environment,test" }
+
+export_file_list:
+  - { cds: "samples-dev", file_path: "/Users/dimitris/git/sweagle-expert/integrations/ansible/dev.properties" }
+  - { cds: "samples-dev", file_path: "/Users/dimitris/git/sweagle-expert/integrations/ansible/dev.json", exporter: "all", args:"", format: "json" }

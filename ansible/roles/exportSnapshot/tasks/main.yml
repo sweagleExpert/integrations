@@ -1,0 +1,65 @@
+---
+
+################################################################
+#################           API MODE           #################
+################################################################
+
+- name: API - Read SWEAGLE url and token from db.json
+  set_fact:
+    sweagle_url: "{{ lookup('file','{{ db_file }}') | from_json | json_query('environment.url') }}"
+    sweagle_token: "{{ lookup('file','{{ db_file }}') | from_json | json_query('user.token') }}"
+    ignore_ssl: "{{ lookup('file','{{ db_file }}') | from_json | json_query('settings.ignoreSSL') }}"
+  when: not use_cli and use_db_file
+
+- name: API - Export Snapshot
+  uri:
+    url: "{{ sweagle_url }}/api/v1/tenant/metadata-parser/parse"
+    body:
+      args: "{{ item.args | default(global.args) | default('') }}"
+      format: "{{ item.format | default(global.format) }}"
+      mds: "{{ item.cds | default(global.cds) }}"
+      mdsArgs: "{{ item.mdsArgs | default(global.mdsArgs) | default('') }}"
+      mdsTags: "{{ item.mdsTags | default(global.mdsTags) | default('') }}"
+      parser: "{{ item.exporter | default(global.exporter) }}"
+      tag: "{{ item.tag | default(global.tag) | default('') }}"
+    body_format: form-urlencoded
+    dest: "{{ item.file_path }}"
+    method: POST
+    return_content: true
+    validate_certs: "{{ not ignore_ssl }}"
+    headers:
+      Accept: "application/vnd.siren+json"
+      Authorization: "Bearer {{ sweagle_token }}"
+  register: result
+  when: not use_cli
+  loop: "{{ export_file_list }}"
+  loop_control:
+    label: "Exported file {{ item.file_path }}"
+
+#- name: API - Display result
+#  debug: msg="{{ result.content }}"
+#  when: not use_cli
+
+################################################################
+#################           CLI MODE           #################
+################################################################
+
+- name: CLI - Install CLI
+  include_role:
+    name: installCLI
+  when: use_cli and install_cli
+
+# Export the snapshot with pretty option only if it is json
+# If you use pretty option without json format, you will have hidden bad characters in output
+- name: CLI - Export Snapshot
+  shell: "{{ cli_installation_folder }}/sweagle export {{ item.cds | default(global.cds) }} \
+    --args {{ item.args | default(global.args) | default('') }} \
+    --exporter {{ item.exporter | default(global.exporter) }} \
+    --format {{ item.format | default(global.format) }} \
+    {{ '--pretty' if item.format|default(global.format)|lower == 'json' }} \
+    > {{ item.file_path }}"
+  register: result
+  when: use_cli
+  loop: "{{ export_file_list }}"
+  loop_control:
+    label: "Exported file {{ item.file_path }}"
