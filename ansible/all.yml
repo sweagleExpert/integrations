@@ -24,10 +24,11 @@
 #    - info
 #    - upload
 #    - createChangeset
+#    - approveChangeset
 #    - createCDS
-    - storeSnapshot
+    - getValidationStatus
+#    - storeSnapshot
+#    - exportSnapshot
 
 ### TO DO ###
-
 #    - validate
-#    - export

@@ -2,9 +2,9 @@
 # Variables shared among ALL HOSTS
 
 # Variable to use CLI instead of API`
-use_cli: no
+use_cli: yes
 # Variable to install CLI and db.json
-install_cli: no
+install_cli: yes
 
 # Folder where CLI will be installed on target host
 # Defautl is local folder where ansible commands are executed
@@ -30,17 +30,25 @@ auto_approve: true
 
 # Global variables to be used as default if no list variable provided
 global:
-  args: "dev"
-  cds: "samples-dev"
+  args: ""
+  cds: "samples test"
   exporter: "returnDataForNode"
+  forIncoming: true
   format: "props"
   node_path: "samples-frontend,environment,dev"
   tag: ""
 
+# This list is used for uploadData role, you can put any value to overcome global values
 upload_file_list:
   - { file_path: "/Users/dimitris/Documents/Clients/DELFINGEN/POC/inputs/dev.properties", node_path: "samples-frontend,environment,dev" }
   - { file_path: "/Users/dimitris/Documents/Clients/DELFINGEN/POC/inputs/test.properties", node_path: "samples-frontend,environment,test" }
 
-export_file_list:
-  - { cds: "samples-dev", file_path: "/Users/dimitris/git/sweagle-expert/integrations/ansible/dev.properties" }
-  - { cds: "samples-dev", file_path: "/Users/dimitris/git/sweagle-expert/integrations/ansible/dev.json", exporter: "all", args:"", format: "json" }
+# This list is used for getValidationStatus role, you can put any value to overcome global values
+validate_cds_list:
+  - { cds: "samples-dev", forIncoming: false }
+  - { cds: "samples test" }
+
+# This list is used for exportSnapshot role, you can put any value to overcome global values
+export_snapshot_list:
+  - { cds: "samples-dev", file_path: "/Users/dimitris/git/sweagle-expert/integrations/ansible/dev.properties", args: "dev" }
+  - { cds: "samples-dev", file_path: "/Users/dimitris/git/sweagle-expert/integrations/ansible/dev.json", exporter: "all", args: "", format: "json" }
