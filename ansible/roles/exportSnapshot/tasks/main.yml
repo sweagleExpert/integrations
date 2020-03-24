@@ -32,7 +32,7 @@
       Authorization: "Bearer {{ sweagle_token }}"
   register: result
   when: not use_cli
-  loop: "{{ export_file_list }}"
+  loop: "{{ export_snapshot_list }}"
   loop_control:
     label: "Exported file {{ item.file_path }}"
 
@@ -60,6 +60,6 @@
     > {{ item.file_path }}"
   register: result
   when: use_cli
-  loop: "{{ export_file_list }}"
+  loop: "{{ export_snapshot_list }}"
   loop_control:
     label: "Exported file {{ item.file_path }}"
