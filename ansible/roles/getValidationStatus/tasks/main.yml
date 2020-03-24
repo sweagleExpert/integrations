@@ -14,7 +14,7 @@
 - name: CLI - Get Validation Progress and Status
   include_tasks: "api-getValidationStatus.yml"
   when: not use_cli
-  loop: "{{ validate_cds_list }}"
+  loop: "{{ validation_status_cds_list }}"
   loop_control:
     label: "CDS '{{ item.cds | default(global.cds) }}' has finished validation"
 
@@ -48,7 +48,7 @@
 - name: CLI - Get Validation Progress and Status
   include_tasks: "cli-getValidationStatus.yml"
   when: use_cli
-  loop: "{{ validate_cds_list }}"
+  loop: "{{ validation_status_cds_list }}"
   loop_control:
     label: "CDS '{{ item.cds | default(global.cds) }}' has finished validation"
 
