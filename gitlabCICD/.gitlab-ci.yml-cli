@@ -1,0 +1,173 @@
+#image: node:latest
+image: "docker.sweagle.com:8444/sweagle-docker/sweagle-cli:0.7.0"
+
+stages:
+  - check connection
+  - collect inputs
+  - validate and store config
+  - deploy
+  - update repositories
+
+# WARNING: check if your tenant is case sensitive (default) to input vars below
+variables:
+  # ex: CONFIG_DIR: "./conf"
+  CONFIG_FILE: "./conf/inputs.properties"
+  SWEAGLE_SCRIPTS_DIR: "./scripts"
+  # ex: SWEAGLE_SCRIPTS_DIR: "./scripts"
+  SWEAGLE_PATH: "infra2020"
+  # ex: SWEAGLE_PATH: "dimension,node1,node2"
+  SWEAGLE_MDS: "infra2020-F5"
+  # ex: SWEAGLE_MDS: "dimension" or SWEAGLE_MDS:$APP_NAME-$ENV_NAME (if they have been defined before)
+  #SWEAGLE_VALIDATORS: "noDevValues noEmptyValues passwordChecker"
+  SWEAGLE_VALIDATORS: "noEmptyValues"
+  # ex: SWEAGLE_VALIDATORS: "noEmptyValues"
+  SWEAGLE_EXPORTER: "returnSubsetWithIndex"
+  # ex: SWEAGLE_EXPORTER: "all" or SWEAGLE_EXPORTER: "returnDataForNodeName"
+  SWEAGLE_EXPORTER_ARGS: "ansible"
+  # ex: SWEAGLE_EXPORTER_ARGS: "" or SWEAGLE_EXPORTER_ARGS: "node1"
+  SWEAGLE_EXPORTER_FORMAT: "YAML"
+  # ex: SWEAGLE_EXPORTER_FORMAT: "YAML"
+  SWEAGLE_EXPORTER_OUTPUT: "./release/F5.yml"
+  # ex: SWEAGLE_EXPORTER_OUTPUT: ""
+  GITLAB_TARGET_DIR: "/release"
+  # ex: GITLAB_TARGET_DIR: "/release"
+
+
+
+checkCURL:
+  stage: check connection
+  only:
+  - master
+  script:
+    #-----------------------------------------------------
+    #----     Check network connection to SWEAGLE
+    #-----------------------------------------------------
+    - curl "$ENV/info"
+  when: always
+  # possible values always, on_success, on_failure, manual
+
+checkCLI:
+  stage: check connection
+  only:
+  - master
+  script:
+    #-----------------------------------------------------
+    #----     Check CLI connection to SWEAGLE
+    #-----------------------------------------------------
+    # ENV and TOKEN variables are set in Gtilab CI/CD settings
+    # like this TOKEN is a masked variable
+    - sweagle options --newenv "$ENV" --newtoken "$TOKEN"
+    - sweagle info
+  when: always
+  # possible values always, on_success, on_failure, manual
+
+# At the end of build, upload "builded" configuration to SWEAGLE
+getUserInputs:
+  stage: collect inputs
+  only:
+  - master
+  script:
+    - echo **********
+    - echo *** Get user inputs
+  when: manual
+  # possible values always, on_success, on_failure, manual
+
+getIpamInputs:
+  stage: collect inputs
+  only:
+  - master
+  script:
+    - echo **********
+    - echo *** get IPAM inputs
+  when: manual
+  # possible values always, on_success, on_failure, manual
+
+getGpdnInputs:
+  stage: collect inputs
+  only:
+  - master
+  script:
+    - echo **********
+    - echo *** get GPDN inputs
+  when: manual
+  # possible values always, on_success, on_failure, manual
+
+checkConfig:
+  stage: validate and store config
+  only:
+  - master
+  variables:
+    # specific variables for this step
+  before_script:
+    - chmod +x $SWEAGLE_SCRIPTS_DIR/*.sh
+  script:
+    - echo **********
+    - echo *** Check configuration from SWEAGLE
+    - $SWEAGLE_SCRIPTS_DIR/checkAllConfigByMdsValidator.sh $SWEAGLE_MDS $SWEAGLE_VALIDATORS
+    # you may create your own wrapper of SWEAGLE scripts to match an App or Env to an MDS
+    - echo *** Store your config snapshot in order to be able to retrieve it
+    - $SWEAGLE_SCRIPTS_DIR/storeConfigSnapshotByMds.sh $SWEAGLE_MDS
+  when: manual
+  # possible values always, on_success, on_failure, manual
+
+deployEquipement:
+  stage: deploy
+  only:
+  - master
+  variables:
+    # specific variables for this step
+  before_script:
+    - chmod +x $SWEAGLE_SCRIPTS_DIR/*.sh
+    # Download your config using exporter
+    - echo *** Retrieve lastest valid configuration from SWEAGLE
+    - echo *** SWEAGLE will also fill token values, if any
+    - $SWEAGLE_SCRIPTS_DIR/getConfigByMdsParserArgs.sh $SWEAGLE_MDS $SWEAGLE_EXPORTER args=$SWEAGLE_EXPORTER_ARGS format=$SWEAGLE_EXPORTER_FORMAT output=$SWEAGLE_EXPORTER_OUTPUT
+  script:
+    - echo deploy ***** NEW *****
+  after_script:
+    - echo **********
+    - echo *** Upload deployed config to SWEAGLE
+    - $SWEAGLE_SCRIPTS_DIR/orange-uploadResultToSweagle.sh $SWEAGLE_MDS $SWEAGLE_PATH $SWEAGLE_EXPORTER_OUTPUT
+    - echo *** Store config back in Gitlab repository
+    - $SWEAGLE_SCRIPTS_DIR/StoreFileInGitlab.sh $SWEAGLE_EXPORTER_OUTPUT $GITLAB_TARGET_DIR
+  artifacts:
+    paths:
+    # Store deployed config in Artifacts
+    - $SWEAGLE_EXPORTER_OUTPUT
+  when: manual
+  # possible values always, on_success, on_failure, manual
+
+updateIpam:
+  stage: update repositories
+  only:
+  - master
+  script:
+    - echo **********
+    - echo *** Update IPAM
+  when: manual
+  # possible values always, on_success, on_failure, manual
+
+
+updateSweagle:
+  stage: update repositories
+  only:
+  - master
+  before_script:
+    - chmod +x $SWEAGLE_SCRIPTS_DIR/*.sh
+  script:
+    - echo **********
+    - echo *** Update SWEAGLE
+    - $SWEAGLE_SCRIPTS_DIR/updateRepo.sh ora-proto-hostname ora-proto f5 ./instance.txt
+  when: manual
+  # possible values always, on_success, on_failure, manual
+
+
+updateCmdb:
+  stage: update repositories
+  only:
+  - master
+  script:
+    - echo **********
+    - echo *** Get CMDB
+  when: manual
+  # possible values always, on_success, on_failure, manual

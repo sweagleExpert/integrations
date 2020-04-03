@@ -1,16 +1,79 @@
-# SWEAGLE Integration to GitLab CI/CD
+## SWEAGLE INTEGRATION TO GITLAB CI/CD
 
-DESCRIPTION
+# DESCRIPTION
 
 This folder provides examples of configuration to include SWEAGLE into a GitLab CI/CD.
 SWEAGLE will become the configuration data approval gate after you build your application in DEV and before you deploy it in your Tests and Production environments.
 SWEAGLE will also fill the tokens with the values linked to deployment context (targeted environment, release, or component, ...)
 
-PRE-REQUISITES
+# PRE-REQUISITES
 
-You should use the scripts provided here with the scripts provided under the linux or windows directory.
+You should use the scripts provided here with:
+- either the scripts provided under the linux or windows directory.
+- or the SWEAGLE CLI container
 
-INSTALLATION
+# INSTALLATION WITH CLI
+
+- create a variable DOCKER_AUTH_CONFIG with value equals your SWEAGLE registry authentication settings like:
+{
+	"auths": {
+		"docker.sweagle.com:8444": {
+			"auth": "XXX"
+		}
+	}
+}
+
+To generate this file, do a "docker login" from your local machine, then copy content of file: ~/.docker/config.json
+
+More details here: https://docs.gitlab.com/ce/ci/docker/using_docker_images.html#using-statically-defined-credentials
+
+
+Configure CLI
+
+In order to use the SWEAGLE CLI, you need to configure it to access your tenant with at minimum:
+- your SWEAGLE tenant url
+- your API token
+
+This can be done in different ways.
+
+1- With an existing db.json file
+- put the db.json in a directory of your git project
+- ensure you run any CLI command from the directory where db.json is
+
+
+2- With environment variables
+- you can specify SWEAGLE CLI settings through environment variables and create the db.json with command line
+
+Environment variables available are:
+- ENV: your SWEAGLE tenant URL
+- USERNAME: display name for CLI user
+- TOKEN: CLI API token
+(optional) if any proxy host to use to go to SWEAGLE URL
+- PROVY_HOST
+- PROXY_PORT
+- PROXY_USER
+- PROXY_PASSWORD
+(optional) if your SWEAGLE server used self-signed certificate
+- IGNORE_SSL (just put the variable, value is not important for this variable)
+
+- run your container and create the db.json in it with command line
+
+sweagle options --newusername <YOUR_USER> --newtoken <YOUR_TOKEN> --newenv <YOUR_URL> --host <PROXY_HOST> --port <PROXY_PORT> --name <PROXY_USERNAME> --key <PROXY_USER_PASSWORD>
+
+If you have self-signed server certificate, don't forget to ignore SSL verification with:
+sweagle settings --ignoreSSL
+
+
+Test CLI access to tenant
+
+- run command: sweagle info
+
+If successfull, it should display a SWEAGLE logo and information about CLI and server versions
+
+You can now run any command from your CLI.
+
+
+# INSTALLATION WITH SCRIPTS
 
 1. Put all linux or windows SWEAGLE shell scripts into one folder of your gitlab repository (for example "/sweagle_scripts")
 2. Open the "sweagle.env" script and put your SWEAGLE API token as value for parameter aToken
@@ -22,9 +85,12 @@ INSTALLATION
 
 That's all !
 
-CONTENT
+# CONTENT
 
-/.gitlab-ci.yml         : Sample GitLab CI/CD pipeline file
+/.gitlab-ci.yml-cli         : Sample GitLab CI/CD pipeline file for cli installlation
+
+
+/.gitlab-ci.yml-scripts         : Sample GitLab CI/CD pipeline file for script installlation
 
 - Task "uploadConfiguration" is used to upload config files to Sweagle
     - Call input:
