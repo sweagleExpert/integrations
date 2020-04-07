@@ -29,3 +29,8 @@
   debug:
     var: result.stderr_lines
   when: result.stderr!=''
+
+- name: CLI - Set error_found
+  set_fact:
+    error_found: true
+  when: result is search("Errors")

@@ -1,5 +1,9 @@
 ---
 
+- name: ALL - Init error_found at false
+  set_fact:
+    error_found: false
+
 ################################################################
 #################           API MODE           #################
 ################################################################
@@ -42,7 +46,7 @@
 
 - name: CLI - Install CLI
   include_role:
-    name: installCLI
+    name: sweagle/installCLI
   when: use_cli and install_cli
 
 - name: CLI - Get Validation Progress and Status
@@ -78,3 +82,9 @@
 #  loop_control:
 #    label: "For CDS: '{{ item.cds | default(global.cds) }}', result is:\n
 #    {{ result.stderr if result.stdout=='' else result.stdout }}"
+
+
+- name: ALL - Fail if error_found is true
+  fail:
+    msg: "Some validators have errors, failing playbook, check errors above !"
+  when: error_found

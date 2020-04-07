@@ -21,14 +21,14 @@
 - hosts: all
   roles:
 ### OK ###
-    - info
-    - uploadData
-    - createChangeset
-    - approveChangeset
-    - createCDS
-    - getValidationStatus
-    - validate
-    - storeSnapshot
-    - exportSnapshot
+    - sweagle/info
+    - sweagle/uploadData
+    - sweagle/createChangeset
+    - sweagle/approveChangeset
+    - sweagle/createCDS
+    - sweagle/getValidationStatus
+    - sweagle/validate
+    - sweagle/storeSnapshot
+    - sweagle/exportSnapshot
 
 ### TO DO ###

@@ -35,3 +35,8 @@
 
 - name: API - Display result for '{{ item.cds | default(global.cds) }}'
   debug: msg="{{ result.json }}"
+
+- name: API - Set error_found
+  set_fact:
+    error_found: true
+  when: result.json.summary.errors > 0

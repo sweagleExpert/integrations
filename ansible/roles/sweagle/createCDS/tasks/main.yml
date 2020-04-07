@@ -11,20 +11,29 @@
     ignore_ssl: "{{ lookup('file','{{ db_file }}') | from_json | json_query('settings.ignoreSSL') }}"
   when: not use_cli and use_db_file
 
-- name: API - Store Snapshot
+- name: API - Create Changeset
+  include_role:
+    name: sweagle/createChangeset
+  when: not use_cli
+
+- name: API - Create Config Data Set (CDS)
   uri:
-    url: "{{ sweagle_url }}/api/v1/data/include/snapshot/byname"
+    url: "{{ sweagle_url }}/api/v1/data/include/byPath"
     body:
-      description: "{{ snapshot_description | default('') }}"
-      level: "{{ level | default('error') }}"
+      changeset: "{{ changeset }}"
       name: "{{ global.cds }}"
-      tag: "{{ snapshot_tag | default('') }}"
+      referenceNode: "{{ global.node_path }}"
     body_format: form-urlencoded
     method: POST
     validate_certs: "{{ not ignore_ssl }}"
     headers:
       Accept: "application/vnd.siren+json"
       Authorization: "Bearer {{ sweagle_token }}"
+  when: not use_cli
+
+- name: API - Approve Changeset
+  include_role:
+    name: sweagle/approveChangeset
   when: not use_cli
 
 
@@ -34,13 +43,12 @@
 
 - name: CLI - Install CLI
   include_role:
-    name: installCLI
+    name: sweagle/installCLI
   when: use_cli and install_cli
 
-- name: CLI - Store Snapshot
-  shell: "{{ cli_installation_folder }}/sweagle storeSnapshots \
+- name: CLI - Create Config Data Set (CDS)
+  shell: "{{ cli_installation_folder }}/sweagle createMDS \
     --metadatasetName {{ global.cds }} \
-    --snapshotTag {{ global.snapshot.tag | default ('') }} \
-    --snapshotDescription {{ global.snapshot.description | default('') }} \
-    --level {{ global.level | default('error') }}"
+    --nodePath {{ global.node_path }} \
+    --autoApprove"
   when: use_cli

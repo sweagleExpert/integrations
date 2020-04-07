@@ -31,7 +31,7 @@
 
 - name: CLI - Install CLI
   include_role:
-    name: installCLI
+    name: sweagle/installCLI
   when: use_cli and install_cli
 
 - name: CLI - Check connection to SWEAGLE server

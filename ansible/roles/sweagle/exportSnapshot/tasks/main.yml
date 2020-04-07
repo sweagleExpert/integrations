@@ -46,7 +46,7 @@
 
 - name: CLI - Install CLI
   include_role:
-    name: installCLI
+    name: sweagle/installCLI
   when: use_cli and install_cli
 
 # Export the snapshot with pretty option only if it is json
