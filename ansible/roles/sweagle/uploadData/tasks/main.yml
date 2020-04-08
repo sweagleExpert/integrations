@@ -19,6 +19,7 @@
       autoApprove={{ item.auto_approve | default(global.auto_approve) | default('false') }}&\
       autoRecognize={{ item.auto_recognize | default(global.auto_recognize) | default('false') }}&\
       changeset={{ changeset | default(global.changeset) | default('') }}&\
+      data={{ item.data | default('') }}&\
       description={{ description | default(global.description) | default('') }}&\
       encoding={{ item.encoding | default(global.encoding) | default('utf-8') }}&\
       format={{ item.format | default(global.format) | default('props') }}&\
@@ -30,7 +31,7 @@
       tag={{ item.tag | default(global.snapshot.tag) | default('') }}&\
       validationLevel={{ validation_level | default(global.validation_level) | default('warn') }}"
     method: POST
-    src: "{{ item.file_path }}"
+    src: "{{ item.file_path | default('') }}"
     validate_certs: "{{ not ignore_ssl }}"
     headers:
       Accept: "*/*"
@@ -53,7 +54,8 @@
 
 - name: CLI - Upload file(s) to SWEAGLE server
   shell: "{{ cli_installation_folder }}/sweagle uploadData \
-    --filePath {{ item.file_path }} \
+    --data {{ item.data | default('') }} \
+    --filePath {{ item.file_path | default('') }} \
     --nodePath {{ item.node_path | default(global.node_path) }} \
     --type {{ item.format | default(global.format) | default('props') }} \
     {{ '--autoApprove' if item.auto_approve|default(global.auto_approve) }}"
