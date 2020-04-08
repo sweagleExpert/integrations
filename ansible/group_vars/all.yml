@@ -50,6 +50,13 @@ global:
     tag: ""
   validator: "passwordChecker"
 
+# These parameters are used for uploadDir role
+paths: "/Users/dimitris/Documents/Clients/DELFINGEN/POC"
+excludes:
+recurse: true
+patterns: "*.properties"
+#ex: patterns: "*.properties,*.json"
+
 # This list is used for uploadData role, you can put any value to overcome global values
 upload_file_list:
   - { file_path: "/Users/dimitris/Documents/Clients/DELFINGEN/POC/inputs/dev.properties", node_path: "samples-frontend,environment,dev" }

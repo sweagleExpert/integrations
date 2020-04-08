@@ -1,0 +1,42 @@
+---
+
+- name: ALL - Get list of files to upload
+  find:
+    paths: "{{ paths }}"
+#    patterns: "*.properties,*.json"
+    patterns: "{{ patterns }}"
+    recurse: "{{ recurse }}"
+    excludes: "{{ excludes }}"
+  register: find_result
+
+- name: ALL - Initialise upload_file_list
+  set_fact:
+    upload_file_list: []
+
+- name: Build upload_file_list for linux
+  set_fact:
+    upload_file_list: "{{ upload_file_list }} + [{ 'file_path': \"{{ item.path }}\",\
+      'node_path': \"{{ item.path | replace('/',',') | regex_replace('^,','') }}\",\
+      'format': \"{{ item.path | splitext | last | replace('.','') }}\" }]"
+  loop: "{{ find_result.files }}"
+  loop_control:
+    label: "Add file {{ item.path }}"
+  when: ansible_os_family != "Windows"
+
+- name: Build upload_file_list for windows
+  set_fact:
+    upload_file_list: "{{ upload_file_list }} + [{ 'file_path': \"{{ item.path }}\",\
+      'node_path': \"{{ item.path | win_splitdrive | last | replace('\\',',') | regex_replace('^,','') }}\",\
+      'format': \"{{ item.path | splitext | last | replace('.','') }}\" }]"
+  loop: "{{ find_result.files }}"
+  loop_control:
+    label: "Add file {{ item.path }}"
+  when: ansible_os_family == "Windows"
+
+#- name: "Display file list"
+#  debug:
+#    var: upload_file_list
+
+- name: ALL - Call uploadData role
+  include_role:
+    name: sweagle/uploadData
