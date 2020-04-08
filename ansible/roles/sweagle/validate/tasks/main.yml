@@ -1,5 +1,9 @@
 ---
 
+- name: ALL - Init error_found at false
+  set_fact:
+    error_found: false
+
 ################################################################
 #################           API MODE           #################
 ################################################################
@@ -36,6 +40,12 @@
     For CDS: '{{ item.cds | default(global.cds) }}' and validator '{{ item.validator | default(global.validator) }}',
     result is:\n{{ result.json | default('{}') | to_nice_json }}"
 
+- name: API - Set error_found
+  set_fact:
+    # If one validators fails, its json failed will be equals to true, and it will be the max value in all failed results
+    error_found: "{{ result | json_query('results[*].json.failed') | max }}"
+  when: not use_cli
+
 
 ################################################################
 #################           CLI MODE           #################
@@ -59,3 +69,15 @@
     For CDS: '{{ item.cds | default(global.cds) }}' and validator '{{ item.validator | default(global.validator) }}',
     result is:\n
     {{ 'skipped' if result.stdout is undefined else result.stderr if result.stdout=='' else result.stdout }}"
+
+- name: CLI - Set error_found
+  set_fact:
+    # If one validators fails, its stdout will container a 'failed: true' string that can be detected
+    error_found:  "{{ result | json_query('results[*].stdout') | join(',') | regex_search('failed: true') | ternary(true,false) }}"
+  when: use_cli
+
+
+- name: ALL - Fail if error_found is true
+  fail:
+    msg: "Some validators have errors, failing playbook, check errors above !"
+  when: error_found
