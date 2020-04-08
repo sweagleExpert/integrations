@@ -23,6 +23,7 @@
 ### OK ###
     - sweagle/info
     - sweagle/uploadData
+    - sweagle/uploadDir
     - sweagle/createChangeset
     - sweagle/approveChangeset
     - sweagle/createCDS
