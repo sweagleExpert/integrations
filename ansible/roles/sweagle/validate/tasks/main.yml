@@ -19,7 +19,7 @@
   uri:
     url: "{{ sweagle_url }}/api/v1/tenant/metadata-parser/validate"
     body:
-      arg: "{{ item.arg | default(global.arg) | default('') }}"
+      arg: "{{ item.arg | default(global.arg) | default('') | to_json }}"
       forIncoming: "{{ item.forIncoming | default(global.forIncoming) | default('false') }}"
       mds: "{{ item.cds | default(global.cds) }}"
       mdsArgs: "{{ item.mdsArgs | default(global.mdsArgs) | default('') }}"
