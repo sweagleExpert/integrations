@@ -9,13 +9,13 @@
     excludes: "{{ excludes }}"
   register: find_result
 
-- name: ALL - Initialise upload_file_list
+- name: ALL - Initialise upload_data_list
   set_fact:
-    upload_file_list: []
+    upload_data_list: []
 
-- name: Build upload_file_list for linux
+- name: Build upload_data_list for linux
   set_fact:
-    upload_file_list: "{{ upload_file_list }} + [{ 'file_path': \"{{ item.path }}\",\
+    upload_data_list: "{{ upload_data_list }} + [{ 'file_path': \"{{ item.path }}\",\
       'node_path': \"{{ item.path | replace('/',',') | regex_replace('^,','') }}\",\
       'format': \"{{ item.path | splitext | last | replace('.','') }}\" }]"
   loop: "{{ find_result.files }}"
@@ -23,9 +23,9 @@
     label: "Add file {{ item.path }}"
   when: ansible_os_family != "Windows"
 
-- name: Build upload_file_list for windows
+- name: Build upload_data_list for windows
   set_fact:
-    upload_file_list: "{{ upload_file_list }} + [{ 'file_path': \"{{ item.path }}\",\
+    upload_data_list: "{{ upload_data_list }} + [{ 'file_path': \"{{ item.path }}\",\
       'node_path': \"{{ item.path | win_splitdrive | last | replace('\\',',') | regex_replace('^,','') }}\",\
       'format': \"{{ item.path | splitext | last | replace('.','') }}\" }]"
   loop: "{{ find_result.files }}"
@@ -35,7 +35,7 @@
 
 #- name: "Display file list"
 #  debug:
-#    var: upload_file_list
+#    var: upload_data_list
 
 - name: ALL - Call uploadData role
   include_role:

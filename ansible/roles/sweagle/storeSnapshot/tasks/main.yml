@@ -15,10 +15,10 @@
   uri:
     url: "{{ sweagle_url }}/api/v1/data/include/snapshot/byname"
     body:
-      description: "{{ snapshot_description | default('') }}"
-      level: "{{ level | default('error') }}"
-      name: "{{ global.cds }}"
-      tag: "{{ snapshot_tag | default('') }}"
+      description: "{{ item.description | default(global.snapshot.description) | default('') }}"
+      level: "{{ item.level | default(global.snapshot.level) | default('error') }}"
+      name: "{{ item.cds | default(global.cds) }}"
+      tag: "{{ item.tag | default(global.snapshot.tag) | default('') }}"
     body_format: form-urlencoded
     method: POST
     validate_certs: "{{ not ignore_ssl }}"
@@ -26,6 +26,9 @@
       Accept: "application/vnd.siren+json"
       Authorization: "Bearer {{ sweagle_token }}"
   when: not use_cli
+  loop: "{{ snapshot_list }}"
+  loop_control:
+    label: "Snapshot CDS {{ item.cds }}"
 
 
 ################################################################
@@ -39,8 +42,11 @@
 
 - name: CLI - Store Snapshot
   shell: "{{ cli_installation_folder }}/sweagle storeSnapshots \
-    --metadatasetName {{ global.cds }} \
-    --snapshotTag {{ global.snapshot.tag | default ('') }} \
-    --snapshotDescription {{ global.snapshot.description | default('') }} \
-    --level {{ global.level | default('error') }}"
+    --metadatasetName {{ item.cds | default(global.cds) }} \
+    --snapshotTag {{ item.tag | default(global.snapshot.tag) | default('') }} \
+    --snapshotDescription {{ item.description | default(global.snapshot.description) | default('') }} \
+    --level {{ item.level | default(global.snapshot.level) | default('error') }}"
   when: use_cli
+  loop: "{{ snapshot_list }}"
+  loop_control:
+    label: "Snapshot CDS {{ item.cds }}"

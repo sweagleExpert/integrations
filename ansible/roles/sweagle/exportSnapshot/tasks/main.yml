@@ -18,10 +18,10 @@
       args: "{{ item.args | default(global.args) | default('') }}"
       format: "{{ item.format | default(global.format) }}"
       mds: "{{ item.cds | default(global.cds) }}"
-      mdsArgs: "{{ item.mdsArgs | default(global.mdsArgs) | default('') }}"
-      mdsTags: "{{ item.mdsTags | default(global.mdsTags) | default('') }}"
+      mdsArgs: "{{ item.cdsArgs | default(global.cdsArgs) | default('') }}"
+      mdsTags: "{{ item.cdsTags | default(global.cdsTags) | default('') }}"
       parser: "{{ item.exporter | default(global.exporter) }}"
-      tag: "{{ item.tag | default(global.tag) | default('') }}"
+      tag: "{{ item.tag | default(global.snapshot.tag) | default('') }}"
     body_format: form-urlencoded
     dest: "{{ item.file_path }}"
     method: POST
@@ -32,7 +32,7 @@
       Authorization: "Bearer {{ sweagle_token }}"
   register: result
   when: not use_cli
-  loop: "{{ export_snapshot_list }}"
+  loop: "{{ snapshot_list }}"
   loop_control:
     label: "Exported file {{ item.file_path }}"
 
@@ -53,13 +53,15 @@
 # If you use pretty option without json format, you will have hidden bad characters in output
 - name: CLI - Export Snapshot
   shell: "{{ cli_installation_folder }}/sweagle export {{ item.cds | default(global.cds) }} \
-    --args {{ item.args | default(global.args) | default('') }} \
+    --arg {{ item.arg | default(global.arg) | default('') }} \
+    --argsList {{ item.argsList | default(global.args) | default('') }} \
+    --cdsArgs {{ item.cdsArgs | default(global.cdsArgs) | default('') }} \
     --exporter {{ item.exporter | default(global.exporter) }} \
     --format {{ item.format | default(global.format) }} \
     {{ '--pretty' if item.format|default(global.format)|lower == 'json' }} \
     > {{ item.file_path }}"
   register: result
   when: use_cli
-  loop: "{{ export_snapshot_list }}"
+  loop: "{{ snapshot_list }}"
   loop_control:
     label: "Exported file {{ item.file_path | default(global.file_path) }}"

@@ -19,8 +19,8 @@
       autoApprove={{ item.auto_approve | default(global.auto_approve) | default('false') }}&\
       autoRecognize={{ item.auto_recognize | default(global.auto_recognize) | default('false') }}&\
       changeset={{ changeset | default(global.changeset) | default('') }}&\
-      data={{ item.data | default('') }}&\
-      description={{ description | default(global.description) | default('') }}&\
+      data={{ item.data | default(global.data) | default('') }}&\
+      description={{ item.description | default(global.description) | default('') }}&\
       encoding={{ item.encoding | default(global.encoding) | default('utf-8') }}&\
       format={{ item.format | default(global.format) | default('props') }}&\
       identifierWords={{ item.identifier_words | default(global.identifier_words) | default('') }}&\
@@ -31,14 +31,14 @@
       tag={{ item.tag | default(global.snapshot.tag) | default('') }}&\
       validationLevel={{ validation_level | default(global.validation_level) | default('warn') }}"
     method: POST
-    src: "{{ item.file_path | default('') }}"
+    src: "{{ item.file_path | default(global.file_path) | default('') }}"
     validate_certs: "{{ not ignore_ssl }}"
     headers:
       Accept: "*/*"
       Authorization: "Bearer {{ sweagle_token }}"
       Content-Type: "text/plain"
   when: not use_cli
-  loop: "{{ upload_file_list }}"
+  loop: "{{ upload_data_list }}"
   loop_control:
     label: "Uploaded file {{ item.file_path }}"
 
@@ -60,6 +60,6 @@
     --type {{ item.format | default(global.format) | default('props') }} \
     {{ '--autoApprove' if item.auto_approve|default(global.auto_approve) }}"
   when: use_cli
-  loop: "{{ upload_file_list }}"
+  loop: "{{ upload_data_list }}"
   loop_control:
     label: "Uploaded file {{ item.file_path }}"

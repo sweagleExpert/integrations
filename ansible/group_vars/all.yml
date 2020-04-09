@@ -58,7 +58,7 @@ patterns: "*.properties"
 #ex: patterns: "*.properties,*.json"
 
 # This list is used for uploadData role, you can put any value to overcome global values
-upload_file_list:
+upload_data_list:
   - { file_path: "/Users/dimitris/Documents/Clients/DELFINGEN/POC/inputs/dev.properties", node_path: "samples-frontend,environment,dev" }
   - { file_path: "/Users/dimitris/Documents/Clients/DELFINGEN/POC/inputs/test.properties", node_path: "samples-frontend,environment,test" }
 
@@ -76,6 +76,6 @@ validate_cds_list:
   - { cds: "samples test", validator: "noHTTP"  }
 
 # This list is used for exportSnapshot role, you can put any value to overcome global values
-export_snapshot_list:
+snapshot_list:
   - { cds: "samples-dev", file_path: "/Users/dimitris/git/sweagle-expert/integrations/ansible/dev.properties", args: "dev" }
   - { cds: "samples-dev", file_path: "/Users/dimitris/git/sweagle-expert/integrations/ansible/dev.json", exporter: "all", args: "", format: "json" }
