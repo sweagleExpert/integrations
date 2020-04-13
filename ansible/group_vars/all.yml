@@ -43,6 +43,12 @@ global:
   changeset_description: "this is dimitris test with ansible"
   exporter: "returnDataForNode"
   forIncoming: true
+  forIncomingFailover: "ask"
+  # forIncomingFailover is used only when forIncoming=true
+  # forIncomingFailover defines if process should
+  #  - fail when no incoming data is found if set to false (default)
+  #  - try with last snapshot automatically when no pending data is found if set to true
+  #  - ask user input to failover or not if when no pending data is found if set to "ask"
   format: "props"
   node_path: "samples-frontend,environment,dev"
   snapshot:

@@ -8,14 +8,40 @@
   shell: "{{ cli_installation_folder }}/sweagle validationProgress \"{{ item.cds | default(global.cds) }}\" \
     {{ '--forIncoming' if item.forIncoming | default(global.forIncoming)  | default(false) }} \
     {{ '--pretty' if item.pretty | default(global.pretty) | default(false) }}"
+  register: first_result
+  ignore_errors: true
+  when: (item.forIncoming | default(global.forIncoming) | default('false')) == true
+
+- name: CLI - Get Validation Progress '{{ item.cds | default(global.cds) }}'
+  shell: "{{ cli_installation_folder }}/sweagle validationProgress \"{{ item.cds | default(global.cds) }}\" \
+    {{ '--forIncoming' if item.forIncoming | default(global.forIncoming)  | default(false) }} \
+    {{ '--pretty' if item.pretty | default(global.pretty) | default(false) }}"
   register: result
   until: result.stderr!='' or result.stdout.find("FINISHED") != -1
   retries: 6
   delay: 5
+  when: >
+    (item.forIncoming | default(global.forIncoming) | default('false')) == true and
+    first_result.stdout.find("IN_PROGRESS") != -1
 
+# Check if there is no pending data and failover is set to "ask" for user input
+- name: CLI - Prompt for continuation
+  pause:
+    prompt: "Error while trying to get pending DCS, do you want validate last snapshot instead (yes/no) ?"
+  register: forIncomingFailover
+  when: >
+    (item.forIncoming | default(global.forIncoming) | default('false')) == true and
+    (item.forIncomingFailover | default(global.forIncomingFailover) | default('false')) == "ask" and
+    first_result.stdout.find('status code 404') != -1
+
+# Get Validation status with specific forIncoming calculated based on prompt above if asked or forIncomingFailover value if set
 - name: CLI - Get Validation Status '{{ item.cds | default(global.cds) }}'
   shell: "{{ cli_installation_folder }}/sweagle validationStatus \"{{ item.cds | default(global.cds) }}\" \
-    {{ '--forIncoming' if item.forIncoming | default(global.forIncoming)  | default(false) }} \
+      {{ '' if ( (item.forIncoming | default(global.forIncoming) | default('false')) == true \
+      and (first_result.stdout.find('status code 404') != -1) \
+      and ((forIncomingFailover.user_input|default(false)|bool)==true \
+      or (item.forIncomingFailover|default(global.forIncomingFailover)|default('false')==true)) ) \
+      else '--forIncoming' if (item.forIncoming|default(global.forIncoming)|default('false')) }} \
     {{ '--withData' if item.withData | default(global.withData) | default(true) }} \
     {{ '--pretty' if item.pretty | default(global.pretty) | default(false) }}"
   register: result
@@ -33,4 +59,4 @@
 - name: CLI - Set error_found
   set_fact:
     error_found: true
-  when: result is search("Errors")
+  when: result is search("Errors") or result.stderr!=''

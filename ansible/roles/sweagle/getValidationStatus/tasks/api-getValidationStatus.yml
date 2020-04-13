@@ -4,7 +4,25 @@
 #################           API MODE           #################
 ################################################################
 
-- name: API - Get Validation Progress '{{ item.cds | default(global.cds) }}'
+- name: API - First try to get Validation Progress '{{ item.cds | default(global.cds) }}'
+  uri:
+    url: "{{ sweagle_url }}/api/v1/data/include/validation_progress?\
+      forIncoming={{ item.forIncoming | default(global.forIncoming) | default('false') }}&\
+      name={{ item.cds | default(global.cds) | urlencode }}"
+    method: GET
+    validate_certs: "{{ not ignore_ssl }}"
+    headers:
+      Accept: "application/vnd.siren+json"
+      Authorization: "Bearer {{ sweagle_token }}"
+  register: first_result
+  ignore_errors: true
+  when: (item.forIncoming | default(global.forIncoming) | default('false')) == true
+
+#- debug:
+#    var: first_result
+
+# Continue to wait for validation status if there is no error and it is still IN_PROGRESS
+- name: API - Try again to get Validation Progress '{{ item.cds | default(global.cds) }}'
   uri:
     url: "{{ sweagle_url }}/api/v1/data/include/validation_progress?\
       forIncoming={{ item.forIncoming | default(global.forIncoming) | default('false') }}&\
@@ -18,11 +36,29 @@
   until: result.json=="FINISHED"
   retries: 6
   delay: 5
+  when: >
+    (item.forIncoming | default(global.forIncoming) | default('false')) == true and
+    first_result.json == "IN_PROGRESS"
 
+# Check if there is no pending data and failover is set to "ask" for user input
+- name: API - Prompt for continuation
+  pause:
+    prompt: "No incoming DCS found, do you want validate last snapshot instead (yes/no) ?"
+  register: forIncomingFailover
+  when: >
+    (item.forIncoming | default(global.forIncoming) | default('false')) == true and
+    (item.forIncomingFailover | default(global.forIncomingFailover) | default('false')) == "ask" and
+    'no pending data' in (first_result.content | default(''))
+
+# Get Validation status with specific forIncoming calculated based on prompt above if asked or forIncomingFailover value if set
 - name: API - Get Validation Status '{{ item.cds | default(global.cds) }}'
   uri:
     url: "{{ sweagle_url }}/api/v1/data/include/validate?\
-      forIncoming={{ item.forIncoming | default(global.forIncoming) | default('false') }}&\
+      forIncoming={{ false if ( (item.forIncoming | default(global.forIncoming) | default('false')) == true \
+      and ('no pending data' in first_result.content|default('')) \
+      and ((forIncomingFailover.user_input|default(false)|bool)==true \
+      or (item.forIncomingFailover|default(global.forIncomingFailover)|default('false')==true)) ) \
+      else (item.forIncoming|default(global.forIncoming)|default('false')) }}&\
       name={{ item.cds | default(global.cds) | urlencode }}&\
       withCustomValidations={{ item.withCustomValidations | default(global.withCustomValidations) | default('true') }}"
     method: GET
