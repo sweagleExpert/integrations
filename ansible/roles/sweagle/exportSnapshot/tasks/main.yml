@@ -15,6 +15,7 @@
   uri:
     url: "{{ sweagle_url }}/api/v1/tenant/metadata-parser/parse"
     body:
+      arg: "{{ item.arg | default(global.arg) | default('') | to_json }}"
       args: "{{ item.args | default(global.args) | default('') }}"
       format: "{{ item.format | default(global.format) }}"
       mds: "{{ item.cds | default(global.cds) }}"
@@ -53,7 +54,7 @@
 # If you use pretty option without json format, you will have hidden bad characters in output
 - name: CLI - Export Snapshot
   shell: "{{ cli_installation_folder }}/sweagle export {{ item.cds | default(global.cds) }} \
-    --arg {{ item.arg | default(global.arg) | default('') }} \
+    --arg {{ item.arg | default(global.arg) | default('') | to_json }} \
     --argsList {{ item.argsList | default(global.args) | default('') }} \
     --cdsArgs {{ item.cdsArgs | default(global.cdsArgs) | default('') }} \
     --exporter {{ item.exporter | default(global.exporter) }} \
