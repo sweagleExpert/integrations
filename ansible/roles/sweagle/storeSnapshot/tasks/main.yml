@@ -42,7 +42,7 @@
 
 - name: CLI - Store Snapshot
   shell: "{{ cli_installation_folder }}/sweagle storeSnapshots \
-    --metadatasetName {{ item.cds | default(global.cds) }} \
+    --configdatasetName {{ item.cds | default(global.cds) }} \
     --snapshotTag {{ item.tag | default(global.snapshot.tag) | default('') }} \
     --snapshotDescription {{ item.description | default(global.snapshot.description) | default('') }} \
     --level {{ item.level | default(global.snapshot.level) | default('error') }}"
