@@ -15,7 +15,7 @@
     ignore_ssl: "{{ lookup('file','{{ db_file }}') | from_json | json_query('settings.ignoreSSL') }}"
   when: not use_cli and use_db_file
 
-- name: CLI - Get Validation Progress and Status
+- name: API - Get Validation Progress and Status
   include_tasks: "api-getValidationStatus.yml"
   when: not use_cli
   loop: "{{ validation_status_cds_list }}"
