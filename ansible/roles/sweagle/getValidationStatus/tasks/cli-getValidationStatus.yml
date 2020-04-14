@@ -30,9 +30,9 @@
     prompt: "Error while trying to get pending DCS, do you want validate last snapshot instead (yes/no) ?"
   register: forIncomingFailover
   when: >
-    (item.forIncoming | default(global.forIncoming) | default('false')) == true and
-    (item.forIncomingFailover | default(global.forIncomingFailover) | default('false')) == "ask" and
-    first_result.stdout.find('status code 404') != -1
+    (item.forIncoming | default(global.forIncoming) | default('false')) == true
+    and (item.forIncomingFailover | default(global.forIncomingFailover) | default('false')) == "ask"
+    and first_result.stdout.find('status code 404') != -1
 
 # Get Validation status with specific forIncoming calculated based on prompt above if asked or forIncomingFailover value if set
 - name: CLI - Get Validation Status '{{ item.cds | default(global.cds) }}'

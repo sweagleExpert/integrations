@@ -46,16 +46,16 @@
     prompt: "No incoming DCS found, do you want validate last snapshot instead (yes/no) ?"
   register: forIncomingFailover
   when: >
-    (item.forIncoming | default(global.forIncoming) | default('false')) == true and
-    (item.forIncomingFailover | default(global.forIncomingFailover) | default('false')) == "ask" and
-    'no pending data' in (first_result.content | default(''))
+    (item.forIncoming | default(global.forIncoming) | default('false')) == true
+    and (item.forIncomingFailover | default(global.forIncomingFailover) | default('false')) == "ask" 
+    and 'no pending data' in (first_result.content | lower | default(''))
 
 # Get Validation status with specific forIncoming calculated based on prompt above if asked or forIncomingFailover value if set
 - name: API - Get Validation Status '{{ item.cds | default(global.cds) }}'
   uri:
     url: "{{ sweagle_url }}/api/v1/data/include/validate?\
       forIncoming={{ false if ( (item.forIncoming | default(global.forIncoming) | default('false')) == true \
-      and ('no pending data' in first_result.content|default('')) \
+      and ('no pending data' in first_result.content|lower|default('')) \
       and ((forIncomingFailover.user_input|default(false)|bool)==true \
       or (item.forIncomingFailover|default(global.forIncomingFailover)|default('false')==true)) ) \
       else (item.forIncoming|default(global.forIncoming)|default('false')) }}&\
