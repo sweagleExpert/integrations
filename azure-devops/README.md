@@ -16,19 +16,7 @@ Please:
 
 # INSTALLATION WITH CLI
 
-- create a variable DOCKER_AUTH_CONFIG with value equals your SWEAGLE registry authentication settings like:
-{
-	"auths": {
-		"docker.sweagle.com:8444": {
-			"auth": "XXX"
-		}
-	}
-}
-
-To generate this file, do a "docker login" from your local machine, then copy content of file: ~/.docker/config.json
-
-More details here: https://docs.gitlab.com/ce/ci/docker/using_docker_images.html#using-statically-defined-credentials
-
+See PDF file "Azure pipeline Sweagle setup.pdf" for more details on how to install and use the CLI container in your Azure DevOps pipeline.
 
 Configure CLI
 
