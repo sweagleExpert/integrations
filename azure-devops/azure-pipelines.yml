@@ -1,0 +1,90 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+
+variables:
+  SWEAGLE_MAPPED_TENANT: $(SWEAGLE_TENANT)
+  URL_TO_GET: 'url1'
+  CDS: 'azure-devops'
+
+trigger:
+- master
+
+resources:         
+  containers:
+  - container: sweagle-cli
+    endpoint: sweagle_docker_registry
+    image: 'sweagle-docker/sweagle-azure-cli:1.0.0'   
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+container: 'sweagle-cli'
+# this is if you want to target directly the azure-cli available on docker hub instead of SWEAGLE registry
+#container:
+#  image: 'dsweagle/sweagle-azure-cli:1.0.0'
+
+steps:
+# you should always configure the CLI before use because temporary folders are created at each pipeline run and db.json must be located there
+- script: |
+    sweagle options --newenv $SWEAGLE_MAPPED_TENANT --newusername azurePipeline --newtoken $SWEAGLE_MAPPED_TOKEN
+    sweagle info
+  displayName: 'Configure and test SWEAGLE CLI'
+# secret variables must be defiend as env variable directly in step where it is used
+  env:
+    SWEAGLE_MAPPED_TOKEN: $(SWEAGLE_TOKEN)
+
+- script: |
+    URL=$(sweagle export $(CDS) --exporter returnValueforKey --argsList $URL_TO_GET --format PROPS)
+    FORMAT=$(echo "${URL##*.}")
+    FILENAME="${URL##*/}"
+    echo "##vso[task.setvariable variable=URL]$URL"
+    echo "##vso[task.setvariable variable=FORMAT]$FORMAT"
+    echo "##vso[task.setvariable variable=FILENAME]$FILENAME"
+    echo "URL= $URL"
+    echo "FILENAME= $FILENAME"
+    echo "FORMAT= $FORMAT"
+  displayName: 'Call SWEAGLE to get URL'
+
+- script: |
+    curl $(URL) --output ./result.$(FORMAT)
+    cat ./result.$FORMAT
+  displayName: 'Call URL to get file'
+
+
+- script: 'sweagle uploadData --filePath ./result.$(FORMAT) --nodePath azure-devops,outputs,$(FILENAME) --type $(FORMAT) --autoApprove'
+  displayName: 'Upload data to SWEAGLE'
+
+- script: |
+    response=$(sweagle validate --validator noEmptyValues --forIncoming --pretty $(CDS))
+    if [[ $response == *"Request failed with status code 404"* ]]; then
+      echo "### No pending DCS, trying with stored values instead ###"
+      response=$(sweagle validate --validator noEmptyValues --pretty $(CDS))
+    fi
+    echo $response
+    if [[ ${response,,} == *"error"* ]]; then exit 1; fi
+  displayName: 'Validate Changes'
+
+#- script: 'sweagle validationStatus --forIncoming --withData --pretty --forIncoming --pretty $(CDS)'
+#  displayName: 'Get validation status for CDS'
+
+- script: |
+    sweagle storeSnapshots --configdatasetName $(CDS) --snapshotTag $(Build.BuildNumber) --level error
+    sweagle export $(CDS) --exporter returnDataforNode --format $(FORMAT) --argsList $(FILENAME) > ./output.$(FORMAT)
+    echo "###################################"
+    echo "#####   DISPLAY OUTPUT FILE   #####"
+    echo "###################################"
+    echo "FILENAME = $(FILENAME)"
+    if [ "${FORMAT,,}" = "json" ]; then
+      cat ./output.$(FORMAT) | jq .
+    else
+      cat ./output.$(FORMAT)
+    fi
+  displayName: 'Snapshot and get config data'
+
+- script: |
+    echo Add other tasks to build, test, and deploy your project.
+    echo See https://aka.ms/yaml
+  displayName: 'Deploy new release'
