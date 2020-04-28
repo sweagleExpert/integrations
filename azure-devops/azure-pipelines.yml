@@ -6,17 +6,16 @@
 
 variables:
   SWEAGLE_MAPPED_TENANT: $(SWEAGLE_TENANT)
-  URL_TO_GET: 'url1'
   CDS: 'azure-devops'
 
 trigger:
 - master
 
-resources:         
+resources:
   containers:
   - container: sweagle-cli
     endpoint: sweagle_docker_registry
-    image: 'sweagle-docker/sweagle-azure-cli:1.0.0'   
+    image: 'sweagle-docker/sweagle-azure-cli:1.0.0'
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -32,7 +31,7 @@ steps:
     sweagle options --newenv $SWEAGLE_MAPPED_TENANT --newusername azurePipeline --newtoken $SWEAGLE_MAPPED_TOKEN
     sweagle info
   displayName: 'Configure and test SWEAGLE CLI'
-# secret variables must be defiend as env variable directly in step where it is used
+# secret variables must be defined as env variable directly in step where it is used
   env:
     SWEAGLE_MAPPED_TOKEN: $(SWEAGLE_TOKEN)
 
@@ -53,8 +52,15 @@ steps:
     cat ./result.$FORMAT
   displayName: 'Call URL to get file'
 
+- script: |
+    echo "cpu=$CPU" >> ./result.$(FORMAT)
+    echo "ram=$RAM" >> ./result.$(FORMAT)
+  displayName: 'Fill template with pipeline variables'
 
-- script: 'sweagle uploadData --filePath ./result.$(FORMAT) --nodePath azure-devops,outputs,$(FILENAME) --type $(FORMAT) --autoApprove'
+- script: |
+    NODENAME=$(cat ./result.$(FORMAT) | grep "^name=" | cut -d'=' -f2)
+    echo "##vso[task.setvariable variable=NODENAME]$NODENAME"
+    sweagle uploadData --filePath ./result.$(FORMAT) --nodePath azure-devops,outputs,$NODENAME --type $(FORMAT) --autoRecognize --autoApprove
   displayName: 'Upload data to SWEAGLE'
 
 - script: |
@@ -67,12 +73,21 @@ steps:
     if [[ ${response,,} == *"error"* ]]; then exit 1; fi
   displayName: 'Validate Changes'
 
-#- script: 'sweagle validationStatus --forIncoming --withData --pretty --forIncoming --pretty $(CDS)'
-#  displayName: 'Get validation status for CDS'
+# Call SWEAGLE CLI redirecting both stderr and stdout to same variable
+# This is because CLI redirects errors to stderr
+- script: |
+    response=$(sweagle validationStatus --withData --forIncoming --pretty $CDS 2>&1)
+    if [[ $response == *"Request failed with status code 404"* ]]; then
+      echo "### No pending CDS, trying with stored values instead ###"
+      response=$(sweagle validationStatus --withData --pretty $CDS 2>&1)
+    fi
+    echo "$response"
+    if [[ ${response,,} == *"error"* ]]; then echo "FAIL TASK"; exit 1; fi
+  displayName: 'Get validation status for CDS'
 
 - script: |
     sweagle storeSnapshots --configdatasetName $(CDS) --snapshotTag $(Build.BuildNumber) --level error
-    sweagle export $(CDS) --exporter returnDataforNode --format $(FORMAT) --argsList $(FILENAME) > ./output.$(FORMAT)
+    sweagle export $(CDS) --exporter returnDataforNode --format $(FORMAT) --argsList $(NODENAME) > ./output.$(FORMAT)
     echo "###################################"
     echo "#####   DISPLAY OUTPUT FILE   #####"
     echo "###################################"
