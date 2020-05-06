@@ -663,7 +663,7 @@ function uploadFile {
 
 
 function validateConfig {
-  # Get all arguments
+
   while [[ "$#" > "0" ]]
   do
     case $1 in
@@ -715,7 +715,9 @@ function validateConfig {
       fi
     fi
   fi
-  echo $response
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  echo $response | jq .
   rc=$(echo "$response" | jsonValue "result")
   if [[ $response = "{\"error\":"* ]]; then
       echo "********** ERROR: Unable to validate configuration: ${cds} with validator: ${parser}"
