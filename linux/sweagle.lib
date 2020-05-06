@@ -608,20 +608,7 @@ function updateConfigData() {
 
 
 function uploadFile {
-  if [[ $# -lt 2 ]]; then
-    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "### YOU SHOULD PROVIDE 1-FILE TO UPLOAD, 2-NODE PATH TO UPLOAD TO(COMMA SEPARATED)"
-    echo "### (OPTIONAL) YOU MAY PROVIDE ANY OTHER API OPTIONS IN THE FORMAT <option>=<value> (ex: allowDelete=true)"
-    return $INSUFFICIENT_ARGS
-  fi
-
-  argFile=$1
-  if [[ -z ${argFile} ]]; then echo "### ERROR: FILE COULD NOT BE EMPTY"; return $INSUFFICIENT_ARGS; fi
-  extension="${argFile##*.}"
-  argNodePath=$2
-  #argNodePath=$(urlencode $2)
-  if [[ -z ${argNodePath} ]]; then echo "### ERROR: NODE PATH COULD NOT BE EMPTY"; return $INSUFFICIENT_ARGS; fi
-  # Get all other optional arguments
+  # Get all arguments
   while [[ "$#" > "0" ]]; do
     case $1 in
       (*=*) eval $1;;
@@ -634,8 +621,8 @@ function uploadFile {
   autoRecognize=${autoRecognize:-false}
   changeset=${changeset:-}
   description=${description:-}
+  file=${file:-}
   encoding=${encoding:-utf-8}
-  format=${format:-$extension}
   identifierWords=${identifierWords:-}
   nodePath=${nodePath:-}
   onlyParent=${onlyParent:-true}
@@ -644,6 +631,10 @@ function uploadFile {
   tag=${tag:-}
   validationLevel=${validationLevel:-"warn"}
 
+  if [[ -z ${file} ]]; then echo "### ERROR: FILE COULD NOT BE EMPTY, PUT file=<value>"; return $INSUFFICIENT_ARGS; fi
+  if [[ -z ${nodePath} ]]; then echo "### ERROR: NODE PATH COULD NOT BE EMPTY, PUT nodePath=<value>"; return $INSUFFICIENT_ARGS; fi
+  extension="${file##*.}"
+  format=${format:-$extension}
   # Put format in lowercase and check it to set content type
   case ${format,,} in
     ini)
@@ -662,8 +653,8 @@ function uploadFile {
   esac
   description=$(urlencode $description)
 
-  response=$(curl -skw "%{http_code}" "${sweagleURL}/api/v1/data/bulk-operations/dataLoader/upload?nodePath=${argNodePath}&allowDelete=${allowDelete}&autoApprove=${autoApprove}&changeset=${changeset}&description=${description}&encoding=${encoding}&format=${format}&identifierWords=${identifierWords}&onlyParent=${onlyParent}&runRecognition=${runRecognition}&storeSnapshotResults=${storeSnapshotResults}&tag=${tag}&validationLevel=${validationLevel}" \
-    --request POST -H "Authorization: bearer $aToken" -H "Content-Type: $contentType" --data-binary "@$argFile")
+  response=$(curl -skw "%{http_code}" "${sweagleURL}/api/v1/data/bulk-operations/dataLoader/upload?nodePath=${nodePath}&allowDelete=${allowDelete}&autoApprove=${autoApprove}&changeset=${changeset}&description=${description}&encoding=${encoding}&format=${format}&identifierWords=${identifierWords}&onlyParent=${onlyParent}&runRecognition=${runRecognition}&storeSnapshotResults=${storeSnapshotResults}&tag=${tag}&validationLevel=${validationLevel}" \
+    --request POST -H "Authorization: bearer $aToken" -H "Content-Type: $contentType" --data-binary "@$file")
 
   response=$(handleErrors $? "${response}")
   # No specific response processing, just return it
@@ -672,17 +663,13 @@ function uploadFile {
 
 
 function validateConfig {
-  if [[ $# -lt 1 ]]; then
-    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "### YOU SHOULD PROVIDE 1-MDS"
-    echo "### (OPTIONAL) YOU MAY PROVIDE ANY OTHER API OPTIONS IN THE FORMAT <option>=<value> (ex: parser=myParser, forIncoming=false)"
-    return $INSUFFICIENT_ARGS
-  fi
-  argMds=$1
-
+  # Get all arguments
   while [[ "$#" > "0" ]]
   do
     case $1 in
+      # For arg object, we just remove first 4 chars 'arg=' to avoid destroying object format by eval
+      (arg=*) arg="${1:4}";;
+      # Other args are managed normally
       (*=*) eval $1;;
     esac
     shift
@@ -690,18 +677,26 @@ function validateConfig {
   # Check if args null to replace by default values
   arg=${arg:-}
   autoswitch=${autoswitch:-true}
+  cds=${cds:-}
   forIncoming=${forIncoming:-true}
   format=${format:-json}
   mdsArgs=${mdsArgs:-}
   mdsTags=${mdsTags:-}
   withCustomValidations=${withCustomValidations:-false}
 
+  if [[ -z ${cds} ]]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "### YOU SHOULD PROVIDE AT LEAST cds=<YOUR CDS>"
+    echo "### (OPTIONAL) YOU MAY PROVIDE ANY OTHER API OPTIONS IN THE FORMAT <option>=<value> (ex: parser=myParser, forIncoming=false)"
+    return $INSUFFICIENT_ARGS
+  fi
+
   if [[ -z ${parser} ]]; then
     # No parser provided, check the standard validator status
-    response=$(curl -skw "%{http_code}" -X GET -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/validate?name=${argMds}&format=${format}&forIncoming=${forIncoming}&withCustomValidations=${withCustomValidations}")
+    response=$(curl -skw "%{http_code}" -X GET -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/validate?name=${cds}&format=${format}&forIncoming=${forIncoming}&withCustomValidations=${withCustomValidations}")
   else
     response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/tenant/metadata-parser/validate" \
-      --data "mds=${argMds}" --data "parser=${parser}" --data "arg=${arg}" --data "mdsArgs=${mdsArgs}" --data "mdsTags=${mdsTags}" --data "forIncoming=${forIncoming}")
+      --data "mds=${cds}" --data "parser=${parser}" --data-urlencode "arg=${arg}" --data "mdsArgs=${mdsArgs}" --data "mdsTags=${mdsTags}" --data "forIncoming=${forIncoming}")
   fi
   # Handle errors
   response=$(handleErrors $? "${response}")
@@ -711,11 +706,11 @@ function validateConfig {
     if [ "${ec}" = "NotFoundException" ]; then
       if [[ -z ${parser} ]]; then
         # No parser provided, check the standard validator status
-        response=$(curl -skw "%{http_code}" -X GET -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/validate?name=${argMds}&format=${format}&forIncoming=false&withCustomValidations=${withCustomValidations}")
+        response=$(curl -skw "%{http_code}" -X GET -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/validate?name=${cds}&format=${format}&forIncoming=false&withCustomValidations=${withCustomValidations}")
         rc=$?
       else
         response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/tenant/metadata-parser/validate" \
-          --data "mds=${argMds}" --data "parser=${parser}"  --data "arg=${arg}" --data "mdsArgs=${mdsArgs}" --data "mdsTags=${mdsTags}" --data "forIncoming=false")
+          --data "mds=${cds}" --data "parser=${parser}"  --data "arg=${arg}" --data "mdsArgs=${mdsArgs}" --data "mdsTags=${mdsTags}" --data "forIncoming=false")
         rc=$?
       fi
     fi
@@ -723,7 +718,7 @@ function validateConfig {
   echo $response
   rc=$(echo "$response" | jsonValue "result")
   if [[ $response = "{\"error\":"* ]]; then
-      echo "********** ERROR: Unable to validate MDS: $argMds with validator: ${parser}"
+      echo "********** ERROR: Unable to validate configuration: ${cds} with validator: ${parser}"
       exit 1
   elif [ "$rc" = false ]; then
       echo "********** ERROR: BROKEN configuration data detected for validator: " ${parser}
