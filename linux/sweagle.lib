@@ -707,16 +707,14 @@ function validateConfig {
       if [[ -z ${parser} ]]; then
         # No parser provided, check the standard validator status
         response=$(curl -skw "%{http_code}" -X GET -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/validate?name=${cds}&format=${format}&forIncoming=false&withCustomValidations=${withCustomValidations}")
-        rc=$?
       else
         response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/tenant/metadata-parser/validate" \
           --data "mds=${cds}" --data "parser=${parser}"  --data "arg=${arg}" --data "mdsArgs=${mdsArgs}" --data "mdsTags=${mdsTags}" --data "forIncoming=false")
-        rc=$?
       fi
+      # Handle errors
+      response=$(handleErrors $? "${response}")
     fi
   fi
-  # Handle errors
-  response=$(handleErrors $? "${response}")
   echo $response | jq .
   rc=$(echo "$response" | jsonValue "result")
   if [[ $response = "{\"error\":"* ]]; then
