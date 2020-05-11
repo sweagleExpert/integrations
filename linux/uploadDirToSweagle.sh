@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+source $(dirname "$0")/sweagle.env
+source $(dirname "$0")/sweagle.lib
 
 ##########################################################################
 #############
@@ -28,7 +30,7 @@ sweagleScriptDir="$PWD"/$(dirname "$0")
 
 if [[ -f "$2" ]] ; then
   # the arg is a file, call the upload script only once
-  $sweagleScriptDir/uploadFileToSweagle.sh "$argNodePath" "$2"
+  uploadFile autoApprove=true file="$2" nodePath="$argNodePath"
 elif [[ -d "$2" ]] ; then
   # The arg is a directory, call the api for all files
   cd "$2"
@@ -53,7 +55,7 @@ elif [[ -d "$2" ]] ; then
           echo "########## Exiting without error"
           exit 0
         fi
-        $sweagleScriptDir/uploadFileToSweagle.sh "$argNodePath,$dirname,$filename" "$file"
+        uploadFile autoApprove=true file="$file" nodePath="$argNodePath,$dirname,$filename"
       done
     else
       for file in *.${argFileExtension}; do
@@ -66,7 +68,7 @@ elif [[ -d "$2" ]] ; then
           echo "########## Exiting without error"
           exit 0
         fi
-        $sweagleScriptDir/uploadFileToSweagle.sh "$argNodePath,$filename" "$file"
+        uploadFile autoApprove=true file="$file" nodePath="$argNodePath,$filename"
       done
     fi
   else
@@ -74,7 +76,7 @@ elif [[ -d "$2" ]] ; then
     for file in *; do
       #filename without extension if you want to add it to node path
       filename=$(basename "${file%.*}")
-      $sweagleScriptDir/uploadFileToSweagle.sh "$argNodePath,$filename" "$file"
+      uploadFile autoApprove=true file="$file" nodePath="$argNodePath,$filename"
     done
   fi
 
