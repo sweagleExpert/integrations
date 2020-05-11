@@ -2,4 +2,4 @@
 
 DESCRIPTION
 
-This is deprecated as SWEAGLE will natively support LDAP and Active Directory in next release.
+This is deprecated as SWEAGLE now natively support LDAP and Active Directory.
