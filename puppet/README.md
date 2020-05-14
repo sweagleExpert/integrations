@@ -19,7 +19,7 @@ Several use cases are possible:
 Please check README_PREREQUISITES.md if you want to install a sample Puppet for test purpose
 
 
-# INSTALLATION HIERA BACKEND
+# INSTALLATION SWEAGLE AS HIERA BACKEND
 
 For SWEAGLE as HIERA backend use case:
 - Update ./lib/puppet/functions/sweagle_data_hash.rb with your tenant and token values
@@ -29,7 +29,7 @@ For SWEAGLE as HIERA backend use case:
     - `/etc/puppetlabs/code/environments/<YOUR_ENVIRONMENT>` to define an environment specific data provider
 
 
-# INSTALLATION SWEAGLE APPROVAL GATE
+# INSTALLATION SWEAGLE AS APPROVAL GATE
 
 For SWEAGLE as approval gate and other config checker/provisioner use cases:
 - Put latest releases of SWEAGLE CLI in /modules/sweagle_install_cli/files/
