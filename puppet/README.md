@@ -6,7 +6,7 @@
 This folder provides examples of configuration to use SWEAGLE into Puppet.
 Several use cases are possible:
 
-- Use SWEAGLE as HIERA backend, SWEAGLE will replace any configuration file, retrieving the harness of managing these files, storing and backuping them, and ensuring sensitive data are protected. Configuration data will be provided on the fly to Puppet directly through HTTP REST call to SWEAGLE APIs.
+- Use SWEAGLE as HIERA backend, SWEAGLE will replace any configuration file, retrieving the harness of managing these files, storing and backuping them, and ensuring sensitive data are protected. Configuration data will be provided on the fly to Puppet directly through HTTP REST call to SWEAGLE APIs. As this integrates completely beyond Puppet Hiera framework, there is no impact on any deployment code, it will be transparent to existing deployment modules.
 
 - Use SWEAGLE as approval gate before you make any deployment, use validation rules to check that configuration you plan to deploy follows all your format, templates and other compliancy rules you defined.
 
