@@ -585,6 +585,8 @@ function updateConfigData() {
   attributeKey=${attributeKey:-}
   attributeValue=${attributeValue:-}
   changeset=${changeset:-}
+  isSensitive=${isSensitive:-false}
+  mdiTypeId=${mdiTypeId:-}
 
   # Check if insufficient args
   # or attributeKey or attributeValue empty
