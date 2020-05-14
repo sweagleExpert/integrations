@@ -1,30 +1,41 @@
 Puppet::Functions.create_function(:sweagle_data_hash) do
   dispatch :sweagle_data_hash do
-    param 'Struct[{path=>String[1]}]', :options
+    #param 'Struct[{path=>String[1]}]', :options
+    param 'Hash[String[1],Any]', :options
     param 'Puppet::LookupContext', :context
   end
 
-  argument_mismatch :missing_path do
-    param 'Hash', :options
-    param 'Puppet::LookupContext', :context
-  end
+  #argument_mismatch :missing_arg do
+    #param 'Hash', :options
+  #  param 'Puppet::LookupContext', :context
+  #end
 
   def sweagle_data_hash(options, context)
     require 'net/http'
     require 'net/https'
     require 'uri'
 
-    sweagle_tenant = "https://testing.sweagle.com"
-    sweagle_token = "<YOUR_TOKEN>"
+    # Manage input options with default values
+    if (defined?(options['sweagle_cds']) and options['sweagle_cds'] != nil)
+      then sweagle_cds = options['sweagle_cds']
+      else sweagle_cds = "hiera" end
+    if (defined?(options['sweagle_node']) and options['sweagle_node'] != nil)
+      then sweagle_node = options['sweagle_node']
+      else sweagle_node = sweagle_cds end
+    if (defined?(options['sweagle_tenant']) and options['sweagle_tenant'] != nil)
+      then sweagle_tenant = options['sweagle_tenant']
+      else sweagle_tenant = "https://testing.sweagle.com" end
+    if (defined?(options['sweagle_token']) and options['sweagle_token'] != nil)
+      then sweagle_token = options['sweagle_token']
+      else sweagle_token = "<YOUR_TOKEN>" end
 
     uri = URI.parse(sweagle_tenant)
     @http = Net::HTTP.new(uri.host, uri.port)
     @http.use_ssl = true
     #@http.set_debug_output($stdout)
 
-    path = options['path']
-    Puppet.debug("[sweagle_data_hash]: Lookup #{path} from SWEAGLE tenant")
-    httpreq = Net::HTTP::Post.new('/api/v1/tenant/metadata-parser/parse?mds=hiera&parser=returnDataForNode&format=json&args=sample-test')
+    Puppet.info("[sweagle_data_hash]: Lookup node (#{sweagle_node}) from cds (#{sweagle_cds}) from SWEAGLE tenant "+sweagle_tenant)
+    httpreq = Net::HTTP::Post.new('/api/v1/tenant/metadata-parser/parse?mds='+sweagle_cds+'&parser=returnDataForNode&format=json&args='+sweagle_node)
     header = {
       'Authorization' => 'Bearer ' + sweagle_token,
       "Accept" => 'application/json',
@@ -53,11 +64,11 @@ Puppet::Functions.create_function(:sweagle_data_hash) do
       Puppet::Util::Json.load(content)
     rescue Puppet::Util::Json::ParseError => ex
       # Filename not included in message, so we add it here.
-      raise Puppet::DataBinding::LookupError, "Unable to parse (%{path}): %{message}" % { path: path, message: ex.message }
+      raise Puppet::DataBinding::LookupError, "Unable to parse SWEAGLE response: %{message}" % { message: ex.message }
     end
   end
 
-  def missing_path(options, context)
-    "one of 'path', 'paths' 'glob', 'globs' or 'mapped_paths' must be declared in hiera.yaml when using this data_hash function"
+  def missing_arg(options, context)
+    "one of 'arg (<put here list of authorised args>) must be declared in hiera.yaml when using this data_hash function"
   end
 end

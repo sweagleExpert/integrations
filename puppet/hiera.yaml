@@ -20,6 +20,9 @@ hierarchy:
   - name: "SWEAGLE HIERA"
     #lookup_key: Sweagle_data_lookup # sweagle data_lookup backend
     data_hash: sweagle_data_hash  # sweagle data_hash backend
-    datadir: data
-    paths:
-      - "dummy.json"
+    options:
+      #sweagle_cds: "<YOUR_CDS>"
+      sweagle_node: "<YOUR NODE>"
+      #sweagle_tenant: "<YOUR_TENANT>"
+      #sweagle_tenant: "https://testing.sweagle.com"
+      #sweagle_token: "<YOUR_TOKEN>"
