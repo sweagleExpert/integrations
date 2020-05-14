@@ -1,0 +1,17 @@
+{
+  "user": {
+    "first_name": "PUPPET API",
+    "user_type": "API",
+    "token": "<YOUR_TOKEN>"
+  },
+  "environment": {
+    "url": "<YOUR_TENANT>"
+    "url-example" : "https://testing.sweagle.com"
+  },
+  "settings": {
+    "friendlyOutput": false,
+    "ignoreSSL": false,
+    "secureStore": false
+  },
+  "gitConfig": {}
+}
