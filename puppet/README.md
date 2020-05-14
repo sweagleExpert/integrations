@@ -22,9 +22,13 @@ Please check README_PREREQUISITES.md if you want to install a sample Puppet for 
 # INSTALLATION SWEAGLE AS HIERA BACKEND
 
 For SWEAGLE as HIERA backend use case:
-- Update ./lib/puppet/functions/sweagle_data_hash.rb with your tenant and token values
+- Update `./lib/puppet/functions/sweagle_data_hash.rb` with your tenant and token values
 
-- Copy folders /data, /lib and hiera.yml in
+- Copy folder /lib in
+    - `/etc/puppetlabs/code/environments/<YOUR_ENVIRONMENT>`
+    - for example `/etc/puppetlabs/code/environments/production`
+
+- Copy folder /data and file hiera.yml in
     - `/etc/puppetlabs/puppet` to define a global data provider
     - `/etc/puppetlabs/code/environments/<YOUR_ENVIRONMENT>` to define an environment specific data provider
 
