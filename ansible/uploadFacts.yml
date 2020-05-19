@@ -1,0 +1,16 @@
+---
+## Prerequisites:
+## Packages Ansible 2.5 or higher + package sshpass
+## be sure ansible.cfg knows your inventory folder and authorize non ssh checks
+# more /etc/ansible/ansible.cfg
+
+## WARNING
+## Test connection to targeted hosts with
+# ansible all -i ./inventories/test/hosts.yml -m ping
+
+## Test with
+# ansible-playbook uploadFacts.yml -i ./inventories/hosts.yml --check
+
+- hosts: all
+  roles:
+    - sweagle/uploadFacts

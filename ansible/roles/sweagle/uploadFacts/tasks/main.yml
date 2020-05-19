@@ -1,0 +1,24 @@
+---
+
+#- name: ALL - Dump host facts
+#  setup:
+
+- name: ALL - Store facts in temporary file
+  copy:
+    content: "{{ hostvars[inventory_hostname] | json_query('ansible_facts') | to_nice_json }}"
+    dest: /tmp/ansible_facts.json
+
+- name: ALL - Build upload_data_list
+  set_fact:
+    upload_data_list: "[{ 'file_path': '/tmp/ansible_facts.json',\
+      'node_path': \"ansible_facts,{{ ansible_hostname }}\",\
+      'format': 'json', 'allow_delete': true, 'auto_approve': true }]"
+
+- name: ALL - Upload facts to SWEAGLE
+  include_role:
+    name: sweagle/uploadData
+
+- name: ALL - Delete facts temporary file
+  file:
+    path: /tmp/ansible_facts.json
+    state: absent
