@@ -19,9 +19,12 @@ Puppet::Functions.create_function(:sweagle_data_hash) do
     if (defined?(options['sweagle_cds']) and options['sweagle_cds'] != nil)
       then sweagle_cds = options['sweagle_cds']
       else sweagle_cds = "hiera" end
-    if (defined?(options['sweagle_node']) and options['sweagle_node'] != nil)
-      then sweagle_node = options['sweagle_node']
-      else sweagle_node = sweagle_cds end
+    if (defined?(options['sweagle_args']) and options['sweagle_args'] != nil)
+      then sweagle_args = options['sweagle_args']
+      else sweagle_args = sweagle_cds end
+    if (defined?(options['sweagle_parser']) and options['sweagle_parser'] != nil)
+      then sweagle_parser = options['sweagle_parser']
+      else sweagle_parser = "returnDataForNode" end
     if (defined?(options['sweagle_tenant']) and options['sweagle_tenant'] != nil)
       then sweagle_tenant = options['sweagle_tenant']
       else sweagle_tenant = "https://testing.sweagle.com" end
@@ -34,8 +37,8 @@ Puppet::Functions.create_function(:sweagle_data_hash) do
     @http.use_ssl = true
     #@http.set_debug_output($stdout)
 
-    Puppet.info("[sweagle_data_hash]: Lookup node (#{sweagle_node}) from cds (#{sweagle_cds}) from SWEAGLE tenant "+sweagle_tenant)
-    httpreq = Net::HTTP::Post.new('/api/v1/tenant/metadata-parser/parse?mds='+sweagle_cds+'&parser=returnDataForNode&format=json&args='+sweagle_node)
+    Puppet.info("[sweagle_data_hash]: Lookup cds (#{sweagle_cds}) with exporter (#{sweagle_parser}) and args (#{sweagle_args}) from SWEAGLE tenant "+sweagle_tenant)
+    httpreq = Net::HTTP::Post.new('/api/v1/tenant/metadata-parser/parse?mds='+sweagle_cds+'&parser='+sweagle_parser+'&format=json&args='+sweagle_args)
     header = {
       'Authorization' => 'Bearer ' + sweagle_token,
       "Accept" => 'application/json',
