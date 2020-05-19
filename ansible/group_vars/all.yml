@@ -19,7 +19,7 @@ cli_installation_folder: "."
 # if use_db_file is set to yes then db_file is used as source of connection info
 use_db_file: no
 #db_file: "/Users/dimitris/db.json"
-db_file: "/Users/dimitris/git/sweagle-expert/integrations/ansible/db.json"
+db_file: "/POC/db.json"
 
 # if use_db_file is set to no
 # then sweagle_url,  sweagle_token and validate_certs are used as source of connection info
@@ -50,14 +50,14 @@ global:
   #  - try with last snapshot automatically when no pending data is found if set to true
   #  - ask user input to failover or not if when no pending data is found if set to "ask"
   format: "props"
-  node_path: "samples-frontend,environment,dev"
+  node_path: "samples-appli,environment,dev"
   snapshot:
     description: ""
     tag: ""
   validator: "passwordChecker"
 
 # These parameters are used for uploadDir role
-paths: "/Users/dimitris/Documents/Clients/DELFINGEN/POC"
+paths: "/POC/inputs"
 excludes:
 recurse: true
 patterns: "*.properties"
@@ -65,8 +65,8 @@ patterns: "*.properties"
 
 # This list is used for uploadData role, you can put any value to overcome global values
 upload_data_list:
-  - { file_path: "/Users/dimitris/Documents/Clients/DELFINGEN/POC/inputs/dev.properties", node_path: "samples-frontend,environment,dev" }
-  - { file_path: "/Users/dimitris/Documents/Clients/DELFINGEN/POC/inputs/test.properties", node_path: "samples-frontend,environment,test" }
+  - { file_path: "/POC/inputs/dev.properties", node_path: "samples-appli,environment,dev" }
+  - { file_path: "/POC/inputs/test.properties", node_path: "samples-appli,environment,test" }
 
 # This list is used for getValidationStatus role, you can put any value to overcome global values
 validation_status_cds_list:
@@ -78,10 +78,10 @@ validate_cds_list:
   - { cds: "samples-dev", forIncoming: false, validator: "passwordChecker" }
   - { cds: "samples-dev", forIncoming: false, validator: "noEmptyValues" }
   - { cds: "samples-dev", forIncoming: false, validator: "noHTTP" }
-  - { cds: "samples test" }
-  - { cds: "samples test", validator: "noHTTP"  }
+  - { cds: "samples-test" }
+  - { cds: "samples-test", validator: "noHTTP"  }
 
 # This list is used for exportSnapshot role, you can put any value to overcome global values
 snapshot_list:
-  - { cds: "samples-dev", file_path: "/Users/dimitris/git/sweagle-expert/integrations/ansible/dev.properties", args: "dev" }
-  - { cds: "samples-dev", file_path: "/Users/dimitris/git/sweagle-expert/integrations/ansible/dev.json", exporter: "all", args: "", format: "json" }
+  - { cds: "samples-dev", file_path: "/POC/outputs/dev.properties", args: "dev" }
+  - { cds: "samples-dev", file_path: "/POC/outputs/dev.json", exporter: "all", args: "", format: "json" }
