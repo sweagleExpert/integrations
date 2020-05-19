@@ -98,7 +98,7 @@ class LookupModule(LookupBase):
         if self.get_option('sweagle_token'):
             sweagle_token = self.get_option('sweagle_token')
         else:
-            sweagle_token = "104e6b08-9bbf-4b66-a06a-30b7996e5d2f"
+            sweagle_token = "104e6b08-XXXX-XXXX-XXXX-XXX"
 
         display.vvvv("[sweagle_lookup]: Lookup with exporter ("+sweagle_parser+") and args ("+sweagle_args+") from SWEAGLE tenant "+sweagle_tenant)
 
