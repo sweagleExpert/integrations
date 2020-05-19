@@ -5,18 +5,11 @@
 # more /etc/ansible/ansible.cfg
 
 ## WARNING
-## Copy your SWEAGLE full package zip file to /roles/sweagle/files
-## For silent install, copy your SWEAGLE license in parameter sweagle_license_key to /inventories/all-in-one/group_vars
-## If you don't put your license there, then playbook will ask for it when installing SWEAGLE component.
-
 ## Test connection to targeted hosts with
 # ansible all -i ./inventories/test/hosts.yml -m ping
 
 ## Test with
 # ansible-playbook info.yml -i ./inventories/hosts.yml --check
-
-## Test with
-# ansible-playbook info.yml -i ./inventories/hosts.yml
 
 ## For full SWEAGLE cycle (upload, validate, snapshot, export)
 # ansible-playbook all.yml -i ./inventories/hosts.yml
