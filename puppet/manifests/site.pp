@@ -12,7 +12,7 @@ exec { 'create_facts_file':
 exec { 'import_facts_to_sweagle':
   cwd     => '/opt/sweagle/cli',
   path    => ['/opt/sweagle/cli', '/usr/bin', '/usr/sbin', '/bin'],
-  command => 'sweagle uploadData --filePath /tmp/facts.json --nodePath servers,$(hostname) --type json --autoRecognize --autoApprove',
+  command => 'sweagle uploadData --filePath /tmp/facts.json --nodePath puppet_facts,$(hostname) --type json --autoRecognize --autoApprove',
   #consume => sweagle[cli]
 }
 
