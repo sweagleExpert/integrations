@@ -45,7 +45,7 @@ if $::osfamily == 'linux' {
           group => 'sweagle',
           source => 'puppet:///modules/sweagle_install_cli/db.json'
       }
-      
+
 } elsif $::osfamily == 'windows' {
   # Install for WindowsOS
   file { 'C:\windows\program files\sweagle':
@@ -58,6 +58,12 @@ if $::osfamily == 'linux' {
           owner => 'sweagle',
           group => 'sweagle',
           source => 'puppet:///modules/sweagle_install_cli/sweagle-win.exe',
+      }
+  file { 'C:\windows\program files\sweagle\db.json':
+          mode => '0644',
+          owner => 'sweagle',
+          group => 'sweagle',
+          source => 'puppet:///modules/sweagle_install_cli/db.json'
       }
 }
 
