@@ -6,6 +6,7 @@ Instructions below details how to install puppet in order to test integration wi
 
 1- Install Puppet Open Source version using docker-compose package and instructions here:
 https://puppet.com/try-puppet/open-source-puppet/download/
+run `docker-compose up`
 
 2- Then install puppet agent
 - for linux, instructions are here:
