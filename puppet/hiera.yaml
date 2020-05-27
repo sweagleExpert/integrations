@@ -17,13 +17,26 @@ hierarchy:
 #    options:
 #      output: json
 #      ignore_404: true
-  - name: "SWEAGLE HIERA"
-    #lookup_key: Sweagle_data_lookup # sweagle data_lookup backend
+  - name: "SWEAGLE HIERA HASH"
     data_hash: sweagle_data_hash  # sweagle data_hash backend
     options:
       # All options are optional as default values are available in data_hash code
       sweagle_args: "<YOUR_ARGS>"    #ex: "<YOUR_NODE> for returnDataForNode exporter, like sample-test"
       #sweagle_cds: "<YOUR_CDS>"
       #sweagle_parser: "<YOUR_EXPORT_PARSER>"    #ex: "returnDataForNode"
+      #sweagle_tenant: "<YOUR_TENANT>"    #ex: "https://testing.sweagle.com"
+      #sweagle_token: "<YOUR_TOKEN>"
+
+  - name: "SWEAGLE HIERA KEY"
+    lookup_key: sweagle_lookup_key # sweagle data_lookup backend
+    #options:
+      # All options are optional as default values are available sweagle_lookup_key in  code
+      # If keypath defined, value for key will be searched only in this path
+      #keypath: "<YOUR_PATH>"   #ex: "node1/node2/node3"
+      # If keynode defined, value for key will be searched only in this node
+      # IF keynode and keypath are both defined only keypath is taken into account
+      #keynode: "<YOUR_NODE>"
+      #sweagle_cds: "<YOUR_CDS>"
+      #sweagle_parser: "<YOUR_EXPORT_PARSER>"    #ex: "returnValueForKey"
       #sweagle_tenant: "<YOUR_TENANT>"    #ex: "https://testing.sweagle.com"
       #sweagle_token: "<YOUR_TOKEN>"

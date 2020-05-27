@@ -66,7 +66,6 @@ Puppet::Functions.create_function(:sweagle_data_hash) do
     begin
       Puppet::Util::Json.load(content)
     rescue Puppet::Util::Json::ParseError => ex
-      # Filename not included in message, so we add it here.
       raise Puppet::DataBinding::LookupError, "Unable to parse SWEAGLE response: %{message}" % { message: ex.message }
     end
   end
