@@ -33,6 +33,7 @@
     method: POST
     src: "{{ item.file_path | default(global.file_path) | default('') }}"
     validate_certs: "{{ not ignore_ssl }}"
+    timeout: "{{ item.timeout | default(global.timeout) | default(30) }}"
     headers:
       Accept: "*/*"
       Authorization: "Bearer {{ sweagle_token }}"
