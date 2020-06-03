@@ -37,6 +37,8 @@ ANSIBLE v2.5 is required for these scripts to work to allow support of loops
 
 - For all use cases, you can benefit from SWEAGLE most used APIs to upload, validate, snapshot or export your configuration data by using roles provided in `/roles` folder
 
+- If you plan to use CLI and ask ansible to install it using `installCLI` role, don't forget to put SWEAGLE CLI binaries under `/roles/sweagle/installCLI/files`
+
 - For uses cases 2 & 3, you can install SWEAGLE specific plugins directly next to your plays in a `/lookup_plugins` folder or by putting in ansible default plugins folders, like `~/.ansible/plugins/lookup:/usr/share/ansible/plugins/lookup`
 
 - More details on custom plugins installation are available here:
