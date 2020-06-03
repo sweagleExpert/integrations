@@ -54,6 +54,9 @@ global:
   snapshot:
     description: ""
     tag: ""
+  #timeout: 180
+  # timeout defines the URI call timeout for uplaodFile role
+  # it can be defined at global or each list item level
   validator: "passwordChecker"
 
 # These parameters are used for uploadDir role
