@@ -29,7 +29,7 @@ example:
 ## TEST IT
 
 - RUN IT
-`docker run -d -it --name=sweagle-cli --env ENV='https://testing.sweagle.com' --env TOKEN='XXX' sweagle-cli:1.0.0`
+`docker run -d -it --name=sweagle-cli --env ENV='https://testing.sweagle.com' --env TOKEN='XXX' sweagle-cli:1.1.0`
 
 - INSIDE
 `docker exec -it sweagle-cli /bin/bash`
