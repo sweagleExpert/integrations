@@ -29,16 +29,16 @@ example:
 ## TEST IT
 
 - RUN IT
-`sudo docker run -d -it --name=sweagle-cli --env ENV='https://testing.sweagle.com' --env TOKEN='XXX' sweagle-cli:1.1.0`
+`docker run -d -it --name=sweagle-cli --env ENV='https://testing.sweagle.com' --env TOKEN='XXX' sweagle-cli:1.0.0`
 
 - INSIDE
-`sudo docker exec -it sweagle-cli /bin/bash`
+`docker exec -it sweagle-cli /bin/bash`
 
 - STOP IT
-`sudo docker stop sweagle-cli`
+`docker stop sweagle-cli`
 
 - THEN REMOVE IT
-`sudo docker rm sweagle-cli -f`
+`docker rm sweagle-cli -f`
 
 
 ## CONFIGURE IT
