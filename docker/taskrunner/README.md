@@ -6,7 +6,7 @@ This is instructions to build SWEAGLE TaskRunner container.
 
 ## BUILD IT, TAG IT, PUSH IT
 
-- put in `package/bin/taskRunner` folder the SWEAGLE TaskRunner jar file
+- put in `package/bin/taskRunner` folder the SWEAGLE TaskRunner jar file and application.yml
 - build container with command `docker build -t sweagle-taskrunner:<VERSION> .`
 - tag it with `sudo docker tag sweagle-taskrunner:<VERSION> <YOUR_REGISTRY>/sweagle-taskrunner:<VERSION>`
 - push it with `sudo docker push <YOUR_REGISTRY>/sweagle-taskrunner:<VERSION>`
