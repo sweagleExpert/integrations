@@ -52,8 +52,9 @@ This container share a volume that contains indexed database for persistence.
 
 Example of docker-compose configuration:
 
-`services:
-   sweagle-elasticsearch:
+`
+services:
+  sweagle-elasticsearch:
     image: docker.sweagle.com:8444/sweagle-elasticsearch:6.8.6
     networks:
       stack:
@@ -68,4 +69,6 @@ Example of docker-compose configuration:
       - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
     networks:
       stack:
+volumes:
+  elasticsearch:
 `
