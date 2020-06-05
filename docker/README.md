@@ -7,3 +7,5 @@ This presents samples of Dockerfiles and scripts to build docker images for SWEA
 Each folder represents a specific image with specific instructions.
 
 Please, note this is only examples and they should be adapted to your specific use, especially if you want to use them in production environments.
+
+An example of full docker-compose file is also provided here if you want to quickly deploy a SWEAGLE instance for test purpose
