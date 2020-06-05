@@ -30,7 +30,7 @@ example:
 
 - INSIDE
 `docker exec -it sweagle-ml /bin/sh`
-`ps -ef | grep java` => you should see a java taskrunner process
+`ps -ef | grep java` => you should see a java ml process
 
 - STOP IT
 `docker stop sweagle-ml`
