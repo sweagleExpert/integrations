@@ -53,7 +53,7 @@ This container share a volume that contains indexed database for persistence.
 Example of docker-compose configuration:
 
 `services:
-    sweagle-elasticsearch:
+   sweagle-elasticsearch:
     image: docker.sweagle.com:8444/sweagle-elasticsearch:6.8.6
     networks:
       stack:
