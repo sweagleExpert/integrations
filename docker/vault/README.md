@@ -8,7 +8,7 @@ Purpose of this container is to encrypt/decrypt sensitive values managed in SWEA
 
 ## BUILD IT, TAG IT, PUSH IT
 
-- put your vault binary package in directory /package (be sure to use a package version compatible with SWEAGLE)
+- put your vault binary package in directory `/package` (be sure to use a package version compatible with SWEAGLE)
 - change default values for vault db, user and password in script `startVault.sh` (be sure to use same values as in sweagle-mysql container). You can also activate them in Dockerfile ENV settings if you prefer.
 - for test purpose, you may change Dockerfile to only target `vault-local.hcl` file storage instead of mysql
 - build container with command "docker build -t sweagle-vault:<VERSION> ."

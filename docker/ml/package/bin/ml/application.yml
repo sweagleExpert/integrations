@@ -1,4 +1,0 @@
-server:
-  port: 8084
-logging:
-  file: /opt/SWEAGLE/bin/logs/sweagle_ml.log

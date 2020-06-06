@@ -11,8 +11,20 @@ Please, note this is only examples and they should be adapted to your specific u
 An example of full docker-compose file is also provided here if you want to quickly deploy a SWEAGLE instance for test purpose
 
 
-## TO DO LIST
+## TO DO LIST (IMPROVMENTS)
 
-- Add gid and uid between Vault and Core containers for shared volume
+TO REDUCE RISKS OF ERRORS:
+
+- Add gid and uid for sweagle group/user between Vault and Core containers for shared volume
+
+FOR EASIER SETTINGS (AUTO ADAPTED TO EACH HOST):
 
 - Add better memory handling in ScriptExecutor and Core with `-XX:+UseContainerSupport` and `-XX:MaxRAMPercentage`
+
+TO SIMPLIFY CONTAINERS BUILD STEPS (REMOVE MANUAL OPS):
+
+- Add automatic replacement of values from sweagle-full package in core application.yml
+
+- Use 2 steps container in nginx to unzip full packages and build the target container directly from the full zips
+
+- Add parsers and types in create-tenant container to automatically import them with an ENV setting choice
