@@ -15,16 +15,16 @@ If the tenant already exists, it won't be created or updated by running this con
 - tag it with "sudo docker tag sweagle-create-tenant:<VERSION> <YOUR_REGISTRY>/sweagle-create-tenant:<VERSION>"
 - push it with "sudo docker push <YOUR_REGISTRY>/sweagle-create-tenant:<VERSION>"
 
-where <VERSION> is the version of your SWEAGLE CREATE TENANT package
+where `<VERSION>` is the version of your SWEAGLE CREATE TENANT package
 
 
 example:
 
 `sudo docker build -t sweagle-create-tenant:1.0.1 .``
 
-`sudo docker tag sweagle-create-tenant:1.0.1 docker.sweagle.com:8444/sweagle-create-tenant:1.0.1`
+`sudo docker tag sweagle-create-tenant:1.0.1 docker.sweagle.com:9444/sweagle-create-tenant:1.0.1`
 
-`sudo docker push docker.sweagle.com:8444/sweagle-create-tenant:1.0.1`
+`sudo docker push docker.sweagle.com:9444/sweagle-create-tenant:1.0.1`
 
 
 ## CONFIGURE IT

@@ -15,16 +15,16 @@ Purpose of this container is to encrypt/decrypt sensitive values managed in SWEA
 - tag it with "sudo docker tag sweagle-vault:<VERSION> <YOUR_REGISTRY>/sweagle-vault:<VERSION>"
 - push it with "sudo docker push <YOUR_REGISTRY>/sweagle-vault:<VERSION>"
 
-where <VERSION> is, for example, the version of your VAULT package
+where `<VERSION>` is, for example, the version of your VAULT package
 
 
 example:
 
 `docker build -t sweagle-vault:0.7.3 .`
 
-`sudo docker tag sweagle-vault:0.7.3 docker.sweagle.com:8444/sweagle-vault:0.7.3`
+`sudo docker tag sweagle-vault:0.7.3 docker.sweagle.com:9444/sweagle-vault:0.7.3`
 
-`sudo docker push docker.sweagle.com:8444/sweagle-vault:0.7.3`
+`sudo docker push docker.sweagle.com:9444/sweagle-vault:0.7.3`
 
 
 ## TEST IT
@@ -87,8 +87,10 @@ Docker-compose configuration (listen only on localhost):
 
 ## TROUBLESHOOTING
 
-The first time you start Vault, it is recommended to start only 1 replica to have no concurrency when doing init of Vault DB.
+- The first time you start Vault, it is recommended to start only 1 replica to have no concurrency when doing init of Vault DB.
 
+
+- startup process
 
 At startup, sweagle-vault will wait for 1 min for service sweagle-mysql to be available on port 3306.
 
@@ -96,8 +98,8 @@ At startup, sweagle-vault will wait for 1 min for service sweagle-mysql to be av
 
 Once sweagle-mysql:3306 is available, sweagle-vault will :
 
-- check its environment settings
+  - check its environment settings
 
-- create vault.hcl config file and start vault service
+  - create vault.hcl config file and start vault service
 
-- launch init (based on init status) and unseal operations
+  - launch init (based on init status) and unseal operations

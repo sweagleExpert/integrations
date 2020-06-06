@@ -11,7 +11,7 @@ This is instructions to build SWEAGLE ML container.
 - tag it with `sudo docker tag sweagle-ml:<VERSION> <YOUR_REGISTRY>/sweagle-ml:<VERSION>`
 - push it with `sudo docker push <YOUR_REGISTRY>/sweagle-ml:<VERSION>`
 
-where <VERSION> is the version of your SWEAGLE ML package
+where `<VERSION>` is the version of your SWEAGLE ML package
 
 
 example:

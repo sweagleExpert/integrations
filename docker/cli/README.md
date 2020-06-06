@@ -14,16 +14,16 @@ Purpose of this container is to be used in GitLabCI, CircleCI, ... or any pipeli
 - tag it with `sudo docker tag sweagle-cli:<VERSION> <YOUR_REGISTRY>/sweagle-cli:<VERSION>`
 - push it with `sudo docker push <YOUR_REGISTRY>/sweagle-cli:<VERSION>`
 
-where <VERSION> is the version of your SWEAGLE CLI package
+where `<VERSION>` is the version of your SWEAGLE CLI package
 
 
 example:
 
 `sudo docker build -t sweagle-cli:1.1.0 .`
 
-`sudo docker tag sweagle-cli:1.1.0 docker.sweagle.com:8444/sweagle-docker/sweagle-cli:1.1.0`
+`sudo docker tag sweagle-cli:1.1.0 docker.sweagle.com:9444/sweagle-cli:1.1.0`
 
-`sudo docker push docker.sweagle.com:8444/sweagle-docker/sweagle-cli:1.1.0`
+`sudo docker push docker.sweagle.com:9444/sweagle-cli:1.1.0`
 
 
 ## TEST IT

@@ -14,16 +14,16 @@ It includes a specific `init.sh` script to create vault db at first startup of M
 - tag it with `sudo docker tag sweagle-mysql:<VERSION> <YOUR_REGISTRY>/sweagle-mysql:<VERSION>`
 - push it with `sudo docker push <YOUR_REGISTRY>/sweagle-mysql:<VERSION>`
 
-where <VERSION> is the version of your MySQL package (default is lastest 5.7 version)
+where `<VERSION>` is the version of your MySQL package (default is lastest 5.7 version)
 
 
 example:
 
 `docker build -t sweagle-mysql:5.7.30 .`
 
-`sudo docker tag sweagle-mysql:5.7.30 docker.sweagle.com:8444/sweagle-mysql:5.7.30`
+`sudo docker tag sweagle-mysql:5.7.30 docker.sweagle.com:9444/sweagle-mysql:5.7.30`
 
-`sudo docker push docker.sweagle.com:8444/sweagle-mysql:5.7.30`
+`sudo docker push docker.sweagle.com:9444/sweagle-mysql:5.7.30`
 
 ## TEST IT
 
@@ -75,7 +75,7 @@ Docker-compose configuration (listen only on localhost):
 
 `services:
   sweagle-mysql:
-    image: docker.sweagle.com:8444/sweagle-mysql:5.7.30
+    image: docker.sweagle.com:9444/sweagle-mysql:5.7.30
     volumes:
       - mysql:/var/lib/mysql
     networks:

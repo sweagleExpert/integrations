@@ -11,7 +11,7 @@ This is instructions to build SWEAGLE SCRIPTEXECUTOR container.
 - tag it with `sudo docker tag sweagle-scriptexecutor:<VERSION> <YOUR_REGISTRY>/sweagle-scriptexecutor:<VERSION>`
 - push it with `sudo docker push <YOUR_REGISTRY>/sweagle-scriptexecutor:<VERSION>`
 
-where <VERSION> is the version of your SWEAGLE TaskRunner package
+where `<VERSION>` is the version of your SWEAGLE TaskRunner package
 
 
 example:

@@ -16,7 +16,7 @@ This is instructions to build SWEAGLE CORE container.
 - tag it with `sudo docker tag sweagle-core:<VERSION> <YOUR_REGISTRY>/sweagle-core:<VERSION>`
 - push it with `sudo docker push <YOUR_REGISTRY>/sweagle-core:<VERSION>`
 
-where <VERSION> is the version of your SWEAGLE CORE package
+where `<VERSION>` is the version of your SWEAGLE CORE package
 
 
 example:
@@ -51,7 +51,9 @@ With /VAULT volume, shared between Vault and Core containers and that contains r
 
 With optional environment variables described below:
 
-- SWEAGLE_LICENSE: your entitled License string
+- JAVA_OPTS: Add any java options you want, like Xms/Xmx
+
+- SWEAGLE_LICENSE: your entitled license string
 
 - VAULT_ROOT_TOKEN: Token to connect to Vaul, extracted from Vault init result file
 
@@ -66,9 +68,11 @@ example:
 
 `java -XX:+PrintFlagsFinal -version | grep -Ei "maxheapsize|maxram"`
 
-or command below to only display default max and min heap
+- or command below to only display default max and min heap
+
 `java -XX:+PrintFlagsFinal -version|grep -i heapsize|egrep 'Initial|Max'`
 
+=> To correct this, you can set JAVA_OPTS with `-XX:+UseContainerSupport -XX:InitialRAMPercentage=N -XX:MinRAMPercentage=N -XX:MaxRAMPercentage=N` where N is percentage between 0 and 100 (25 per default for MaxRAMPercentage)
 
 For more details, see articles below that summarize how JVM manage memory in container
 https://medium.com/adorsys/usecontainersupport-to-the-rescue-e77d6cfea712

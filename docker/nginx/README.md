@@ -13,7 +13,7 @@ This is instructions to build SWEAGLE NGINX container.
 - tag it with `sudo docker tag sweagle-nginx:<VERSION> <YOUR_REGISTRY>/sweagle-nginx:<VERSION>`
 - push it with `sudo docker push <YOUR_REGISTRY>/sweagle-nginx:<VERSION>`
 
-where <VERSION> is the version of your SWEAGLE TaskRunner package
+where `<VERSION>` is the version of your SWEAGLE TaskRunner package
 
 example:
 

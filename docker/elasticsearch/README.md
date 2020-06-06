@@ -16,16 +16,16 @@ It includes specific configuration files for SWEAGLE usage.
 - tag it with `sudo docker tag sweagle-elasticsearch:<VERSION> <YOUR_REGISTRY>/sweagle-elasticsearch:<VERSION>`
 - push it with `sudo docker push <YOUR_REGISTRY>/sweagle-elasticsearch:<VERSION>`
 
-where <VERSION> is the version of your ElasticSearch package
+where `<VERSION>` is the version of your ElasticSearch package
   - default is 6.8.6 version for SWEAGLE 3.10 and higher
 
 example:
 
 `docker build -t sweagle-elasticsearch:6.8.6 .`
 
-`sudo docker tag sweagle-elasticsearch:6.8.6 docker.sweagle.com:8444/sweagle-elasticsearch:6.8.6`
+`sudo docker tag sweagle-elasticsearch:6.8.6 docker.sweagle.com:9444/sweagle-elasticsearch:6.8.6`
 
-`sudo docker push docker.sweagle.com:8444/sweagle-elasticsearch:6.8.6`
+`sudo docker push docker.sweagle.com:9444/sweagle-elasticsearch:6.8.6`
 
 ## TEST IT
 
@@ -55,7 +55,7 @@ Example of docker-compose configuration:
 `
 services:
   sweagle-elasticsearch:
-    image: docker.sweagle.com:8444/sweagle-elasticsearch:6.8.6
+    image: docker.sweagle.com:9444/sweagle-elasticsearch:6.8.6
     networks:
       stack:
     volumes:

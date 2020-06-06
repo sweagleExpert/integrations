@@ -14,16 +14,16 @@ It includes specific configuration files for SWEAGLE usage.
 - tag it with `sudo docker tag sweagle-mongo:<VERSION> <YOUR_REGISTRY>/sweagle-mongo:<VERSION>`
 - push it with `sudo docker push <YOUR_REGISTRY>/sweagle-mongo:<VERSION>`
 
-where <VERSION> is the version of your mongo package
+where `<VERSION>` is the version of your mongo package
   - default is 3.4 version for SWEAGLE
 
 example:
 
 `docker build -t sweagle-mongo:3.4 .`
 
-`sudo docker tag sweagle-mongo:3.4 docker.sweagle.com:8444/sweagle-mongo:3.4`
+`sudo docker tag sweagle-mongo:3.4 docker.sweagle.com:9444/sweagle-mongo:3.4`
 
-`sudo docker push docker.sweagle.com:8444/sweagle-mongo:3.4`
+`sudo docker push docker.sweagle.com:9444/sweagle-mongo:3.4`
 
 ## TEST IT
 
@@ -53,7 +53,7 @@ Example of docker-compose configuration:
 `
 services:
   sweagle-mongo:
-    image: docker.sweagle.com:8444/sweagle-mongo:3.4
+    image: docker.sweagle.com:9444/sweagle-mongo:3.4
     volumes:
       - mongo:/data/db
     networks:
