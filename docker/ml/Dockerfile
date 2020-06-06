@@ -12,6 +12,7 @@ RUN chown -R sweagle:sweagle /opt/SWEAGLE && \
     chmod +x /opt/SWEAGLE/scripts/*.sh
 
 USER sweagle
-WORKDIR /opt/SWEAGLE/bin/ml
+
+#WORKDIR /opt/SWEAGLE/bin/ml
 CMD [ "/opt/SWEAGLE/scripts/startML.sh" ]
 EXPOSE 8084

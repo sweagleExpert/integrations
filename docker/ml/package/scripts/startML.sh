@@ -13,11 +13,9 @@ if [[ -z ${JAVA_OPTS} ]]; then
       Xmx=${Xms}
     fi
   fi
-  JAVA_OPTS="-Xms=${Xms} -Xmx=${Xmx}"
+  JAVA_OPTS="-Xms${Xms} -Xmx${Xmx}"
 fi
 
-echo "Starting jar $jar with settings:"
-echo "JAVA OPTIONS=${JAVA_OPTS}"
+echo "### STARTING JAR ${jar} WITH JAVA OPTIONS: ${JAVA_OPTS}"
 cd /opt/SWEAGLE/bin/ml
-#java ${JAVA_OPTS} -jar $jar
-java -jar $jar
+java ${JAVA_OPTS} -jar $jar
