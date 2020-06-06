@@ -51,6 +51,8 @@ With /VAULT volume, shared between Vault and Core containers and that contains r
 
 With optional environment variables described below:
 
+- SWEAGLE_LICENSE: your entitled License string
+
 - VAULT_ROOT_TOKEN: Token to connect to Vaul, extracted from Vault init result file
 
 example:
