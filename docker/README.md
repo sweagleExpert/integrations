@@ -13,9 +13,9 @@ An example of full docker-compose file is also provided here if you want to quic
 
 ## TO DO LIST (IMPROVMENTS)
 
-TO REDUCE RISKS OF ERRORS:
+FOR MORE FLEXIBILITY:
 
-- Add gid and uid for sweagle group/user between Vault and Core containers for shared volume
+- Add MYSQL_HOST and MONGO_HOST in CORE container to allow use of external service
 
 FOR EASIER SETTINGS (AUTO ADAPTED TO EACH HOST):
 

@@ -56,17 +56,21 @@ example:
 
 Optional environment variables available are:
 
-- VAULT_DB: your vault database name
+- DEBUG_VAULT: this is to display key/tokens values in container logs when doing init. The fact that variable is set to any value will activate the debugging.
 
-- VAULT_DB_USER: your vault database username will be defaulted to the value you put in startVault.sh script
+- VAULT_DB: your vault database name, dafault is `vaul`
+
+- VAULT_DB_HOST: your vault database host, if you don't use mysql backend in container, default is `sweagle-mysql` (container mode)
+
+- VAULT_DB_PORT: your vault database port, default is `3306`
 
 - VAULT_DB_PASSWORD: your vault database password, will be defaulted to the value you put in startVault.sh script
 
-- DEBUG_VAULT: this is to display key/tokens values in container logs when doing init. The fact that variable is set to any value will activate the debugging.
+- VAULT_DB_USER: your vault database username will be defaulted to the value you put in startVault.sh script
 
-It is recommanded to store these setting in your container orchestrator secrets.
+It is recommanded to store these setting in container secrets.
 
-IMPORTANT: For VAULT_DB* variables, be sure that they are in sync with what is configured in sweagle-vault container
+IMPORTANT: For VAULT_DB* variables, be sure that they are in sync with what is configured in sweagle-mysql container
 
 ## USE IT
 

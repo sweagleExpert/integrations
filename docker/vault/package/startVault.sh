@@ -9,18 +9,28 @@ echo "###############################################################"
 echo "#####     VALIDATE INPUTS PROVIDED"
 CONFIG_FILE=$1
 
+if [[ -z ${VAULT_DB_HOST} ]]; then
+  echo " No DB host provided, using default"
+  export VAULT_DB_HOST="sweagle-mysql"
+fi
+
+if [[ -z ${VAULT_DB_PORT} ]]; then
+  echo " No DB port provided, using default"
+  export VAULT_DB_PORT="3306"
+fi
+
 if [[ -z ${VAULT_DB} ]]; then
   echo " No DB provided, using default"
   export VAULT_DB="vault"
 fi
 
 if [[ -z ${VAULT_DB_USER} ]]; then
-  echo " No db user provided, using default"
+  echo " No DB user provided, using default"
   export VAULT_DB_USER="vault_user"
 fi
 
 if [[ -z ${VAULT_DB_PASSWORD} ]]; then
-  echo " No db password provided, using default"
+  echo " No DB password provided, using default"
   export VAULT_DB_PASSWORD="vault_password"
 fi
 

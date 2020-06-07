@@ -5,12 +5,8 @@ RUN apk add --no-cache bash
 #ENV VAULT_ROOT_TOKEN=XXX \
 #    SWEAGLE_LICENSE=XXX
 
-# VAULT volume is shared between sweagle-core and vault containers to be able to use vault root-token key in sweagle
-# Please, note that /vault volume must be created here in order to change owner before sharing
-VOLUME /vault
-
-RUN addgroup sweagle && \
-    adduser -S -G sweagle sweagle && \
+RUN addgroup --gid 1000 sweagle && \
+    adduser --uid 100 -S -G sweagle sweagle && \
 		mkdir -p /opt/SWEAGLE && \
     mkdir -p /vault
 
@@ -19,6 +15,10 @@ COPY ./package /opt/SWEAGLE
 RUN chown -R sweagle:sweagle /opt/SWEAGLE && \
     chown -R sweagle:sweagle /vault && \
     chmod +x /opt/SWEAGLE/scripts/*.sh
+
+# VAULT volume is shared between sweagle-core and vault containers to be able to use vault root-token key in sweagle
+# Please, note that /vault volume must be created after path has been created and owner has been put to sweagle user
+VOLUME /vault
 
 USER sweagle
 

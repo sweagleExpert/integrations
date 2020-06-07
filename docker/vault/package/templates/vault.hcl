@@ -1,5 +1,5 @@
 storage mysql {
-  address = \"sweagle-mysql:3306\"
+  address = \"$VAULT_DB_HOST:$VAULT_DB_PORT\"
   username = \"$VAULT_DB_USER\"
   password = \"$VAULT_DB_PASSWORD\"
   database = \"$VAULT_DB\"
