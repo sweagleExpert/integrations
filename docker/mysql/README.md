@@ -35,6 +35,7 @@ example:
 then you can run inside your container:
 `mysql --version`
 `mysql -u $MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE`
+`show databases;` => should display mdm and vault dbs
 
 - STOP IT
 `docker stop sweagle-mysql`
