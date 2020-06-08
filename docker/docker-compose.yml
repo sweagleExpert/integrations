@@ -1,0 +1,108 @@
+version: "3"
+services:
+  sweagle-mongo:
+    image: sweagle-mongo:3.4
+    volumes:
+      - mongo:/data/db
+    networks:
+      stack:
+  sweagle-mysql:
+    image: sweagle-mysql:5.7.30
+    volumes:
+      - mysql:/var/lib/mysql
+    networks:
+      stack:
+  sweagle-elasticsearch:
+    image: sweagle-elasticsearch:6.8.6
+    networks:
+      stack:
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data
+    environment:
+      - cluster.name=SWEAGLE_cluster
+      - network.host=0.0.0.0
+      - transport.host=0.0.0.0
+      - xpack.security.enabled=false
+      - discovery.zen.minimum_master_nodes=1
+      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+    networks:
+      stack:
+  sweagle-nginx:
+    image: sweagle-nginx:3.13.0
+    depends_on: ['sweagle-core']
+    #volumes:
+    #  - /path/to/ssl.conf:/etc/nginx/conf.d/ssl.conf
+    #  - /path/to/folder/with/certificates:/path/to/folder/with/certificates/as/specfied/in/ssl.conf
+    ports:
+      - 80:80
+    #  - 443:443
+    networks:
+      stack:
+  sweagle-vault:
+    image: sweagle-vault:0.7.3
+    environment:
+      - VAULT_ADDR=http://sweagle-vault:8200
+    volumes:
+      - vault:/vault
+    networks:
+      stack:
+    depends_on: [ 'sweagle-mysql' ]
+    links:
+      - sweagle-mysql
+  sweagle-core:
+    image: sweagle-core:3.13.0
+    volumes:
+      - vault:/vault
+    depends_on: ['sweagle-mysql', 'sweagle-mongo', 'sweagle-vault', 'sweagle-elasticsearch', 'sweagle-scriptexecutor']
+    environment:
+      - SWEAGLE_LICENSE=XXX
+      - "JAVA_OPTS=-Xms512m -Xmx512m"
+    links:
+      - sweagle-mysql
+      - sweagle-mongo
+      - sweagle-vault
+      - sweagle-elasticsearch
+      - sweagle-scriptexecutor
+    networks:
+      stack:
+    ports:
+      - 8081:8081
+  sweagle-scriptexecutor:
+    image: sweagle-scriptexecutor:3.13.0
+    environment:
+      - "JAVA_OPTS=-Xms512m -Xmx512m"
+    networks:
+      stack:
+    expose:
+      - 8083
+  sweagle-taskrunner:
+    image: sweagle-taskrunner:1.0.2
+    environment:
+      - SWEAGLE_TOKEN=XXX_MY_TOKEN_XXX
+    depends_on: ['sweagle-core']
+    links:
+      - sweagle-core
+    networks:
+      stack:
+  sweagle-ml:
+    image: sweagle-ml:3.13.0
+    environment:
+      - "JAVA_OPTS=-Xms512m -Xmx512m"
+    networks:
+      stack:
+  sweagle-create-tenant:
+    image: sweagle-create-tenant:1.0.1
+    depends_on: ['sweagle-core']
+    environment:
+      - SWEAGLE_TENANT=sweagle
+    links:
+      - sweagle-core
+    networks:
+      stack:
+networks:
+  stack:
+volumes:
+  elasticsearch:
+  vault:
+  mysql:
+  mongo:
