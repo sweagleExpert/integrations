@@ -39,8 +39,8 @@ elif [[ -d "$2" ]] ; then
     argFileExtension="$3"
     if [ ! -z "$4" ] && [ $4 = "-R" ]; then
       echo "Do recursive search"
-      echo "$(find . -name *.${argFileExtension});"
-      for file in $(find . -name *.${argFileExtension}); do
+      echo "$(find . -name "*.${argFileExtension}");"
+      for file in $(find . -name "*.${argFileExtension}"); do
         # filename without extension if you want to add it to node path
         filename=$(basename "${file%.*}")
         dirname=$(dirname "${file}")
@@ -55,7 +55,11 @@ elif [[ -d "$2" ]] ; then
           echo "########## Exiting without error"
           exit 0
         fi
-        uploadFile autoApprove=true file="$file" nodePath="$argNodePath,$dirname,$filename"
+        if [[ $dirname == "." ]]; then
+          uploadFile autoApprove=true file="$file" nodePath="$argNodePath,$filename"
+        else
+          uploadFile autoApprove=true file="$file" nodePath="$argNodePath,$dirname,$filename"
+        fi
       done
     else
       for file in *.${argFileExtension}; do
