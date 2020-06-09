@@ -1,0 +1,35 @@
+###########################################################
+#####      AZURE AGENT SPECIFIC LAYERS WITH POWERSHELL
+###########################################################
+FROM mcr.microsoft.com/powershell:lts-ubuntu-16.04
+# To make it easier for build and release pipelines to run apt-get,
+# configure apt to not require confirmation (assume the -y argument by default)
+ENV DEBIAN_FRONTEND=noninteractive
+RUN echo "APT::Get::Assume-Yes \"true\";" > /etc/apt/apt.conf.d/90assumeyes
+RUN apt-get update \
+&& apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        jq \
+        git \
+        iputils-ping \
+        libcurl3 \
+        libicu55 \
+        libunwind8 \
+        netcat
+
+RUN pwsh --version
+
+WORKDIR /azp
+COPY ./start.sh .
+RUN chmod +x start.sh
+
+###########################################################
+#####      SWEAGLE CLI SPECIFIC LAYERS
+###########################################################
+COPY ./init-cli.sh /azp/
+COPY ./package/ /usr/bin/
+RUN chmod +x /usr/bin/sweagle && \
+    chmod +x /azp/init-cli.sh
+# note that init-cli.sh must call /start.sh for azure agent to work
+CMD ["./init-cli.sh"]

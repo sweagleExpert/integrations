@@ -13,6 +13,7 @@ You should use the scripts provided here with the SWEAGLE CLI - Azure Agent cont
 Please:
 - either, contact SWEAGLE to get an example of image of this container
 - or, use sample docker file provided here to build your own one
+    - you can look at README-PREREQUISITES.md for instructions to build it
 
 # INSTALLATION WITH CLI
 
