@@ -33,6 +33,10 @@
 # command line arguments
 this_script=$(basename $0)
 TARGET_DIR=${1:-}
+# Check required library
+if [ ! -x "$(command -v jq)" ]; then
+  echo "### ERROR: JQ LIBRARY IS REQUIRED"
+fi
 # load sweagle host specific variables like aToken, sweagleURL, ...
 source $(dirname "$0")/sweagle.env
 # Check input arguments
@@ -52,12 +56,10 @@ fi
 #                    FUNCTIONS
 ##########################################################
 
-# arg1: type id
-function get_all_allowed_child_types() {
-	id=${1}
+function get_all_node_types() {
 
 	res=$(\
-	  curl -skw "%{http_code}" "$sweagleURL/api/v1/model/type/$id/childTypes" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	  curl -sw "%{http_code}" "$sweagleURL/api/v1/model/type" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
 		)
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
@@ -74,7 +76,7 @@ function get_all_attributes() {
 
 	# Get a type attributes based on type id
 	res=$(\
-	  curl -skw "%{http_code}" "$sweagleURL/api/v1/model/attribute?type=$id" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	  curl -sw "%{http_code}" "$sweagleURL/api/v1/model/attribute?type=$id" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
 		)
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
@@ -85,10 +87,12 @@ function get_all_attributes() {
 }
 
 
-function get_all_node_types() {
+# arg1: type id
+function get_all_allowed_child_types() {
+	id=${1}
 
 	res=$(\
-	  curl -skw "%{http_code}" "$sweagleURL/api/v1/model/type" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	  curl -sw "%{http_code}" "$sweagleURL/api/v1/model/type/$id/childTypes" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
 		)
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
@@ -97,7 +101,6 @@ function get_all_node_types() {
 
 	echo ${res}
 }
-
 
 ##########################################################
 #               BEGINNING OF MAIN
@@ -145,7 +148,7 @@ for row in $(echo "[${node_types}]" | jq -r '.[] | @base64'); do
 	#echo "${attributes}" > ./debug-$type_id.json
 	if [ -z "${attributes}" ]; then
 		echo "No attributes for this node type"
-		echo "}"  >> $filename
+		echo ",\"attributes\": []}"  >> $filename
 	else
 		echo ",\"attributes\": ["  >> $filename
 		for attr in $(echo "[${attributes}]" | jq -r '.[] | @base64'); do
@@ -172,7 +175,7 @@ for row in $(echo "[${node_types}]" | jq -r '.[] | @base64'); do
 				echo ",\"referenceTypeName\":$reference"  >> $filename
 				echo ",\"valueType\":$(_jq '.valueType')"  >> $filename
 				echo ",\"regex\":$(_jq '.regex')"  >> $filename
-				listOfValues=$(echo ${attributesInitial} | jq --arg attr_name ${attr_name} -r '.entities[].properties | select(.identifierKey==$attr_name).listOfValues')
+				listOfValues=$(echo ${attributesInitial} | jq --arg attr_name "${attr_name}" -r '.entities[].properties | select(.identifierKey==$attr_name).listOfValues')
 				if [ "$listOfValues" != "[]" ]; then
 					listOfValues="$(echo ${listOfValues} | jq '[.[].value]')"
 				fi
