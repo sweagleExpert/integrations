@@ -1,6 +1,17 @@
 ---
 # Variables shared among ALL HOSTS
 
+################################################################
+#################      ENVIRONMENT PARAMS      #################
+################################################################
+# Variable to use proxy with CLI
+# Use of proxy with API is automatic with Ansible as long as http_proxy and https_proxy environment variables are set
+use_proxy: no
+proxy:
+  host: http://localhost
+  port: 8080
+  user: "proxy_user"
+  password: "proxy_password"
 
 ################################################################
 #################         TENANT PARAMS        #################
@@ -12,7 +23,7 @@ use_cli: no
 install_cli: no
 
 # Folder where CLI will be installed on target host
-# Defautl is local folder where ansible commands are executed
+# Default is local folder where ansible commands are executed
 cli_installation_folder: "."
 
 # SWEAGLE host information
