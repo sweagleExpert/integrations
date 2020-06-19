@@ -31,7 +31,7 @@
   when: not use_db_file
 
 - name: Setup CLI Proxy
-  shell: "{{ cli_installation_folder }}/sweagle options  --host {{ proxy.host }} --port {{ proxy.port }} --name {{ proxy.user }} --key {{ proxy.password }}"
+  shell: "{{ cli_installation_folder }}/sweagle options  --host {{ proxy.host }} --port {{ proxy.port }} {% if proxy.user is defined %}--name {{ proxy.user }}{% endif %} {% if proxy.password is defined %}--key {{ proxy.password }}{% endif %}"
   when: not use_db_file and use_proxy
 
 - name: Setup CLI Settings
