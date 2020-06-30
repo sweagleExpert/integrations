@@ -10,6 +10,15 @@ Please, note this is only examples and they should be adapted to your specific u
 
 An example of full docker-compose file is also provided here if you want to quickly deploy a SWEAGLE instance for test purpose
 
+## TO TEST IT
+
+- Build all images and fill docker compose file with required parameters
+(at least your SWEAGLE license, all the rest could use default values)
+
+- From the folder where you put `docker-compose.yml` file
+
+`docker-compose up`
+
 
 ## TO DO LIST (IMPROVMENTS)
 
