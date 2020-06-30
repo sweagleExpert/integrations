@@ -6,6 +6,8 @@ This is instructions to build and run SWEAGLE CLI container.
 
 Purpose of this container is to be used in GitLabCI, CircleCI, ... or any pipeline tool based on containers, without having to download CLI in each step of your pipeline.
 
+This container is based on NodeJS:slim official image that is available here https://hub.docker.com/_/node/
+
 
 ## BUILD IT, TAG IT, PUSH IT
 
@@ -19,7 +21,7 @@ where `<VERSION>` is the version of your SWEAGLE CLI package
 
 example:
 
-`sudo docker build -t sweagle-cli:1.1.0 .`
+`docker build -t sweagle-cli:1.1.0 .`
 
 `sudo docker tag sweagle-cli:1.1.0 docker.sweagle.com:9444/sweagle-cli:1.1.0`
 
@@ -128,7 +130,9 @@ You can now run any command from your CLI.
 
 ## TROUBLESHOOTING
 
-If you mount a volume with db.json file
+- Test with FROM alpine:3.8 installing nodejs or FROM node:13-alpine failed
+
+- If you mount a volume with db.json file
 When using sweagle cli directly from the directory where you mount your volume , you may get error:
 `(node:51) UnhandledPromiseRejectionWarning: Error: EBUSY: resource busy or locked, rename '/.~db.json' -> '/db.json'
 (node:51) UnhandledPromiseRejectionWarning: Unhandled promise rejection. This error originated either by throwing inside of an async function without a catch block, or by rejecting a promise which was not handled with .catch(). (rejection id: 1)

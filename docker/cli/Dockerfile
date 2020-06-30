@@ -1,4 +1,3 @@
-# Test with FROM alpine:3.8 installing nodejs or FROM node:13-alpine failed
 FROM node:slim
 RUN apt-get update && apt-get install -y curl jq
 
