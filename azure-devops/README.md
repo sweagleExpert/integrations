@@ -8,7 +8,15 @@ SWEAGLE will also fill the tokens with the values linked to deployment context (
 
 # PRE-REQUISITES
 
-You should use the scripts provided here with the SWEAGLE CLI - Azure Agent container
+You should use the scripts provided here with the SWEAGLE CLI - Azure Agent container.
+
+There are 3 different types of Azure container:
+
+- "simple" type only includes SWEAGLE CLI with Azure pipeline required libraries and environment variables
+
+- "powershell" type is equivalent to "simple" type + powershell libraries if you need to use both SWEAGLE and Powershell tasks in same job
+
+- "azurePowershell" type is equivalent to "simple" type + Azure Powershell libraries if you need to use both SWEAGLE and Azure Powershell tasks in same job
 
 Please:
 - either, contact SWEAGLE to get an example of image of this container

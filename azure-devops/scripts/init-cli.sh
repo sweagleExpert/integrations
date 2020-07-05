@@ -12,4 +12,8 @@ if [[ -n ${PROXY_USER} ]]; then sweagle options --proxyName "${PROXY_USER}" > /d
 if [[ -n ${PROXY_PASSWORD} ]]; then sweagle options --proxyKey "${PROXY_PASSWORD}" > /dev/null; fi
 if [[ -n ${IGNORE_SSL} ]]; then sweagle settings --ignoreSSL > /dev/null; fi
 
+## DOCKER SIMPLE & POWERSHELL VERSION
 ./start.sh
+
+## DOCKER AZURE POWERSHELL VERSION
+#./pwsh start.ps1
