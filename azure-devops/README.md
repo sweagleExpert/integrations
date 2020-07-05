@@ -16,7 +16,7 @@ There are 3 different types of Azure container:
 
 - "powershell" type is equivalent to "simple" type + powershell libraries if you need to use both SWEAGLE and Powershell tasks in same job
 
-- "azurePowershell" type is equivalent to "simple" type + Azure Powershell libraries if you need to use both SWEAGLE and Azure Powershell tasks in same job
+- "azurePowershell" type is equivalent to "powershell" type + Azure Powershell libraries if you need to use both SWEAGLE, Powershell and Azure Powershell tasks in same job
 
 Please:
 - either, contact SWEAGLE to get an example of image of this container
