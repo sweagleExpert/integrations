@@ -45,7 +45,7 @@ ANSIBLE v2.5 is required for these scripts to work to allow support of loops
 https://docs.ansible.com/ansible/latest/plugins/lookup.html#enabling-lookup-plugins
 
 
-## CONTENT & EXAMPLES
+## CONTENT
 
 Each SWEAGLE API/CLI command is available under a specific `/roles/sweagle` folder
 
@@ -53,3 +53,23 @@ Examples of playbooks to use them are available here:
 - `all.yml` : launch all roles in sequence
 - `info.yml` : launch only the info role that is used to check connection to your tenant
 - `uploadFacts.yml` : upload ansible facts from current host to sweagle `ansible_facts` node
+
+
+## EXAMPLES
+
+Lookup usage examples
+
+`- name: return a specific node in a configuration and assign it to a var
+- hosts: all
+  vars:
+     contents: "{{ lookup('sweagle', 'samples-test-dev', sweagle_args='dev', sweagle_parser='returnDataForNode') }}"
+  tasks:
+     - debug:
+         msg: the value of SWEAGLE configuration is {{ contents }}
+
+- name: return a full ConfigDataSet (CDS)
+  debug: msg="{{ lookup('sweagle', 'samples-test-dev') }}"
+
+- name: search value of specific key
+  debug: msg="{{ lookup('sweagle', 'samples-test-dev', sweagle_args='resource.dev_stack.maxPoolSize', sweagle_parser='returnValueforKey') }}"
+`

@@ -40,7 +40,7 @@ DOCUMENTATION = """
 """
 
 EXAMPLES = """
-- name: return a specific node in a configuration and assing it to a var
+- name: return a specific node in a configuration and assign it to a var
 - hosts: all
   vars:
      contents: "{{ lookup('sweagle', 'samples-test-dev', sweagle_args='dev', sweagle_parser='returnDataForNode') }}"
