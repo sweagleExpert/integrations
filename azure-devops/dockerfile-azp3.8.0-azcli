@@ -1,4 +1,5 @@
 FROM mcr.microsoft.com/azure-powershell:3.8.0-ubuntu-18.04
+RUN apt-get update && apt-get install -y curl jq
 
 ENV PSModulePath="/usr/share/az_3.8.0:/opt/microsoft/powershell/7/Modules"
 
@@ -7,7 +8,13 @@ COPY ./scripts/ .
 
 #RUN pwsh --version
 # This is to workaround issue of az.Accounts not present as stated here https://stackoverflow.com/questions/55411029/azure-powershell-az-module-not-working-on-ubuntu-hosted-build-agent
-RUN pwsh install_selected_modules.ps1
+RUN pwsh install_azp_selected_modules.ps1
+
+###########################################################
+#####      AZURE CLI SPECIFIC LAYERS
+###########################################################
+RUN chmod +x ./install_az_cli.sh && \
+    ./install_az_cli.sh
 
 ###########################################################
 #####      SWEAGLE CLI SPECIFIC LAYERS
