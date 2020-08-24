@@ -5,12 +5,14 @@
 # DATE:   December 2019
 # REV:    1.0.D (Valid are A, B, D, T, Q, and P)
 #               (For Alpha, Beta, Dev, Test, QA, and Production)
+#				- tested in bash 4.4 and 5.0 on Mac OS X
 #
 # PLATFORM: Not platform dependent
 #
 # REQUIREMENTS:	- jq is required for this shell script to work.
 #               (see: https://stedolan.github.io/jq/)
-#				- tested in bash 4.4 on Mac OS X
+#       - BASH v4 or more is required for this script to work
+#       - If on MAC with older Bash, please install higher bash version, check https://stackoverflow.com/questions/10574969/how-do-i-install-bash-3-2-25-on-mac-os-x-10-5-8
 #
 # PURPOSE:		Libraries of common SWEAGLE functions
 #
@@ -25,7 +27,6 @@
 #          #       the shell script will never execute!
 #  set -x   # Uncomment to debug this shell script
 ##########################################################
-#
 #               FILES AND VARIABLES
 ##########################################################
 OK=0
@@ -36,13 +37,19 @@ FILE_NOT_FOUND=4
 SWEAGLE_ERROR=5
 
 ##########################################################
-#
 #                    CHECK PREREQUISITES
-#               (USED BY SWEAGLE API FUNCTIONS)
 ##########################################################
 if ! [ -x "$(command -v jq)" ] ; then
   echo "#########################################################################################"
   echo "########## ERROR: JQ is not installed"
+  echo "#########################################################################################"
+  exit 1
+fi
+
+BASH_VERSION=$( bash --version | sed -Ee 's/GNU bash, version ([0-9.]+).*/\1/;q' )
+if [ "${BASH_VERSION:0:1}" -lt 4 ] ; then
+  echo "#########################################################################################"
+  echo "########## ERROR: BASH should be v4 or higher"
   echo "#########################################################################################"
   exit 1
 fi
