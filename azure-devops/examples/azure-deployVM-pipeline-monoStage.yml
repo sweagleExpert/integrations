@@ -1,0 +1,90 @@
+# AZURE CLOUD VM Deployment Pipeline
+# Includes SWEAGLE steps to validate configuration before deployment and provide sensitive data on the fly
+trigger: none
+variables:
+- group: SWEAGLE
+- name: SWEAGLE_MAPPED_TENANT
+  value: $[variables.SWEAGLE_TENANT]
+- name: CDS
+  value: 'infrastructure.azure'
+
+resources:
+  containers:
+  - container: sweagle-cli
+    endpoint: sweagle_docker_registry
+    image: 'sweagle-docker/sweagle-azure-cli:1.1.0-azp3.8.0'
+
+#pool:
+#  vmImage: 'ubuntu-latest'
+container: 'sweagle-cli'
+
+steps:
+- script: curl $SWEAGLE_MAPPED_TENANT/info
+  displayName: 'Test connection to SWEAGLE Tenant'
+
+# you should always configure the CLI before use because temporary folders are created at each pipeline run and db.json must be located there
+- script: |
+    sweagle options --newenv $SWEAGLE_MAPPED_TENANT --newusername azurePipeline --newtoken $SWEAGLE_MAPPED_TOKEN
+    sweagle info
+  displayName: 'Configure and test SWEAGLE CLI'
+# secret variables must be defined as env variable directly in step where it is used
+  env:
+    SWEAGLE_MAPPED_TOKEN: $(SWEAGLE_TOKEN)
+
+- script: |
+    curl -skX POST $SWEAGLE_MAPPED_TENANT/api/v1/tenant/metadata-parser/parse -H "Authorization: bearer $SWEAGLE_MAPPED_TOKEN" --data-binary "mds=$CDS&parser=returnDataforGivenPath&args=azure,templates,ubuntu&format=JSON&arraySupport=true" --output $(Pipeline.Workspace)/artifacts/template.json
+    cat $(Pipeline.Workspace)/artifacts/template.json | jq .
+  displayName: 'Get template from SWEAGLE'
+# secret variables must be defined as env variable directly in step where it is used
+  env:
+    SWEAGLE_MAPPED_TOKEN: $(SWEAGLE_TOKEN)
+
+- script: |
+    sweagle uploadData --filePath ./vm-params.json --nodePath Infrastructure,azure,parameters,ubuntu --type json --autoRecognize --autoApprove
+  displayName: 'Upload partial configuration to SWEAGLE'
+
+# Call SWEAGLE CLI redirecting both stderr and stdout to same variable
+# This is because CLI redirects errors to stderr
+- script: |
+    response=$(sweagle validationStatus --withData --forIncoming --pretty $CDS 2>&1)
+    if [[ $response == *"Request failed with status code 404"* ]]; then
+      echo "### No pending CDS, trying with stored values instead ###"
+      response=$(sweagle validationStatus --withData --pretty $CDS 2>&1)
+    fi
+    echo "$response"
+    if [[ ${response,,} == *"error"* ]]; then echo "FAIL TASK"; exit 1; fi
+  displayName: 'Get validation status for CDS'
+
+- script: sweagle storeSnapshots --configdatasetName $(CDS) --snapshotTag AZ_$(Build.BuildNumber) --level error
+  displayName: 'Snapshot configuration'
+
+- script: |
+    sweagle export $(CDS) --exporter returnDataforPath --format json --argsList 'azure,parameters,ubuntu' > ./vm-params.json
+    cat ./vm-params.json
+  displayName: 'Get VM secrets from SWEAGLE'
+
+#    - task: AzureResourceManagerTemplateDeployment@3
+#      inputs:
+#        deploymentScope: 'Resource Group'
+#        azureResourceManagerConnection: 'PayPerUse(3269938e-a582-4880-95da-7ef80a7162a3)'
+#        subscriptionId: '3269938e-a582-4880-95da-7ef80a7162a3'
+#        action: Create Or Update Resource Group
+#        resourceGroupName: test-sweagle
+#        location: 'France Central'
+#        templateLocation: 'Linked artifact'
+#        csmFile: '$(Pipeline.Workspace)/artifacts/template.json'
+#        csmParametersFile: './vm-params.json'
+#        deploymentMode: 'Incremental'
+#        deploymentOutputs: outputArm
+#      displayName: 'Deploy VM'
+
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      $vm=ConvertFrom-Json '$(outputArm)'
+      $value=$vm.virtualMachineName.value
+      Out-File -FilePath .\vm.json -InputObject '$(outputArm)'
+      get-content .\vm.json
+      sweagle uploadData --filePath ./vm.json --nodePath Infrastructure,azure,VMs,$value --type json --autoRecognize --autoApprove
+  displayName: 'Store deployed VM config in SWEAGLE'
