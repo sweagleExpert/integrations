@@ -1,0 +1,189 @@
+pipeline {
+    agent any
+    stages {
+
+      stage('Retrieve Sources') {
+        steps {
+          echo workspace
+          git branch: 'master',
+    	       credentialsId: 'b73f873c-e808-4fdc-aeb9-e58978f8b29f',
+             url: 'https://gitlab.com/sweagle/TradeMax.git'
+    	  }
+      }
+
+      stage ('Build'){
+        steps {sleep(time:5,unit:"SECONDS")
+        }
+      }
+
+      stage ('Validation'){
+        parallel {
+
+          stage ('Config'){
+		        stages ('Sweagle Steps') {
+              stage('Sweagle Validate') {
+                steps {
+                    SWEAGLEUpload(
+                    actionName: 'Upload Config Files',
+                    fileLocation: "WebContent/META-INF/my.cnf",
+                    format: 'INI',
+                    markFailed: false,
+                    nodePath: 'Infrastructure,db023,mycnf',
+                    onlyParent: false,
+                    showResults: false,
+                    withSnapshot: false,
+                    description: 'Upload MySQL config',
+                    tag: '',
+                    autoRecognize: true,
+                    allowDelete: false)
+
+                    SWEAGLEUpload(
+                    actionName: 'Upload JSON Files',
+                    fileLocation: "*.json",
+                    format: 'json',
+                    markFailed: false,
+                    nodePath: 'Applications,TradeMax,Discovered,Files',
+                    onlyParent: false,
+                    showResults: false,
+                    withSnapshot: false,
+                    subDirectories: true,
+                    description: 'Upload json files',
+                    tag: '',
+                    autoRecognize: false,
+                    allowDelete: false)
+
+                    SWEAGLEValidate(
+                    actionName: 'Validate Config Files',
+                    mdsName: 'WEBPORTAL1-TST1',
+                    stored: false,
+                    warnMax: -1,
+                    errMax: 0,
+                    markFailed: true,
+                    showResults: false,
+                    retryCount: 5,
+                    retryInterval: 30)
+                }
+            	}
+
+              stage('Sweagle Snapshot') {
+                steps {
+                    SWEAGLESnapshot(
+                    actionName: 'Validated Snapshot WEBPORTAL1-TST1',
+                    mdsName: 'WEBPORTAL1-TST1',
+                    description: "Validated Snapshot for Jenkins Build ${BUILD_ID}",
+                    tag: "Version:1.7.${BUILD_ID}",
+                    markFailed: false,
+                    showResults: false)
+
+                    SWEAGLEExport(
+                    actionName: 'Export WEBPORTAL1-TST1 settings.properties',
+                    mdsName: 'WEBPORTAL1-TST1',
+                    exporter: 'returnDataforPath',
+                    args: "assigned,properties",
+                    format: 'props',
+                    fileLocation: "settings.properties",
+                    markFailed: true,
+                    showResults: true)
+                }
+              }
+            }
+			    } // Sweagle config
+
+		      stage ('Code'){
+		        stages{
+			        stage('jUnit Test'){
+                steps {echo "Testing..."
+                }
+              }
+            }
+          }
+
+        } //parallel
+      } //Validation Stage
+
+      stage ('Deployment to QA'){
+        steps {sleep(time:5,unit:"SECONDS")
+        }
+      }
+
+      stage ('QA Tests') {
+        parallel {
+
+          stage ('Config'){
+		        stages ('Sweagle Steps') {
+              stage('Sweagle Validate') {
+                steps {
+                    SWEAGLEValidate(
+                    actionName: 'Validate Config Files',
+                    mdsName: 'WEBPORTAL1-PRD',
+                    stored: false,
+                    warnMax: -1,
+                    errMax: 0,
+                    markFailed: true,
+                    showResults: false,
+                    retryCount: 5,
+                    retryInterval: 30)
+                }
+            	}
+
+              stage('Sweagle Snapshot') {
+                steps {
+                    SWEAGLESnapshot(
+                    actionName: 'Validated Snapshot WEBPORTAL1-PRD',
+                    mdsName: 'WEBPORTAL1-PRD',
+                    description: "Validated Snapshot for Jenkins Build ${BUILD_ID}",
+                    tag: "Version:1.7.${BUILD_ID}",
+                    markFailed: false,
+                    showResults: false)
+
+                    SWEAGLEExport(
+                    actionName: 'Export WEBPORTAL1-PRD settings.properties',
+                    mdsName: 'WEBPORTAL1-PRD',
+                    exporter: 'returnDataforPath',
+                    args: "PRD,assigned,properties",
+                    format: 'props',
+                    fileLocation: "settings.properties",
+                    markFailed: true,
+                    showResults: true)
+                }
+              }
+            }
+			    } // Sweagle config
+
+          stage ('Tests'){
+            stages ('Selenium Steps') {
+              stage('Selenium API'){
+                steps { echo "Selenium API..1..2..3"
+                		sleep(time:25,unit:"SECONDS")
+                		echo "Selenium API..4..5..6"
+                }
+              }
+
+              stage('Selenium UI'){
+                steps {	echo "Selenium UI..1..2..3"
+                		sh 'selenium 35'
+                		echo "Selenium UI..3..4..5"
+                }
+              }
+            }
+          } // Tests
+
+
+        }
+      }//Functional Testing
+
+      stage ('Service Now Automatic CAB'){
+        steps {
+          echo "Getting results from Service Now automatic CAB..."
+          sleep(time:5,unit:"SECONDS")
+        }
+      }
+
+      stage ('Deployment to PROD'){
+        steps {sleep(time:15,unit:"SECONDS")
+        }
+      }
+
+
+  } //Outer Stages
+} //Pipeline
