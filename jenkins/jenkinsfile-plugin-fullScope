@@ -151,15 +151,15 @@ pipeline {
 			    } // Sweagle config
 
           stage ('Tests'){
-            stages ('Selenium Steps') {
-              stage('Selenium API'){
-                steps { echo "Selenium API..1..2..3"
+            stages ('Tests Steps') {
+              stage('API Tests'){
+                steps { echo "API..1..2..3"
                 		sleep(time:25,unit:"SECONDS")
-                		echo "Selenium API..4..5..6"
+                		echo "API..4..5..6"
                 }
               }
 
-              stage('Selenium UI'){
+              stage('UI Tests'){
                 steps {	echo "Selenium UI..1..2..3"
                 		sh 'selenium 35'
                 		echo "Selenium UI..3..4..5"
