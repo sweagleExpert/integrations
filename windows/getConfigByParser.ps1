@@ -2,7 +2,7 @@
 # Version 1.0
 # Author : Dimitris Finas
 param(
-    [Parameter(Mandatory=$true)][Alias("mds")][string]$argMds,
+    [Parameter(Mandatory=$true)][Alias("cds")][string]$argCds,
     [Parameter(Mandatory=$true)][Alias("parser")][string]$argParser,
     [Parameter(Mandatory=$false)][Alias("args")][string]$argParserParams,
     [Parameter(Mandatory=$false)][Alias("format")][ValidateSet("INI","JSON","PROPS","XML","YAML")][string]$argFormat = "JSON",
@@ -18,9 +18,9 @@ Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy REMOTESIGNED
 # Check if optional args are provided
 #If ($PSBoundParameters.ContainsKey('argFileOut')) { }
 
-If (!($argMds -And $argParser)) {
+If (!($argCds -And $argParser)) {
     echo "********** ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "********** YOU SHOULD PROVIDE 1- MDS AND 2- PARSER"
+    echo "********** YOU SHOULD PROVIDE 1- CDS AND 2- PARSER"
     echo "********** (optional) PARSER ARGUMENTS, put args=all_values_separated_by_/"
     echo "********** (optional) FORMAT, put format=JSON (or YAML, or XML, or PROPS, or INI)"
     echo "********** (optional) FILE OUT, put output=complete_filename_with_path"
@@ -46,7 +46,7 @@ $sweagleParams = Get-Content $dbFile | ConvertFrom-Json
 # Build and call the API
 # Handle the fact that powershell automatically replaces "," by <space> in input args
 $argParserParams = $argParserParams -replace '/', ','
-$args="?mds=$argMds&parser=$argParser&format=$argFormat&args=$argParserParams"
+$args="?mds=$argCds&parser=$argParser&format=$argFormat&args=$argParserParams"
 $url = $sweagleParams.environment.url + $API + $args
 $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
 $headers.Add("Authorization", "Bearer " + $sweagleParams.user.token)
@@ -55,7 +55,7 @@ $headers.Add("Accept", "*/*")
 try { $response = Invoke-RestMethod -Uri $url -Headers $headers -Method POST -Verbose }
 catch {
     echo "********** ERROR: API call failed"
-    Write-Host "HTTP StatusCode:" $_.Exception.Response.StatusCode.value__ 
+    Write-Host "HTTP StatusCode:" $_.Exception.Response.StatusCode.value__
     Write-Host "Exception:" $_.Exception.Message
     exit 1
 }
@@ -63,10 +63,9 @@ catch {
 if ($argFormat -eq "JSON") { $response = $response | ConvertTo-Json }
 if ($argFormat -eq "XML") { $response = $response | ConvertTo-Xml }
 
-If ($PSBoundParameters.ContainsKey('argFileOut')) { 
+If ($PSBoundParameters.ContainsKey('argFileOut')) {
     # There is an output file in args, write it
     New-Item -ItemType file -Force -Path $argFileOut -Value "$response"
 } else {
     echo "********** API response:" + $response
 }
-
