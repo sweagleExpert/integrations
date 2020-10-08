@@ -1,4 +1,4 @@
-﻿# This powershell script create or update a list of parsers and publish them
+# This powershell script upload a configuration directory to SWEAGLE platform using REST API
 # Version 1.0
 # Author : Dimitris Finas
 # Inputs required: 1- INPUT DIRECTORY AND 2-  SWEAGLE PATH (values separated by /)
