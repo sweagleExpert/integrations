@@ -13,8 +13,10 @@ run `docker-compose up`
 https://puppet.com/docs/puppet/latest/install_agents.html#task-4349
 
 example for Red Hat EL7:
-`sudo rpm -Uvh https://yum.puppet.com/puppet6-release-el-7.noarch.rpm`
-`sudo yum install puppet-agent`
+```console
+sudo rpm -Uvh https://yum.puppet.com/puppet6-release-el-7.noarch.rpm
+sudo yum install puppet-agent
+```
 
 2.1- configure the agent
 `vi /etc/hosts`
@@ -24,19 +26,26 @@ ATTENTION, IT IS REQUIRED TO PUT 'PUPPET' AS HOSTNAME FOR CERTIFICATE GENERATION
 
 vi /etc/puppetlabs/puppet/puppet.conf
 Add
-server = puppet
+`server = puppet`
+
+Add the Puppet labs bin directory to your PATH: `export PATH=/opt/puppetlabs/bin:$PATH`
+
 
 2.2 Test and generate certificate request
+```console
 puppet agent --server puppet --waitforcert 60 --test
 puppet agent -t
+```
 
-2.2- Start puppet agent service
+2.2- Start puppet agent service: 
+```console
 sudo /opt/puppetlabs/bin/puppet resource service puppet ensure=running enable=true
 systemctl status puppet
+```
 
 
 # CHECK
-Do a `docker ps`to identify which local port is using your puppet server container
+Do a `docker ps` to identify which local port is using your puppet server container
 (identify the port map to 8080)
 
 then `http://localhost:<port>` to see if puppet is working and node is connected
@@ -47,18 +56,27 @@ Connect to your agent node and launch `facter --json` to get puppet facts in jso
 # YOUR FIRST DEPLOYMENT
 
 - create a site.pp with content below
-file {'/tmp/example-ip':                                            # resource type file and filename
-  ensure  => present,                                               # make sure it exists
-  mode    => "0644",                                                # file permissions
+```console
+file {'/tmp/example-ip':                                            
+# resource type file and filename
+  ensure  => present,                                               
+  # make sure it exists
+  mode    => "0644",                                                
+  # file permissions
   content => "Here is my hostname: ${hostname}.\n"
 }
+```
 
 - Copy site.pp into your puppet server container
-`sudo docker cp ./site.pp pupperware_puppet_1:/etc/puppetlabs/code/environments/production/manifests`
+```console
+sudo docker cp ./site.pp pupperware_puppet_1:/etc/puppetlabs/code/environments/production/manifests
+```
 
 - From your puppet node, start deployment and check result
-`puppet agent --test`
-`cat /tmp/example-ip`
+```console
+puppet agent --test
+cat /tmp/example-ip
+```
 
 Troubleshoot:
 - Enter the puppet master container and create target directory if not present
