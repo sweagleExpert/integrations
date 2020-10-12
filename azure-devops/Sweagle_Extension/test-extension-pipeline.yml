@@ -1,0 +1,82 @@
+
+# Start the test pipeline only when triggered from build of other one
+trigger: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: CmdLine@2
+  displayName: "Display possible Tag"
+  inputs:
+    script: |
+      echo "Display Possible Tag"
+      echo "TeamProject_Build.DefinitionName_SourceBranchName_Build.BuildNumber_Date:yyyyMMdd_Rev:.r"
+      echo "$(TeamProject)_$(Build.DefinitionName)_$(SourceBranchName)_$(Build.BuildNumber)_$(Date:yyyyMMdd)_$(Rev:.r)"
+
+- task: sweagle@1
+  displayName: "Sweagle Info"
+  inputs:
+    tenant: 'testing.sweagle.com'
+    port: '443'
+    operation: 'info'
+- task: CmdLine@2
+  inputs:
+    script: |
+      echo Write your commands here
+      echo Hello world
+      ls ./buildAndReleaseTask/tests/inputs/*.json
+- task: sweagle@1
+  displayName: "Sweagle Upload Config File"
+  inputs:
+    operation: 'upload'
+    tenant: 'testing.sweagle.com'
+    port: '443'
+    token: '$(SWEAGLE_TOKEN)'
+    filePath: './buildAndReleaseTask/tests/inputs/sample.json'
+    nodePath: 'infrastructure,azure,vm3'
+    format: 'json'
+
+- task: sweagle@1
+  displayName: "Sweagle Validation Successfull"
+  inputs:
+    operation: 'validationStatus'
+    tenant: 'testing.sweagle.com'
+    port: '443'
+    token: '$(SWEAGLE_TOKEN)'
+    cds: 'test40'
+    forIncoming: false
+
+- task: sweagle@1
+  displayName: "Sweagle Validation Failed"
+  continueOnError: true
+  inputs:
+    operation: 'validationStatus'
+    tenant: 'testing.sweagle.com'
+    port: '443'
+    token: '$(SWEAGLE_TOKEN)'
+    cds: 'test40'
+    forIncoming: true
+
+
+- task: sweagle@1
+  displayName: "Sweagle Snapshot"
+  inputs:
+    operation: 'snapshot'
+    tenant: 'testing.sweagle.com'
+    port: '443'
+    token: '$(SWEAGLE_TOKEN)'
+    cds: 'test39'
+    tag: '$(Build.DefinitionName)_$(Build.BuildNumber)'
+    validationLevel: 'error'
+
+- task: sweagle@1
+  displayName: "Sweagle Export"
+  inputs:
+    operation: 'export'
+    tenant: 'testing.sweagle.com'
+    port: '443'
+    token: '$(SWEAGLE_TOKEN)'
+    cds: 'test39'
+    format: 'json'
+    exporter: 'all'

@@ -1,0 +1,51 @@
+{
+    "manifestVersion": 1,
+    "id": "sweagle-demo-release-task",
+    "name": "sweagle",
+    "version": "1.0.1",
+    "publisher": "sweagledemo",
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],
+    "description": "Service Now Configuration Data Management module for Azure DevOps integration to release pipelines",
+    "categories": [
+        "Azure Pipelines"
+    ],
+    "icons": {
+        "default": "images/extension-icon.png"
+    },
+    "files": [
+        {
+            "path": "buildAndReleaseTask"
+        },
+        {
+            "path": "my-decorator.yml",
+            "addressable": true,
+            "contentType": "text/plain"
+        }
+    ],
+    "contributions": [
+        {
+            "id": "custom-sweagle-demo-release-task",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "buildAndReleaseTask"
+            }
+        },
+        {
+            "id": "my-required-task",
+            "type": "ms.azure-pipelines.pipeline-decorator",
+            "targets": [
+                "ms.azure-pipelines-agent-job.post-checkout-tasks"
+            ],
+            "properties": {
+                "template": "my-decorator.yml"
+            }
+        }
+    ]
+}

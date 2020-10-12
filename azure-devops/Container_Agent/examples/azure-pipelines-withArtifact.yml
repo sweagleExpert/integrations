@@ -1,0 +1,151 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+variables:
+  SWEAGLE_MAPPED_TENANT: $(SWEAGLE_TENANT)
+  CDS: 'azure-dc'
+
+trigger:
+- master
+
+resources:
+  containers:
+  - container: sweagle-cli
+    endpoint: sweagle_docker_registry
+    image: 'sweagle-docker/sweagle-azure-cli:1.1.0-azp3.8.0'
+  - container: u16
+    image: ubuntu:16.04
+
+stages:
+
+- stage: Get_Template
+  jobs:
+  - job: Connect_External_Repo
+    container: 'sweagle-cli'
+    steps:
+    - script: curl https://testing.sweagle.com/info
+      displayName: 'Test connection to SWEAGLE Tenant'
+
+    # you should always configure the CLI before use because temporary folders are created at each pipeline run and db.json must be located there
+    - script: |
+        sweagle options --newenv $SWEAGLE_MAPPED_TENANT --newusername azurePipeline --newtoken $SWEAGLE_MAPPED_TOKEN
+        sweagle info
+      displayName: 'Configure and test SWEAGLE CLI'
+
+    - script: |
+        URL=$(sweagle export $(CDS) --exporter returnValueforKey --argsList $URL_TO_GET --format PROPS)
+        FORMAT=$(echo "${URL##*.}")
+        FILENAME="${URL##*/}"
+        echo "##vso[task.setvariable variable=URL]$URL"
+        echo "##vso[task.setvariable variable=FORMAT]$FORMAT"
+        echo "##vso[task.setvariable variable=FILENAME]$FILENAME"
+        echo "URL= $URL"
+        echo "FILENAME= $FILENAME"
+        echo "FORMAT= $FORMAT"
+      displayName: 'Call SWEAGLE to get REPO_URL'
+
+    - script: |
+        mkdir -p $(Pipeline.Workspace)/artifacts
+        curl $(URL) --output $(Pipeline.Workspace)/artifacts/template.json
+        cat $(Pipeline.Workspace)/artifacts/template.json | jq .
+      displayName: 'Call REPO_URL to get template'
+
+    # Publish the folder as pipeline artifact
+    - publish: $(Pipeline.Workspace)/artifacts
+      artifact: artifacts
+      displayName: 'Publish Artifacts'
+
+
+- stage: Validate_Config
+  jobs:
+  - job: Sweagle_Steps_with_cli
+    container: 'sweagle-cli'
+
+    steps:
+    # Download the artifacts
+    - download: current
+      artifact: artifacts
+      displayName: 'Download Artifacts'
+
+    - script: cat $(Pipeline.Workspace)/artifacts/template.json | jq .
+      displayName: 'Display artifact'
+
+    # you should always configure the CLI before use because temporary folders are created at each pipeline run and db.json must be located there
+    - script: |
+        sweagle options --newenv $SWEAGLE_MAPPED_TENANT --newusername azurePipeline --newtoken $SWEAGLE_MAPPED_TOKEN
+        sweagle info
+      displayName: 'Configure and test SWEAGLE CLI'
+    # secret variables must be defined as env variable directly in step where it is used
+      env:
+        SWEAGLE_MAPPED_TOKEN: $(SWEAGLE_TOKEN)
+
+    - script: |
+        sweagle uploadData --filePath $(Pipeline.Workspace)/artifacts/template.json --nodePath azure-dc,templates,ubuntu --type json --autoRecognize --autoApprove
+      displayName: 'Upload configuration to SWEAGLE'
+
+    #- script: |
+    #    response=$(sweagle validate --validator noEmptyValues --forIncoming --pretty $(CDS))
+    #    if [[ $response == *"Request failed with status code 404"* ]]; then
+    #      echo "### No pending DCS, trying with stored values instead ###"
+    #      response=$(sweagle validate --validator noEmptyValues --pretty $(CDS))
+    #    fi
+    #    echo $response
+    #    if [[ ${response,,} == *"error"* ]]; then exit 1; fi
+    #  displayName: 'Validate Changes'
+
+    # Call SWEAGLE CLI redirecting both stderr and stdout to same variable
+    # This is because CLI redirects errors to stderr
+    - script: |
+        response=$(sweagle validationStatus --withData --forIncoming --pretty $CDS 2>&1)
+        if [[ $response == *"Request failed with status code 404"* ]]; then
+          echo "### No pending CDS, trying with stored values instead ###"
+          response=$(sweagle validationStatus --withData --pretty $CDS 2>&1)
+        fi
+        echo "$response"
+        if [[ ${response,,} == *"error"* ]]; then echo "FAIL TASK"; exit 1; fi
+      displayName: 'Get validation status for CDS'
+
+    - script: sweagle storeSnapshots --configdatasetName $(CDS) --snapshotTag $(Build.BuildNumber) --level error
+      displayName: 'Snapshot configuration'
+
+
+
+- stage: Deploy_VM
+  jobs:
+  - job: Powershell_Steps
+    container: 'sweagle-cli'
+
+    steps:
+    - script: |
+        sweagle export $(CDS) --exporter returnDataforPath --format json --argsList 'azure-dc,parameters,ubuntu' > ./vm-params.json
+#        sweagle export $(CDS) --exporter returnDataforNode --format $(FORMAT) --argsList $(NODENAME) > ./output.$(FORMAT)
+#        cat $(Pipeline.Workspace)/artifacts/vm-params.json
+      displayName: 'Get configuration and secrets'
+
+    - task: PowerShell@2
+      inputs:
+        filePath: 'arm/parse-input.ps1'
+
+    - task: AzurePowerShell@4
+      inputs:
+        azureSubscription: 'PayPerUse(3269938e-a582-4880-95da-7ef80a7162a3)'
+        ScriptType: 'FilePath'
+        ScriptPath: 'arm/parse-input.ps1'
+        azurePowerShellVersion: LatestVersion
+
+
+#    - task: AzureResourceManagerTemplateDeployment@3
+#      inputs:
+#        deploymentScope: 'Resource Group'
+#        azureResourceManagerConnection: 'PayPerUse(3269938e-a582-4880-95da-7ef80a7162a3)'
+#        subscriptionId: '3269938e-a582-4880-95da-7ef80a7162a3'
+#        action: Create Or Update Resource Group
+#        resourceGroupName: test-sweagle
+#        location: 'France Central'
+#        templateLocation: 'Linked artifact'
+#        csmFile: 'arm/template.json'
+#        csmParametersFile: './vm-params.json'
+#        deploymentMode: 'Incremental'
+#        deploymentOutputs: outputArm

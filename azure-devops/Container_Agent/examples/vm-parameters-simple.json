@@ -1,0 +1,55 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "value": "francecentral"
+        },
+        "networkInterfaceName": {
+            "value": "test-12364"
+        },
+        "networkSecurityGroupName": {
+            "value": "test-123-nsg"
+        },
+        "subnetName": {
+            "value": "default"
+        },
+        "virtualNetworkName": {
+            "value": "test-sweagle-vnet"
+        },
+
+        "virtualMachineName": {
+            "value": "test-123"
+        },
+        "virtualMachineComputerName": {
+            "value": "test-123"
+        },
+        "virtualMachineRG": {
+            "value": "test-sweagle"
+        },
+        "osDiskType": {
+            "value": "Standard_LRS"
+        },
+        "virtualMachineSize": {
+            "value": "Standard_A1"
+        },
+        "adminUsername": {
+            "value": "AzureUser"
+        },
+        "adminPassword": {
+            "value": "AzureSweagle123@"
+        },
+        "diagnosticsStorageAccountName": {
+            "value": "testsweaglediag"
+        },
+        "diagnosticsStorageAccountId": {
+            "value": "Microsoft.Storage/storageAccounts/testsweaglediag"
+        },
+        "diagnosticsStorageAccountType": {
+            "value": "Standard_LRS"
+        },
+        "diagnosticsStorageAccountKind": {
+            "value": "Storage"
+        }
+    }
+}
