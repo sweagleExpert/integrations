@@ -1,0 +1,13 @@
+{
+      "apiVersion": "2019-08-01",
+      "name": "[variables('hostingPlanName')]",
+      "type": "Microsoft.Web/serverfarms",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "environment": "[parameters('environment')]",
+        "application-id": "[parameters('platformId')]",
+        "platform-id": "[parameters('platformId')]",
+        "function": "hostplan",
+        "deployment-id": "[variables('deploymentId')]"
+      }
+}

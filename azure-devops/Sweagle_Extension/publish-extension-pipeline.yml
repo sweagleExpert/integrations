@@ -1,0 +1,123 @@
+trigger:
+- master
+
+pool:
+  vmImage: "ubuntu-latest"
+
+variables:
+  # This is the name of the artifact file that will be generated
+  artifactName: "sweagle-demo-extension-artifact"
+  # This is your extension id taken from vss-extension.json file
+  extensionId: "sweagle-demo-release-task"
+  # This is your extension name taken from vss-extension.json file
+  extensionName: "sweagle"
+  # This is your publisher taken from vss-extension.json file
+  publisherId: "sweagledemo"
+  # This is default version number to use if extension has never been published
+  Task.Extension.Version: "0.0.1"
+
+stages:
+  - stage: Run_and_publish_unit_tests
+    jobs:
+      - job:
+        steps:
+          - task: TfxInstaller@3
+            inputs:
+              version: "v0.7.x"
+          - task: Npm@1
+            displayName: Install Extension Task
+            inputs:
+              command: 'install'
+              workingDir: '$(Build.SourcesDirectory)/buildAndReleaseTask' # Update to the name of the directory of your task
+              verbose: true
+          - task: Bash@3
+            displayName: Compile Javascript
+            inputs:
+              targetType: "inline"
+              script: |
+                cd buildAndReleaseTask # Update to the name of the directory of your task
+                tsc
+          - task: Npm@1
+            displayName: Test Extension
+            inputs:
+              command: 'custom'
+              workingDir: '$(Build.SourcesDirectory)/buildAndReleaseTask/tests' # Update to the name of the directory of your task's tests
+              customCommand: 'test' # See the definition in the explanation section below - it may be called test
+          - task: PublishTestResults@2
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/ResultsFile.xml'
+  - stage: Package_extension_and_publish_build_artifacts
+    jobs:
+      - job:
+        steps:
+          - task: TfxInstaller@3
+            inputs:
+              version: "v0.7.x"
+          - task: Npm@1
+            inputs:
+              command: 'install'
+              workingDir: '$(Build.SourcesDirectory)/buildAndReleaseTask' # Update to the name of the directory of your task
+          - task: Bash@3
+            displayName: Compile Javascript
+            inputs:
+              targetType: "inline"
+              script: |
+                cd buildAndReleaseTask # Update to the name of the directory of your task
+                tsc
+          - task: QueryAzureDevOpsExtensionVersion@3
+            continueOnError: true
+            # This pipeline will continue even if this tasks fails, which is the case if extension has never been published before
+            inputs:
+              connectTo: 'VsTeam'
+              connectedServiceName: 'microsoft_visualstudio_marketplace' # Change to whatever you named the service connection
+              publisherId: '$(PublisherID)'
+              extensionId: '$(ExtensionID)'
+              versionAction: 'Patch'
+              outputVariable: 'Task.Extension.Version'
+          - task: PackageAzureDevOpsExtension@3
+            inputs:
+              rootFolder: '$(System.DefaultWorkingDirectory)'
+              publisherId: '$(PublisherID)'
+              extensionId: '$(ExtensionID)'
+              extensionName: '$(ExtensionName)'
+              extensionVersion: '$(Task.Extension.Version)'
+              updateTasksVersion: true
+              updateTasksVersionType: 'patch'
+              extensionVisibility: 'private' # Change to public if you're publishing to the marketplace
+              extensionPricing: 'free'
+          - task: CopyFiles@2
+            displayName: "Copy Files to: $(Build.ArtifactStagingDirectory)"
+            inputs:
+              Contents: "**/*.vsix"
+              TargetFolder: "$(Build.ArtifactStagingDirectory)"
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+              ArtifactName: '$(ArtifactName)'
+              publishLocation: 'Container'
+  - stage: Download_build_artifacts_and_publish_the_extension
+    jobs:
+      - job:
+        steps:
+          - task: TfxInstaller@3
+            inputs:
+              version: "v0.7.x"
+          - task: DownloadBuildArtifacts@0
+            inputs:
+              buildType: "current"
+              downloadType: "single"
+              artifactName: "$(ArtifactName)"
+              downloadPath: "$(System.DefaultWorkingDirectory)"
+          - task: PublishAzureDevOpsExtension@3
+            inputs:
+              connectTo: 'VsTeam'
+              connectedServiceName: 'microsoft_visualstudio_marketplace' # Change to whatever you named the service connection
+              fileType: 'vsix'
+              vsixFile: '$(System.DefaultWorkingDirectory)/$(ArtifactName)/$(PublisherID).*.vsix'
+              publisherId: '$(PublisherID)'
+              extensionId: '$(ExtensionID)'
+              extensionName: '$(ExtensionName)'
+              updateTasksVersion: false
+              extensionVisibility: 'private' # Change to public if you're publishing to the marketplace
+              extensionPricing: 'free'

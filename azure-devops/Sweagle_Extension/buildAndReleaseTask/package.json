@@ -1,0 +1,24 @@
+{
+  "name": "buildandreleasetask",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Warning: no test specified\" && exit",
+    "test-mocha": "mocha ./_suite.js --reporter xunit --reporter-option output=ResultsFile.xml"
+  },
+  "author": "Service Now",
+  "license": "ISC",
+  "dependencies": {
+    "azure-pipelines-task-lib": "^2.11.1"
+  },
+  "devDependencies": {
+    "@types/mocha": "^8.0.3",
+    "@types/node": "^14.11.1",
+    "@types/q": "^1.5.4",
+    "sync-request": "^6.1.0"
+  },
+  "directories": {
+    "test": "tests"
+  },
+  "description": ""
+}

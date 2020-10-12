@@ -1,0 +1,29 @@
+steps:
+
+# Don't use Decorator on "Publish Sweagle Extension" Pipeline
+#- ${{ if ne(variables['Build.DefinitionName'], 'Publish Sweagle Extension') }}:
+
+# Only use decorator for the "Test Decorator" Pipeline with an "and" condition
+- ${{ if and(ne(variables['Build.DefinitionName'], 'Publish Sweagle Extension'),eq(variables['Build.DefinitionName'], 'Test Decorator')) }}:
+
+  - task: sweagle@1
+    displayName: "Sweagle Upload Config File (injected from decorator)"
+    inputs:
+      operation: 'upload'
+      token: $(SWEAGLE_TOKEN)
+      filePath: $(CONFIG_FILE)
+      nodePath: 'azure,vms,$(HOST)'
+      format: 'json'
+      allowDelete: true
+      storeSnapshotResults: true
+      tag: '$(Build.DefinitionName)_$(Build.BuildNumber)'
+      validationLevel: 'error'
+
+  - task: sweagle@1
+    displayName: "Sweagle Validate Configuration (injected from decorator)"
+    inputs:
+      operation: 'validate'
+      token: $(SWEAGLE_TOKEN)
+      cds: 'azure.vms.$(HOST)'
+      validator: 'azureRequiredTagsValidator'
+      forIncoming: false
