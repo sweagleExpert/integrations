@@ -81,16 +81,24 @@ Optionaly, you can add the option  ` --share-with <yourOrganization>`
 
 ## Create and Publish
 
-- Copy all the files here in your Azure DevOps repository
+- In your organization extensions list, install the Microsoft "Azure DevOps Extension Tasks" from Microsoft marketplace
+
+- Create an Azure DevOps repository and copy all the files here in it
 
 - Create a personal token to publish extension as defined here: https://docs.microsoft.com/en-us/azure/devops/extend/publish/command-line?view=azure-devops#acquire-a-pat
   - copy it for next step
 
 - Create a service connection to Microsoft Visual Studio MarketPlace
   - use marketplace URL: https://marketplace.visualstudio.com
-  - name it `microsot_visualstudio_marketplace`
-  (you can change this name as long as it is consistent with the publish task in your `publish_extension_pipeline.yml` file)
+  - name it `microsoft_visualstudio_marketplace`
+  (you can change this name as long as it is consistent with the publish task in your `publish-extension-pipeline.yml` file)
   - use the token defined in previous step
+
+- Create a new pipline base on file `publish-extension-pipeline.yml`
+
+- Run the pipeline
+
+- You can add and run pipeline `test-extension-pipeline.yml` to test your extension
 
 
 # COMMONS STEPS FOR COMMAND LINE AND AZURE DEVOPS
@@ -101,6 +109,14 @@ Optionaly, you can add the option  ` --share-with <yourOrganization>`
 - Select your extension and click the "more actions" button (...), select "Share/Unshare" option
 - Add the organizations for the one you want to share your extension with
 
+## Use the extension
+
+- Install the extension: Go to your Azure DevOps Organization settings, then click '"extension", then "shared" tab, select and install it
+=> If the extension doesn't appear in shared tab, contact your ServiceNow DevOps representative with your Azure DevOps organization name
+
+- Go to any pipeline to check if extension is visible: when editing the pipeline, in the tasks list, search for "sweagle"
+
+- Test the extension: first, use the first operation "Check connection and get info ...", fill your tenant and port information and run the pipeline
 
 ## Define as Decorator
 
@@ -118,26 +134,6 @@ For example, to remove decorator from your publish pipeline, add the lines below
 
 More details on conditional injection could be found here:
 https://docs.microsoft.com/en-us/azure/devops/extend/develop/add-pipeline-decorator?view=azure-devops#conditional-injection
-
-
-# Use your Extension
-
-## For simple use
-
-- Install the extension: Go to your Azure DevOps Organization settings, then click '"extension", then "shared" tab
-=> If the extension doesn't appear in shared tab, contact your ServiceNow DevOps representative with your Azure DevOps organization name
-
-- Go to any pipeline to check if extension is visible: when editing the pipeline, in the tasks list, search for "sweagle"
-
-- Test the extension: first, use the first operation "Check connection and get info ...", fill your tenant and port information and run the pipeline
-
-
-## For decorator use and and to extend the extension
-
-If you want to be able to build/deploy updates from Azure DevOps
-- install also the Microsoft "Azure DevOps Extension Tasks" from Microsoft marketplace
-
-- create an new repository to install the extension source code and publish and test pipelines
 
 
 # Sources
@@ -174,4 +170,4 @@ If you want to learn more about creating good readme files then refer the follow
 
 - Your mocha test can't run from your Azure DevOps publish pipeline
   - This is because Azure sample doesn't include task to install mocha
-  - You should add the following task before your test task
+  - You should add the following task before your test task: TBD
