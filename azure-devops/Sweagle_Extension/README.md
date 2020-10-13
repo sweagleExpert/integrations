@@ -81,7 +81,12 @@ Optionaly, you can add the option  ` --share-with <yourOrganization>`
 
 ## Create and Publish
 
-- In your organization extensions list, install the Microsoft "Azure DevOps Extension Tasks" from Microsoft marketplace
+The first time, you need to agree on Microsoft publishing terms.
+- Sign in to https://marketplace.visualstudio.com/
+- Review the terms and create your publisher account
+=> remember the publisher ID as it will be used in `vss-extension.json` publisher field
+
+- In your Azure DevOps organization settings, extensions list, install the Microsoft "Azure DevOps Extension Tasks" from Microsoft marketplace
 
 - Create an Azure DevOps repository and copy all the files here in it
 
@@ -94,7 +99,7 @@ Optionaly, you can add the option  ` --share-with <yourOrganization>`
   (you can change this name as long as it is consistent with the publish task in your `publish-extension-pipeline.yml` file)
   - use the token defined in previous step
 
-- Create a new pipline base on file `publish-extension-pipeline.yml`
+- Create a new pipeline based on file `publish-extension-pipeline.yml`
 
 - Run the pipeline
 
