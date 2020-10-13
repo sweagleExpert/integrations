@@ -1,4 +1,4 @@
-## SWEAGLE INTEGRATION TO PUPPET MODUEL PACKAGING
+## SWEAGLE INTEGRATION TO PUPPET MODULE PACKAGING
 
 If you want to package the SWEAGLE modules provided here to facilitate installation, you can do it using instructions below.
 
