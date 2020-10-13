@@ -5,6 +5,7 @@ You can build, test and publish it from the command line or from an Azure DevOps
 The initial steps here defined steps required from command line.
 Refer to section "Create and Publish from Azure DevOps Pipeline" to do it from an Azure pipeline
 
+
 # FROM COMMAND LINE
 
 ## Getting Started
@@ -55,7 +56,6 @@ By default, extension will run a connection to Sweagle testing tenant with the `
 4.	Test your extension
 From your task folder, run the test suite with
 `mocha tests/_suite.js`
-
 
 ## Create Package and Publish it
 
@@ -123,7 +123,6 @@ Optionaly, you can add the option  ` --share-with <yourOrganization>`
 - Decorator for all pipelines
 cf. https://docs.microsoft.com/en-us/azure/devops/extend/develop/add-pipeline-decorator?view=azure-devops
 
-
 - filter conditions
 You can add conditions to filter pipelines where the decorator will run.
 For example, to remove decorator from your publish pipeline, add the lines below at top of your decorator pipeline:
@@ -140,14 +139,6 @@ https://docs.microsoft.com/en-us/azure/devops/extend/develop/add-pipeline-decora
 
 - Prerequisites installation and create your first extension
 https://docs.microsoft.com/en-us/azure/devops/extend/develop/add-build-task?view=azure-devops
-
-
-TODO: Explain how other users and developers can contribute to make your code better.
-
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
 
 
 # TROUBLESHOOT
