@@ -1,4 +1,4 @@
-# Introduction
+# INTRODUCTION
 This is Service Now Sweagle extension for Azure DevOps.
 You can build, test and publish it from the command line or from an Azure DevOps pipeline.
 
@@ -136,7 +136,7 @@ More details on conditional injection could be found here:
 https://docs.microsoft.com/en-us/azure/devops/extend/develop/add-pipeline-decorator?view=azure-devops#conditional-injection
 
 
-# Sources
+# SOURCES
 
 - Prerequisites installation and create your first extension
 https://docs.microsoft.com/en-us/azure/devops/extend/develop/add-build-task?view=azure-devops
@@ -150,7 +150,7 @@ If you want to learn more about creating good readme files then refer the follow
 - [Chakra Core](https://github.com/Microsoft/ChakraCore)
 
 
-# Troubleshoot
+# TROUBLESHOOT
 
 - Your updates doesn't seem to be taken into account in your pipeline
   - check which version of the extension is used in your pipeline
