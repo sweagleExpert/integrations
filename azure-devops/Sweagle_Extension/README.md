@@ -90,6 +90,8 @@ The first time, you need to agree on Microsoft publishing terms.
 
 - Create an Azure DevOps repository and copy all the files here in it
 
+- Update `task.json`, field `id` from GUID generated from site https://www.guidgen.com/
+
 - Create a personal token to publish extension as defined here: https://docs.microsoft.com/en-us/azure/devops/extend/publish/command-line?view=azure-devops#acquire-a-pat
   - copy it for next step
 
