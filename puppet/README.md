@@ -16,7 +16,7 @@ Several use cases are possible:
 # PRE-REQUISITES
 
 - Puppet server and agents must be installed
-Please check README_PREREQUISITES.md if you want to install a sample Puppet for test purpose
+Please check [**README_PREREQUISITES.md**](./README_PREREQUISITES.md) if you want to install a sample Puppet for test purpose
 
 
 # INSTALLATION SWEAGLE AS HIERA BACKEND
