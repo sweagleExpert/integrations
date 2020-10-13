@@ -5,9 +5,9 @@ You can build, test and publish it from the command line or from an Azure DevOps
 The initial steps here defined steps required from command line.
 Refer to section "Create and Publish from Azure DevOps Pipeline" to do it from an Azure pipeline
 
-## FROM COMMAND LINE
+# FROM COMMAND LINE
 
-# Getting Started
+## Getting Started
 
 1. Installation prerequisites
 
@@ -28,7 +28,7 @@ Refer to section "Create and Publish from Azure DevOps Pipeline" to do it from a
 |--- vss-extension.json             // extension's manifest
 `
 
-# Build and Test
+## Build and Test
 
 Describe and show how to build your code and run the tests.
 
@@ -57,7 +57,7 @@ From your task folder, run the test suite with
 `mocha tests/_suite.js`
 
 
-# Create Package and Publish it
+## Create Package and Publish it
 
 1. Create a `vss-extension.json` file following instructions at step3 here:
 https://docs.microsoft.com/en-us/azure/devops/extend/develop/add-build-task?view=azure-devops#step-3-create-the-extension-manifest-file
@@ -77,9 +77,9 @@ The first time, you need to agree on Microsoft publishing terms.
 Optionaly, you can add the option  ` --share-with <yourOrganization>`
 
 
-## FROM AZURE DEVOPS PIPELINE
+# FROM AZURE DEVOPS PIPELINE
 
-# Create and Publish
+## Create and Publish
 
 - Copy all the files here in your Azure DevOps repository
 
@@ -93,16 +93,16 @@ Optionaly, you can add the option  ` --share-with <yourOrganization>`
   - use the token defined in previous step
 
 
-## COMMONS STEPS FOR COMMAND LINE AND AZURE DEVOPS
+# COMMONS STEPS FOR COMMAND LINE AND AZURE DEVOPS
 
-# Share your Extension
+## Share your Extension
 
 - Sign in to Microsoft extensions marketplace https://marketplace.visualstudio.com/
 - Select your extension and click the "more actions" button (...), select "Share/Unshare" option
 - Add the organizations for the one you want to share your extension with
 
 
-# Define as Decorator
+## Define as Decorator
 
 - Decorator for all pipelines
 cf. https://docs.microsoft.com/en-us/azure/devops/extend/develop/add-pipeline-decorator?view=azure-devops
