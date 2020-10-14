@@ -6,14 +6,14 @@ user { 'sweagle':
         groups => 'sweagle'
     }
 
-if $::osfamily == 'linux' {
+if $::osfamily == 'Redhat' {
   # Install for linux OS
   file { '/opt/sweagle/cli':
           ensure => directory,
           owner => 'sweagle',
           group => 'sweagle'
       }
-  file { '/usr/bin/sweagle':
+  file { '/opt/sweagle/cli/sweagle':
           mode => '0755',
           owner => 'sweagle',
           group => 'sweagle',

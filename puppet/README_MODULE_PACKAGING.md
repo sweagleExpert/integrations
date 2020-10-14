@@ -1,4 +1,4 @@
-## SWEAGLE INTEGRATION TO PUPPET MODUEL PACKAGING
+## SWEAGLE INTEGRATION TO PUPPET MODULE PACKAGING
 
 If you want to package the SWEAGLE modules provided here to facilitate installation, you can do it using instructions below.
 
@@ -8,6 +8,7 @@ If you want to package the SWEAGLE modules provided here to facilitate installat
 - Go to /modules folder
 
 - Create a metadata.json file containing
+```console
 {
   "name": "sweagle-sweagle_install_cli",
   "version": "1.0.0",
@@ -19,6 +20,7 @@ If you want to package the SWEAGLE modules provided here to facilitate installat
   "dependencies": [
   ]
 }
+````
 
 - Package the module
 `tar -zcvf sweagle-sweagle_install_cli-1.0.0.tar.gz .`
@@ -27,10 +29,10 @@ If you want to package the SWEAGLE modules provided here to facilitate installat
 # INSTALLATION
 
 - Copy the module to tar file into the /tmp folder of the server where you want to install it
-- Run
+- Run:
 `puppet module install sweagle-sweagle_install_cli-1.0.0.tar.gz --ignore-dependencies`
 
 
 # UNINSTALL
-
+- Run:
 `puppet module uninstall sweagle_install_cli --ignore-changes`
