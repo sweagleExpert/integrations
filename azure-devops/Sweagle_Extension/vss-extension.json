@@ -9,7 +9,7 @@
             "id": "Microsoft.VisualStudio.Services"
         }
     ],
-    "description": "Service Now Configuration Data Management module for Azure DevOps integration to release pipelines",
+    "description": "Service Now Configuration Data Management module for Azure DevOps",
     "categories": [
         "Azure Pipelines"
     ],

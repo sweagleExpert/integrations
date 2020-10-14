@@ -1,6 +1,6 @@
 {
     "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
-    "id": "5e92228b-6a46-4caf-a4e1-e2f287e4b034",
+    "id": "XXX",
     "name": "sweagle",
     "friendlyName": "Sweagle",
     "description": "Manage, Validate and Secure your configuration data with Service Now Sweagle",
