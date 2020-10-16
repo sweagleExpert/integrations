@@ -166,6 +166,9 @@ https://docs.microsoft.com/en-us/azure/devops/extend/develop/add-build-task?view
   - copy you icon file as "icon.png" in your task folder
   - this is detailed here https://stackoverflow.com/questions/42050550/why-tfs-build-step-extension-icon-is-missing
 
+- When connecting with Proxy, you got error "got proxy server response: 'HTTP/1.1 407 Proxy Authentication Required"
+  - Add a proxy user / password to connect
+
 - Your mocha test can't run from your Azure DevOps publish pipeline
   - This is because Azure sample doesn't include task to install mocha
   - You should add the following task before your test task: TBD

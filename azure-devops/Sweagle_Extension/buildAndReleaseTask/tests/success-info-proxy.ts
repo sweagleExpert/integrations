@@ -9,5 +9,7 @@ tmr.setInput('operation', 'info');
 tmr.setInput('tenant', 'testing.sweagle.com');
 tmr.setInput('proxyHost', '51.103.39.227');
 tmr.setInput('proxyPort', '3128');
+tmr.setInput('proxyUser', 'proxy_user');
+tmr.setInput('proxyPassword', 'proxy_password');
 
 tmr.run();
