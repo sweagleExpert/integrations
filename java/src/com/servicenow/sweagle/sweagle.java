@@ -1,9 +1,9 @@
 package com.servicenow.sweagle;
 
+import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
+import java.net.*;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,9 +18,17 @@ public class sweagle {
     /** Sweagle parser (exporter) */
     private String exporter = "all";
     /** Sweagle host. Defaults to testing.sweagle.com. */
-    private String tenant = "https://testing.sweagle.com";
+    private static String tenant = "https://testing.sweagle.com";
     /** Authorization credentials */
-    private String token;
+    private static String token;
+    /** Optional Proxy settings
+        By default system properties will be used for connection with proxy settings
+        This is just needed if no system properties are defined and proxy required
+    */
+    private static String proxyHost;
+    private static int proxyPort;
+    private static String proxyUser;
+    private static String proxyPassword;
 
 
     // SET FUNCTIONS
@@ -30,9 +38,11 @@ public class sweagle {
     public void setTenant(String tenant) {
         this.tenant = tenant;
     }
-    public void setToken(String token) {
-        this.token = token;
-    }
+    public void setToken(String token) { this.token = token; }
+    public void setProxyHost(String value) { this.proxyHost = value; }
+    public void setProxyPort(int value) { this.proxyPort = value; }
+    public void setProxyUser(String value) { this.proxyUser = value; }
+    public void setProxyPassword(String value) { this.proxyPassword = value; }
 
 
     // HELPER FUNCTIONS
@@ -49,6 +59,7 @@ public class sweagle {
      * Performs REST call towards SWEAGLE
      *
      * @param apiPath the app name
+     * @param parameters a hashmap of all API args
      * @param apiMethod optional, the HTTP method to use (POST by default)
      * @param filePath optional, if any file to upload in the request (none by default)
      *
@@ -62,15 +73,39 @@ public class sweagle {
             System.out.println("PARAMETERS=" +parameters);
             System.out.println("API METHOD=" +apiMethod);
             System.out.println("FILE PATH=" +filePath);
+            System.out.println("PROVY HOST=" +proxyHost);
+            System.out.println("PROXY PORT=" +proxyPort);
+            System.out.println("PROXY USER=" +proxyUser);
 
             URL url = new URL(tenant+apiPath);//your url i.e fetch data from .
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            HttpsURLConnection conn;
+            if (proxyHost != null && proxyHost != "") {
+                String encoded = "";
+                Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
+                if (proxyUser != null && proxyUser != "") {
+                    System.out.println("ADD PROXY AUTHENTICATION USER=" +proxyUser);
+                    Authenticator authenticator = new Authenticator() {
+                        public PasswordAuthentication getPasswordAuthentication() {
+                            return (new PasswordAuthentication(proxyUser, proxyPassword.toCharArray()));
+                        }
+                    };
+                    Authenticator.setDefault(authenticator);
+                    encoded = Base64.getEncoder().encodeToString((proxyUser + ":" + proxyPassword).getBytes());
+                    System.setProperty("https.proxyUser", proxyUser);
+                    System.setProperty("https.proxyPassword", proxyPassword);
+                    // Line below is required for JDK 8 as stated here: https://stackoverflow.com/questions/1626549/authenticated-http-proxy-with-java
+                    System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
+                }
+                conn = (HttpsURLConnection) url.openConnection(proxy);
+                conn.setRequestProperty("Proxy-Authorization", "Basic " + encoded);
+            } else {
+                conn = (HttpsURLConnection) url.openConnection();
+            }
             conn.setRequestMethod(apiMethod);
             //conn.setRequestProperty("Accept", "application/json");
             conn.setRequestProperty("Authorization", "Bearer " + token);
             // Add parameters if any
             if (!parameters.isEmpty()) {
-                System.out.println("ADD PARAMETERS");
                 //conn.setReadTimeout(15000);
                 //conn.setConnectTimeout(15000);
                 conn.setDoOutput(true);
@@ -129,8 +164,8 @@ public class sweagle {
     /**
      * Performs REST call towards SWEAGLE to export a ConfigDataSet (CDS) snapshot
      * A hashmap with following params:
-     * @param cds name of the main ConfigDataSet to export (CDS)
-     * @param exporter optional name of the exporter rule to use (all by default)
+     * @param mds name of the main ConfigDataSet to export (CDS)
+     * @param parser optional name of the exporter rule to use (all by default)
      * @param format optional format of the export data (JSON by default)
      * @param tag optional snapshot tag of the version to export (empty by default
      * @param arg optional args of the exporter used, comma separated list (empty by default)
