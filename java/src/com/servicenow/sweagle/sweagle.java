@@ -20,7 +20,7 @@ public class sweagle {
     /** Sweagle host. Defaults to testing.sweagle.com. */
     private static String tenant = "https://testing.sweagle.com";
     /** Authorization credentials */
-    private static String token;
+    private String token;
     /** Optional Proxy settings
         By default system properties will be used for connection with proxy settings
         This is just needed if no system properties are defined and proxy required
