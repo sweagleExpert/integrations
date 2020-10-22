@@ -6,6 +6,9 @@ The strategy adopted is to use library present here in your own powershell scrip
 
 - `sweagle-lib.ps1` contains all common APIs used to upload/validate/ValidationStatus/snapshot/export config data
 
-Example of usage is present in `test-sweagle-lib.ps1` script.
+- `test-sweagle-lib.ps1` script is an example on how to use `sweagle-lib`
+
+Please note that `sweagle-lib` relies on `db.json` to provide  parameters and token to connect to your Sweagle tenant. This file is the same as the one used to connect with Sweagle CLI (Command Line Interface) program.
+
 
 During transition period, you will also find in `/archive` folder former shell scripts that contains direct calls to APIs for specific use cases.
