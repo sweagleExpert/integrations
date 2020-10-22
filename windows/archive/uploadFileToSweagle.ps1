@@ -1,4 +1,4 @@
-﻿# This powershell script upload configuration to SWEAGLE platform using REST API
+﻿# This powershell script upload a configuration file to SWEAGLE platform using REST API
 # Version 1.1
 # Author : Dimitris Finas
 # Inputs required: 1- INPUT FILE AND 2- SWEAGLE PATH (values separated by /)
@@ -79,13 +79,23 @@ $headers.Add("Accept", "*/*")
 
 # Call Get Version to debug access to SWEAGLE tenant
 #$response = Invoke-RestMethod -Uri "https://testing.sweagle.com/info" -Headers $headers -Method GET -Verbose
-
-try { $response = Invoke-RestMethod -Uri $url -Headers $headers -InFile $argFileIn -ContentType $argContentType -Method POST -Verbose }
-catch {
-    echo "********** ERROR: API call failed"
-    Write-Host "HTTP StatusCode:" $_.Exception.Response.StatusCode.value__
-    Write-Host "Exception:" $_.Exception.Message
-    exit 1
+if ($sweagleParams.environment.ContainsKey("host")) {
+  $proxyUri = $sweagleParams.environment.host + ":" + $sweagleParams.environment.port
+  try { $response = Invoke-RestMethod -Uri $url -Headers $headers -InFile $argFileIn -ContentType $argContentType -Proxy $proxyUri -ProxyUseDefaultCredentials -Method POST -Verbose }
+  catch {
+      echo "********** ERROR: API call failed"
+      Write-Host "HTTP StatusCode:" $_.Exception.Response.StatusCode.value__
+      Write-Host "Exception:" $_.Exception.Message
+      exit 1
+  }
+} else {
+  try { $response = Invoke-RestMethod -Uri $url -Headers $headers -InFile $argFileIn -ContentType $argContentType -Method POST -Verbose }
+  catch {
+      echo "********** ERROR: API call failed"
+      Write-Host "HTTP StatusCode:" $_.Exception.Response.StatusCode.value__
+      Write-Host "Exception:" $_.Exception.Message
+      exit 1
+  }
 }
 
 $responseJson = $response | ConvertTo-Json
