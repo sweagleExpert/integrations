@@ -4,7 +4,7 @@ __metaclass__ = type
 
 DOCUMENTATION = """
         lookup: sweagle
-        author: Dimitris Finas <dimitris@sweagle.com>
+        author: Dimitris Finas <dimitris.finas@servicenow.com>
         version_added: "1.0"
         short_description: read content from SWEAGLE
         description:
