@@ -5,7 +5,7 @@ __metaclass__ = type
 DOCUMENTATION = """
         lookup: sweagle
         author: Dimitris Finas <dimitris@sweagle.com>
-        version_added: "0.1"
+        version_added: "1.0"
         short_description: read content from SWEAGLE
         description:
             - This lookup returns specified configurations variables & values from a SWEAGLE platform.
@@ -14,8 +14,12 @@ DOCUMENTATION = """
             description: CDS = Configuration Data Set to export or search for key/value
             required: true
           sweagle_args:
-            description: optional args to use for exporter selected
+            description: optional, args to use for exporter selected
             type: string
+          sweagle_format:
+            description: optional, export format of the configuration
+            type: string
+            default: "json"
           sweagle_parser:
             description: Exporter used
             type: string
@@ -52,7 +56,7 @@ EXAMPLES = """
   debug: msg="{{ lookup('sweagle', 'samples-test-dev') }}"
 
 - name: search value of specific key
-  debug: msg="{{ lookup('sweagle', 'samples-test-dev', sweagle_args='resource.dev_stack.maxPoolSize', sweagle_parser='returnValueforKey') }}"
+  debug: msg="{{ lookup('sweagle', 'samples-test-dev', sweagle_args='resource.dev_stack.maxPoolSize', sweagle_parser='returnValueforKey', sweagle_format='raw') }}"
 """
 
 RETURN = """
@@ -87,6 +91,10 @@ class LookupModule(LookupBase):
             sweagle_parser = self.get_option('sweagle_parser')
         else:
             sweagle_parser = "all"
+        if self.get_option('sweagle_format'):
+            sweagle_format = self.get_option('sweagle_format')
+        else:
+            sweagle_format = "json"
         if self.get_option('sweagle_tag'):
             sweagle_tag = self.get_option('sweagle_tag')
         else:
@@ -98,7 +106,7 @@ class LookupModule(LookupBase):
         if self.get_option('sweagle_token'):
             sweagle_token = self.get_option('sweagle_token')
         else:
-            sweagle_token = "104e6b08-XXXX-XXXX-XXXX-XXX"
+            sweagle_token = "ecd7384a-XXXX-XXXX-XXXX-XXXX"
 
         display.vvvv("[sweagle_lookup]: Lookup with exporter ("+sweagle_parser+") and args ("+sweagle_args+") from SWEAGLE tenant "+sweagle_tenant)
 
@@ -116,7 +124,7 @@ class LookupModule(LookupBase):
             try:
                 url = sweagle_tenant+'/api/v1/tenant/metadata-parser/parse?mds=' + term + \
                     '&parser=' + sweagle_parser + \
-                    '&format=json' + \
+                    '&format=' + sweagle_format + \
                     '&args=' + sweagle_args + \
                     '&tag=' + sweagle_tag
                 display.vvvv("[sweagle_lookup]: url= %s" % url)
