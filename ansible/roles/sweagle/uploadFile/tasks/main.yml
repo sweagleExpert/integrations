@@ -12,7 +12,7 @@
   when: not use_cli and use_db_file
 #- debug: msg="ignore_ssl= {{ ignore_ssl }}"
 
-- name: API - Upload data to SWEAGLE server
+- name: API - Upload file(s) to SWEAGLE server
   uri:
     url: "{{ sweagle_url }}/api/v1/data/bulk-operations/dataLoader/upload?\
       allowDelete={{ item.allow_delete | default(global.allow_delete) | default('false') }}&\
@@ -29,8 +29,7 @@
       tag={{ item.tag | default(global.snapshot.tag) | default('') }}&\
       validationLevel={{ validation_level | default(global.validation_level) | default('warn') }}"
     method: POST
-    body: "{{ item.data | default('') }}"
-    body_format: "{{ item.format | default(global.format) | default('raw') }}"
+    src: "{{ item.file_path | default(global.file_path) | default('') }}"
     validate_certs: "{{ not ignore_ssl }}"
     timeout: "{{ item.timeout | default(global.timeout) | default(30) }}"
     headers:
@@ -40,7 +39,7 @@
   when: not use_cli
   loop: "{{ upload_data_list }}"
   loop_control:
-    label: "Uploaded data {{ item }}"
+    label: "Uploaded file {{ item.file_path }}"
 
 
 ################################################################
@@ -52,13 +51,14 @@
     name: sweagle/installCLI
   when: use_cli and install_cli
 
-- name: CLI - Upload data to SWEAGLE server
+- name: CLI - Upload file(s) to SWEAGLE server
   shell: "{{ cli_installation_folder }}/sweagle uploadData \
     --data {{ item.data | default('') }} \
+    --filePath {{ item.file_path | default('') }} \
     --nodePath {{ item.node_path | default(global.node_path) }} \
     --type {{ item.format | default(global.format) | default('props') }} \
     {{ '--autoApprove' if item.auto_approve|default(global.auto_approve) }}"
   when: use_cli
   loop: "{{ upload_data_list }}"
   loop_control:
-    label: "Uploaded data {{ item }}"
+    label: "Uploaded file {{ item.file_path }}"

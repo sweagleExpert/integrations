@@ -18,7 +18,7 @@
   roles:
 ### OK ###
     - sweagle/info
-    - sweagle/uploadData
+    - sweagle/uploadFile
     - sweagle/uploadDir
     - sweagle/createChangeset
     - sweagle/approveChangeset
