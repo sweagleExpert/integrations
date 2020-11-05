@@ -3,10 +3,10 @@
     "id": "XXX",
     "name": "sweagle",
     "friendlyName": "Sweagle",
-    "description": "Manage, Validate and Secure your configuration data with Service Now Sweagle",
+    "description": "Manage, Validate and Secure your configuration data with ServiceNow Sweagle",
     "helpMarkDown": "",
     "category": "Utility",
-    "author": "Service Now",
+    "author": "ServiceNow",
     "version": {
         "Major": 1,
         "Minor": 0,
@@ -51,9 +51,9 @@
         "name": "tenant",
         "type": "string",
         "label": "Tenant",
-        "defaultValue": "testing.sweagle.com",
+        "defaultValue": "",
         "required": true,
-        "helpMarkDown": "Sweagle host you plan to connect to.",
+        "helpMarkDown": "Sweagle host you plan to connect to like xyz.sweagle.com.",
         "groupName": "tenantGroup"
       },
       {
@@ -69,9 +69,9 @@
         "name": "token",
         "type": "string",
         "label": "Token",
-        "defaultValue": "",
+        "defaultValue": "$(SWEAGLE_TOKEN)",
         "required": true,
-        "helpMarkDown": "Sweagle token used to connect to your tenant with sufficient privileges.",
+        "helpMarkDown": "Sweagle token used to connect to your tenant with sufficient privileges. It is recommended to store as secret variable.",
         "groupName": "tenantGroup",
         "visibleRule": "operation != info"
       },
@@ -285,6 +285,15 @@
         "helpMarkDown": "To restrict allow delete to only parent node.",
         "groupName": "extraArgsGroup",
         "visibleRule": "operation = upload"
+      },
+      {
+        "name": "outputFile",
+        "type": "string",
+        "label": "Output File",
+        "required": false,
+        "helpMarkDown": "File to store result of the export.",
+        "groupName": "extraArgsGroup",
+        "visibleRule": "operation = export"
       },
       {
         "name": "storeSnapshotResults",

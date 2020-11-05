@@ -1,6 +1,8 @@
 import tl = require('azure-pipelines-task-lib/task');
 import https = require('https');
 import tls = require('tls');
+import fs = require('fs');
+
 
 const querystring = require('querystring');
 const inputOperation: string = manageInput ('operation','info');
@@ -125,6 +127,7 @@ async function exportCds() {
       var inputCdsTags: string = manageInput('cdsTags');
       var inputExporter: string = manageInput('exporter','all');
       var inputFormat: string = manageInput('format','JSON');
+      var inputOutputFile: string = manageInput('outputFile');
       var inputTag: string = manageInput('tag').replace(/ /g, '_');
 
       // Calculate API URL
@@ -140,8 +143,17 @@ async function exportCds() {
       // Launch the API
       callSweagleAPI(apiPath).then((data) => {
         tl.setVariable("response", data.toString());
-        tl.setResult(tl.TaskResult.Succeeded, "Export successfull, check detailed result in 'response' variable");
-        return data;
+        if (inputOutputFile != "") {
+          console.log("Export successfull, check output in '"+inputOutputFile+"' file");
+          tl.setResult(tl.TaskResult.Succeeded, "Export successfull, check detailed result in '"+inputOutputFile+"' file");
+          fs.writeFile(inputOutputFile, data.toString(), function (err) {
+            if (err) { tl.setResult(tl.TaskResult.Failed, err.message); }
+          });
+        } else {
+          console.log("Export successfull, check output in 'response' variable");
+          tl.setResult(tl.TaskResult.Succeeded, "Export successfull, check detailed result in 'response' variable");
+          return data;
+        }
       });
     } catch (err) {
         tl.setResult(tl.TaskResult.Failed, err.message);
@@ -211,6 +223,7 @@ async function upload() {
     apiPath += "&encoding=" + inputEncoding;
     apiPath += "&format=" + inputFormat;
     apiPath += "&identifierWords=" + querystring.escape(inputIdentifierWords);
+    apiPath += "&onlyParent=" + inputOnlyParent;
     apiPath += "&storeSnapshotResults=" + inputStoreSnapshotResults;
     apiPath += "&tag=" + querystring.escape(inputTag);
     apiPath += "&validationLevel=" + inputValidationLevel;

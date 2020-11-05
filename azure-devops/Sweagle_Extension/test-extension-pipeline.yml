@@ -80,3 +80,13 @@ steps:
     cds: 'test39'
     format: 'json'
     exporter: 'all'
+    outputFile: './test.json'
+
+- task: CmdLine@2
+  displayName: 'Display export result'
+  inputs:
+    script: |
+      echo "************* DISPLAY VARIABLE CONTENT"
+      echo $(response)
+      echo "************* DISPLAY RESULT FILE"
+      cat './test.json'

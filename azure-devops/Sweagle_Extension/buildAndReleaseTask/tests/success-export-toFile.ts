@@ -5,14 +5,11 @@ import path = require('path');
 let taskPath = path.join(__dirname, '..', 'index.js');
 let tmr: tmrm.TaskMockRunner = new tmrm.TaskMockRunner(taskPath);
 
-tmr.setInput('operation', 'upload');
+tmr.setInput('operation', 'export');
 tmr.setInput('tenant', 'testing.sweagle.com');
 tmr.setInput('token', 'XXX');
-tmr.setInput('nodePath', 'infrastructure,azure,vm1');
-tmr.setInput('filePath', './tests/inputs/sample.json');
+tmr.setInput('cds', 'test39');
 tmr.setInput('format', 'JSON');
-tmr.setInput('autoApprove', 'true');
-tmr.setInput('storeSnapshotResults', 'true');
-tmr.setInput('tag', 'test toto');
-
+tmr.setInput('exporter', 'all');
+tmr.setInput('outputFile', './test39.json');
 tmr.run();

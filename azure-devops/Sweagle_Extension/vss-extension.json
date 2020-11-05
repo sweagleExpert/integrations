@@ -3,19 +3,29 @@
     "id": "sweagle-demo-release-task",
     "name": "sweagle",
     "version": "1.0.1",
-    "publisher": "sweagledemo",
+    "publisher": "xxx",
     "targets": [
         {
             "id": "Microsoft.VisualStudio.Services"
         }
     ],
-    "description": "Service Now Configuration Data Management module for Azure DevOps",
+    "description": "ServiceNow Configuration Data Management module for Azure DevOps",
     "categories": [
         "Azure Pipelines"
     ],
     "icons": {
         "default": "images/extension-icon.png"
     },
+    "tags": [
+        "CICD", "configuration", "configData", "compliance",
+        "devops",
+        "iac", "infrastructure as code",
+        "key value",
+        "quality",
+        "secret", "security", "sre",
+        "utility task",
+        "validation", "vault"
+    ],
     "files": [
         {
             "path": "buildAndReleaseTask"

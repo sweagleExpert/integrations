@@ -7,7 +7,7 @@ let tmr: tmrm.TaskMockRunner = new tmrm.TaskMockRunner(taskPath);
 
 tmr.setInput('operation', 'validate');
 tmr.setInput('tenant', 'testing.sweagle.com');
-tmr.setInput('token', '34c193df-6de4-4429-972f-c3c1eb691a53');
+tmr.setInput('token', 'XXX');
 tmr.setInput('cds', 'test40');
 tmr.setInput('forIncoming', 'false');
 tmr.setInput('validator', 'allKeysIncluded');
