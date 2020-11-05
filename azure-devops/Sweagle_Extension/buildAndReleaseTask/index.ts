@@ -207,7 +207,7 @@ async function upload() {
     var inputEncoding: string = manageInput('encoding','');
     var inputFormat: string = manageInput('format','JSON');
     var inputIdentifierWords: string = manageInput('identifierWords','');
-    //var inputOnlyParent: string = manageInput('onlyParent','false');
+    var inputOnlyParent: string = manageInput('onlyParent','false');
     var inputStoreSnapshotResults: string = manageInput('storeSnapshotResults','false');
     var inputTag: string = manageInput('tag','').replace(/ /g, '_');
     var inputValidationLevel: string = manageInput('validationLevel','');
@@ -223,7 +223,7 @@ async function upload() {
     apiPath += "&encoding=" + inputEncoding;
     apiPath += "&format=" + inputFormat;
     apiPath += "&identifierWords=" + querystring.escape(inputIdentifierWords);
-    //apiPath += "&onlyParent=" + inputOnlyParent;
+    apiPath += "&onlyParent=" + inputOnlyParent;
     apiPath += "&storeSnapshotResults=" + inputStoreSnapshotResults;
     apiPath += "&tag=" + querystring.escape(inputTag);
     apiPath += "&validationLevel=" + inputValidationLevel;

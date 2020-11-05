@@ -277,6 +277,16 @@
         "visibleRule": "operation = upload"
       },
       {
+        "name": "onlyParent",
+        "type": "boolean",
+        "label": "Only Parent",
+        "defaultValue": "false",
+        "required": false,
+        "helpMarkDown": "To restrict allow delete to only parent node.",
+        "groupName": "extraArgsGroup",
+        "visibleRule": "operation = upload"
+      },
+      {
         "name": "outputFile",
         "type": "string",
         "label": "Output File",
