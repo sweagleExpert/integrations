@@ -64,6 +64,11 @@ For SWEAGLE as approval gate, connect to any server agent in the environment you
 `puppet agent --test`
 
 
+# TROUBLESHOOT
+
+Run each command with the `--debug` option, like `puppet lookup <your_key> --explain --debug`
+
+
 # LIMITATIONS
 
 - current SWEAGLE CLI installation module has only been tested on linux. Even if code for windows and macOS are present, some adaptations may be needed in /modules/sweagle_install_cli/manifests/init.pp
