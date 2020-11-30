@@ -18,7 +18,7 @@ $parameters= @{"cds"="sample.DEV1"; "parser"="passwordChecker"}
 . ./sweagle-lib.ps1 -operation "validate" -parameters $parameters
 
 Write-Output "*** TESTING OPERATION: validationStatus"
-$parameters= @{"cds"="sample.DEV1"; "forIncoming"="false"}
+$parameters= @{"cds"="sample.DEV1"; "forIncoming"="false"; "withCustomValidations"="true" }
 . ./sweagle-lib.ps1 -operation "validationStatus" -parameters $parameters
 
 Write-Output "*** TESTING OPERATION: snapshot"
