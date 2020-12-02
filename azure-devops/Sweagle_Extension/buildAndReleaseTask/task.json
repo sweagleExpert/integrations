@@ -1,6 +1,6 @@
 {
     "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
-    "id": "XXX",
+    "id": "78e4b2ca-8ebd-4147-9be2-26f3d9f271a4",
     "name": "sweagle",
     "friendlyName": "Sweagle",
     "description": "Manage, Validate and Secure your configuration data with ServiceNow Sweagle",
@@ -26,7 +26,7 @@
       },
       {
         "name": "extraArgsGroup",
-        "displayName": "API optional arguments",
+        "displayName": "Optional arguments",
         "isExpanded": false
       }
     ],
@@ -275,6 +275,16 @@
         "helpMarkDown": "This parameter can be used for XML, JSON, or YAML files to uniquely identify a data item in a list or an array. Uniqueness allows listed data to be exported properly.",
         "groupName": "extraArgsGroup",
         "visibleRule": "operation = upload"
+      },
+      {
+        "name": "xmlTestResult",
+        "type": "boolean",
+        "label": "XML Test Result File",
+        "defaultValue": "true",
+        "required": false,
+        "helpMarkDown": "If a test result file (format './testResult*.xml') should also be generated. In this case, it will follow the XML Junit output format (default is true).",
+        "groupName": "extraArgsGroup",
+        "visibleRule": "operation = validate || operation = validationStatus"
       },
       {
         "name": "onlyParent",

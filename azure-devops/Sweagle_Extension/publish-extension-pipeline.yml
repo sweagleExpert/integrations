@@ -1,20 +1,19 @@
-trigger:
-- master
+trigger: none
 
 pool:
   vmImage: "ubuntu-latest"
 
 variables:
   # This is the name of the artifact file that will be generated
-  artifactName: "sweagle-demo-extension-artifact"
+  artifactName: "sweagle-extension-artifact"
   # This is your extension id taken from vss-extension.json file
-  extensionId: "sweagle-demo-release-task"
+  extensionId: "sweagle-release-task"
   # This is your extension name taken from vss-extension.json file
   extensionName: "sweagle"
   # This is your publisher taken from vss-extension.json file
-  publisherId: "sweagledemo"
+  publisherId: "sweagle"
   # This is default version number to use if extension has never been published
-  Task.Extension.Version: "0.0.1"
+  Task.Extension.Version: "1.0.0"
 
 stages:
   - stage: Run_and_publish_unit_tests
@@ -86,7 +85,7 @@ stages:
               updateTasksVersionType: 'patch'
               extensionVisibility: 'private' # Change to public if you're publishing to the marketplace
               extensionPricing: 'free'
-            continueOnError: true # ignore warnings that are considered as errors
+            continueOnError: true
           - task: CopyFiles@2
             displayName: "Copy Files to: $(Build.ArtifactStagingDirectory)"
             inputs:

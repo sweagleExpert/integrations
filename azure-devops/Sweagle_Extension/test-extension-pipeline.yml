@@ -44,8 +44,18 @@ steps:
     tenant: 'testing.sweagle.com'
     port: '443'
     token: '$(SWEAGLE_TOKEN)'
+    cds: 'test38s'
+- task: sweagle@1
+  displayName: "Sweagle Validate Failed"
+  continueOnError: true
+  inputs:
+    operation: 'validate'
+    tenant: 'testing.sweagle.com'
+    port: '443'
+    token: '$(SWEAGLE_TOKEN)'
     cds: 'test40'
-    forIncoming: false
+    validator: 'passwordChecker'
+    forIncoming: true
 
 - task: sweagle@1
   displayName: "Sweagle Validation Failed"
@@ -58,7 +68,25 @@ steps:
     cds: 'test40'
     forIncoming: true
 
+- task: sweagle@1
+  displayName: "Multiple failed use cases"
+  continueOnError: true
+  inputs:
+    operation: 'validationStatus'
+    tenant: 'testing.sweagle.com'
+    port: '443'
+    token: '$(SWEAGLE_TOKEN)'
+    cds: 'testNodeType'
+    forIncoming: true
 
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: '**/testResult*.xml'
+    mergeTestResults: false
+    testRunTitle: 'SWEAGLE VALIDATION'
+    buildPlatform: 'SWEAGLE'
+    
 - task: sweagle@1
   displayName: "Sweagle Snapshot"
   inputs:
@@ -81,7 +109,7 @@ steps:
     format: 'json'
     exporter: 'all'
     outputFile: './test.json'
-
+ 
 - task: CmdLine@2
   displayName: 'Display export result'
   inputs:

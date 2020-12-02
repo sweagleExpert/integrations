@@ -1,5 +1,5 @@
 {
-      "apiVersion": "2019-08-01",
+      "apiVersion": "2019-12-01",
       "name": "[variables('hostingPlanName')]",
       "type": "Microsoft.Web/serverfarms",
       "location": "[resourceGroup().location]",

@@ -34,8 +34,11 @@ Refer to section "Create and Publish from Azure DevOps Pipeline" to do it from a
 Describe and show how to build your code and run the tests.
 
 1. (optional) Prepare the build
-- If you start from scracth, in order to create the `tsconfig.json` file.
 From your task folder (ex: `/buildAndReleaseTask`), run
+
+- Install required node dependencies `npm install`
+
+- If you start from scratch, in order to create the `tsconfig.json` file.
 `tsc --init`
 
 - Update `tsconfig.json` to put property `"strict": false`
@@ -45,6 +48,7 @@ From your task folder (ex: `/buildAndReleaseTask`), run
 - Update `task.json`, field `id` from GUID generated from site https://www.guidgen.com/
 
 2.	Build your extension
+From your task folder (ex: `/buildAndReleaseTask`), run
 `tsc`
 
 3.	Run your extension
@@ -125,6 +129,18 @@ The first time, you need to agree on Microsoft publishing terms.
 
 - Test the extension: first, use the first operation "Check connection and get info ...", fill your tenant and port information and run the pipeline
 
+- All outputs from the different extension tasks are stored in a response variable
+To access it, give a name to the task you want to use response from, then use variable `$(<myTaskName>.response)`
+
+example:
+`- task: CmdLine@2
+  displayName: 'Display export result'
+  inputs:
+    script: echo $(response)
+`
+
+Refer to https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch if you want to use it in multi-jobs pipeline.
+
 ## Define as Decorator
 
 - Decorator for all pipelines
@@ -165,9 +181,6 @@ https://docs.microsoft.com/en-us/azure/devops/extend/develop/add-build-task?view
 - Your icon is not displayed in Azure task screen
   - copy you icon file as "icon.png" in your task folder
   - this is detailed here https://stackoverflow.com/questions/42050550/why-tfs-build-step-extension-icon-is-missing
-
-- When connecting with Proxy, you got error "got proxy server response: 'HTTP/1.1 407 Proxy Authentication Required"
-  - Add a proxy user / password to connect
 
 - Your mocha test can't run from your Azure DevOps publish pipeline
   - This is because Azure sample doesn't include task to install mocha

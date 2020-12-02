@@ -10,12 +10,14 @@ More info about SWEAGLE can be found at  https://hi.service-now.com/kb_view.do?s
 
 > *Sweagle Overview*
 
-![Sweagle Overview](images/sweagle_overview.png)
+![Sweagle Overview](https://github.com/sweagleExpert/integrations/blob/master/azure-devops/Sweagle_Extension/images/sweagle_overview.png?raw=true")
 
+
+## Configuration data workflow.
 
 This extension supports the major APIs used to manage your config data lifecycle.
 
-## Upload --> Validate / ValidationStatus --> Snapshot --> Export
+<h2 style="color:blue;text-align:center"> Upload --> Validate / ValidationStatus --> Snapshot --> Export </h2>
 
 
 - Upload is used to upload a configuration data file in a specific path of Sweagle data model
@@ -27,3 +29,8 @@ This extension supports the major APIs used to manage your config data lifecycle
 - Snapshot will create an unalterable release tag for your configuration
 
 - Export is used to export configuration release in any format you need with optional filtering rules also, if required
+
+
+## Prerequisites.
+
+To make usage of this extension, you need to subscribe to a Service Now Sweagle application and define a connection to your instance using a valid API token.

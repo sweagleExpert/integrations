@@ -2,10 +2,12 @@ import tl = require('azure-pipelines-task-lib/task');
 import https = require('https');
 import tls = require('tls');
 import fs = require('fs');
-
-
 const querystring = require('querystring');
+
 const inputOperation: string = manageInput ('operation','info');
+const inputSweagleHost: string = manageInput ('tenant', 'testing.sweagle.com');
+const inputSweaglePort: string = manageInput ('port', '443');
+var startTime = new Date();
 
 async function main() {
   switch (inputOperation) {
@@ -42,9 +44,7 @@ function callSweagleAPI(apiPath: string, apiMethod: string = 'POST', filepath: s
   const inputProxyHost: string = manageInput ('proxyHost','');
   const inputProxyPort: string = manageInput ('proxyPort','');
   const inputProxyUser: string = manageInput ('proxyUser','');
-  const inputProxyPassword: string = manageInput ('proxyPassword','');
-  const inputSweagleHost: string = manageInput ('tenant', 'testing.sweagle.com');
-  const inputSweaglePort: string = manageInput ('port', '443');
+  var inputProxyPassword: string = manageInput ('proxyPassword','');
 
   var agent = https.globalAgent;
   if (inputProxyHost !== '') {
@@ -59,10 +59,10 @@ function callSweagleAPI(apiPath: string, apiMethod: string = 'POST', filepath: s
     port: inputSweaglePort,
     method: apiMethod,
     path: apiPath,
-    headers: { 'Authorization': 'Bearer ' + manageInput ('token') }
+    headers: { 'Accept': '*/*', 'Authorization': 'Bearer ' + manageInput ('token') }
   };
 
-  console.log("API PATH="+apiPath);
+  console.log("API PATH= "+apiMethod+" "+apiPath);
 
   return new Promise((resolve, reject) => {
     var body = "";
@@ -88,18 +88,101 @@ function callSweagleAPI(apiPath: string, apiMethod: string = 'POST', filepath: s
      reject(err.message);
     });
 
-     // Add file content if any
-     if (filepath !== '') {
-       var fs = require('fs');
-       var data = fs.readFileSync(filepath);
-       req.setHeader('Content-Type', 'text/plain');
-       req.setHeader('Accept', 'application/vnd.siren+json');
-       req.write(data);
-     }
+    // Add file content if any
+    if (filepath !== '') {
+      var fs = require('fs');
+      var data = fs.readFileSync(filepath);
+      req.setHeader('Content-Type', 'text/plain');
+      req.setHeader('Accept', 'application/vnd.siren+json');
+      req.write(data);
+    }
 
-     // send the request
-     req.end();
+    // send the request
+    req.end();
   });
+}
+
+// Add result of testList to a validatorList
+function manageTestList(testList: any, validatorList: any, status: string, type: string) {
+  for (var testArray in testList) {
+    //console.log("TEST ARRAY="+testArray);
+    if (Array.isArray(testList[testArray])) {
+      if (testArray.indexOf("Parsers") > 0) {
+        // this is a validator error
+        testList[testArray].forEach((testresult) => { validatorList[testresult.validatorName] = {status: status, type: type, message: testresult.errorDescription}; });
+      } else {
+        // This is a metadata error
+        testList[testArray].forEach((testresult) => { validatorList[testArray+"-"+testresult.key] = {status: status, type: type, message: testresult.path + "/" + testresult.key + " "+ testArray + ", expected " + testresult.expected}; });
+      }
+    };
+  };
+  return validatorList;
+}
+
+// Generate a JUnit XML output file
+async function generateXmlOutput(jsonResponse: any, cds: string, validator: string = '') {
+
+  //console.log("CDS="+cds);
+  //console.log("VALIDATOR="+validator);
+  //console.log("JSON="+JSON.stringify(jsonResponse, null, 5));
+
+  const { create } = require('xmlbuilder2');
+  var endTime = new Date();
+  var elapseTime = (endTime.getTime() - startTime.getTime()) / 1000;
+  var root = create({ version: '1.0', encoding: 'UTF-8' })
+
+  if (validator != '') {
+    // One validator defined, this is result for a single validation
+    var outputFile = "./testResult-validator-"+validator+".xml"
+    if ( jsonResponse.result ) {
+      var item = root.ele('testsuite', { name: 'sweagle', tests: '1', failures:'0', hostname: inputSweagleHost, time: elapseTime, timestamp: startTime.toISOString() })
+          .ele('testcase', { name: validator, classname: cds });
+    } else {
+      var item = root.ele('testsuite', { name: 'sweagle', tests: '1', failures:'1', hostname: inputSweagleHost, time: elapseTime, timestamp: startTime.toISOString() })
+          .ele('testcase', { name: validator, classname: cds })
+            .ele('failure', { message: jsonResponse.description, type: "ERROR" }).up();
+    }
+  } else {
+    // No validator defined, this is validationStatus result
+    var outputFile = "./testResults-cds-"+cds+".xml";
+    // As validation result doesn't returns the list of OK validators, we will get full list of assigned validators to complete the test report
+    // Get CDS Id in order to retrieve assigned validators
+    //var cdsId = await getCdsId(cds);
+    var cdsId = jsonResponse.summary.includeId;
+    //console.log("CDS ID="+cdsId);
+    var assignedValidators = await getAssignedParsers(cdsId, 'VALIDATOR');
+    //console.log("assignedValidators=");
+    //console.log(assignedValidators);
+    if (jsonResponse.summary.warnings > 0) { assignedValidators = manageTestList(jsonResponse.warnings, assignedValidators, "failure", "WARNING"); };
+    if (jsonResponse.summary.errors > 0) { assignedValidators = manageTestList(jsonResponse.errors, assignedValidators, "failure", "ERROR"); };
+    if (jsonResponse.summary.problems > 0) { assignedValidators = manageTestList(jsonResponse.problems, assignedValidators, "error", "CRITICAL"); };
+    //console.log("assignedValidators AFTER ADDITION=");
+    //console.log(assignedValidators);
+
+    // Build XML file
+    var nbValidators = Object.keys(assignedValidators).length;
+    //var nbSuccess = Object.keys(assignedValidators).length - jsonResponse.summary.problems - jsonResponse.summary.errors;
+    var item = root.ele('testsuite', { name: 'Sweagle Validators', tests: nbValidators, errors: jsonResponse.summary.problems, failures: jsonResponse.summary.errors, hostname: inputSweagleHost, time: elapseTime, timestamp: startTime.toISOString() });
+    var item2;
+    for (var testresult in assignedValidators) {
+      if (assignedValidators[testresult].status == "Valid") {
+        item2 = item.ele('testcase', { name: testresult, classname: cds }).up();
+      } else {
+        item2 = item.ele('testcase', { name: testresult, classname: cds })
+          .ele(assignedValidators[testresult].status, { message: assignedValidators[testresult].message, type: assignedValidators[testresult].type }).up()
+        .up();
+      }
+    }
+  }
+
+  // convert the XML tree to string
+  const xml = root.end({ prettyPrint: true });
+  //console.log(xml);
+  // write xml to output file
+  fs.writeFile(outputFile, xml, function (err) {
+    if (err) { tl.setResult(tl.TaskResult.Failed, err.message); }
+  });
+  return outputFile;
 }
 
 // Manage any tasks input by replacing by default values or detecting missing required input
@@ -114,6 +197,7 @@ function sleep(ms) {
     setTimeout(resolve, ms);
   });
 }
+
 
 ///////////////////////////////////////////
 // API FUNCTIONS
@@ -160,9 +244,50 @@ async function exportCds() {
     }
 }
 
+// Return list of assigned validators of a CDS based on its Id
+// ParserType should be VALIDATOR or EXPORTER
+async function getAssignedParsers(cdsId: string, parserType: string) {
+    try {
+      // Calculate API URL
+      var apiPath = "/api/v1/tenant/metadata-parser/assigned?parserType="+parserType+"&status=published&id="+cdsId;
+      // Launch the API
+      return callSweagleAPI(apiPath, 'GET').then((data) => {
+        //console.log("VALIDATORS ASSIGNED="+data.toString());
+        var jsonResponse = JSON.parse(data.toString());
+        var entities = jsonResponse._entities;
+        var len = Object.keys(entities).length;
+        var parsersList = {};
+        for (var i = 0; i < len; i++) {
+          parsersList[entities[i].name] = {status: 'Valid', type: '', message: ''};
+        }
+        return parsersList;
+      });
+    } catch (err) {
+      //console.log(err);
+      tl.setResult(tl.TaskResult.Failed, err.message);
+    }
+}
+
+// Return the ID of a CDS based on its name
+async function getCdsId(cds: string) {
+  try {
+    // Calculate API URL
+    var apiPath = "/api/v1/data/include?name="+querystring.escape(cds);
+    //var jsonResponse;
+    // Launch the API
+    return callSweagleAPI(apiPath, 'GET').then((data) => {
+      var jsonResponse = JSON.parse(data.toString());
+      //console.log("RESPONSE GET CDS ID="+JSON.stringify(jsonResponse._entities[0].master.id));
+      return jsonResponse._entities[0].master.id;
+    });
+  } catch (err) {
+    tl.setResult(tl.TaskResult.Failed, err.message);
+  }
+}
+
 async function info() {
     callSweagleAPI("/info", "GET").then((data) => {
-        console.log("TEST-FINAL:" + data);
+        console.log("RESPONSE:" + data);
         tl.setVariable("response", data.toString());
         tl.setResult(tl.TaskResult.Succeeded, "Info successfull, check detailed result in 'response' variable");
         return data;
@@ -250,6 +375,7 @@ async function validate() {
     var inputCdsTags: string = manageInput('cdsTags');
     var inputForIncoming: string = manageInput('forIncoming','false');
     var inputValidator: string = manageInput('validator', '', true);
+    var inputXmlTestResult: string = manageInput('xmlTestResult', 'true');
 
     // Calculate API URL
     var apiPath = "/api/v1/tenant/metadata-parser/validate";
@@ -261,20 +387,26 @@ async function validate() {
     apiPath += "&mdsTags=" + querystring.escape(inputCdsTags);
 
     // Launch the API
-    callSweagleAPI(apiPath).then((data) => {
-      var dataString = data.toString();
-      var jsonResponse = JSON.parse(dataString);
-      console.log("Validation Results:" + dataString);
-      tl.setVariable("response", dataString);
-      if ( jsonResponse.result ) {
-        tl.setResult(tl.TaskResult.Succeeded, "Validation successfull, check detailed result in 'response' variable");
-      } else {
-        tl.setResult(tl.TaskResult.Failed, dataString);
-      }
-      return jsonResponse;
-    });
+    var response = (await callSweagleAPI(apiPath)).toString();
+    tl.setVariable("response", response);
+    var jsonResponse = JSON.parse(response);
+    var whereToCheckResult = "check detailed result in 'response' variable"
+    // If publishTestResult is enabled, create the Junit XML test result file
+    var outputFile = await generateXmlOutput(jsonResponse, inputCds, inputValidator);
+    if (inputXmlTestResult) {
+      whereToCheckResult = "check detailed result in '"+outputFile+"' file"
+    }
+    // Manage the result status of the ADO tasks
+    if ( jsonResponse.result ) {
+      console.log("Validation successfull, " + whereToCheckResult);
+      tl.setResult(tl.TaskResult.Succeeded, "Validation successfull, " + whereToCheckResult);
+    } else {
+      tl.setResult(tl.TaskResult.Failed, response);
+    }
+    return jsonResponse;
   } catch (err) {
-      tl.setResult(tl.TaskResult.Failed, err.message);
+    console.log(err);
+    tl.setResult(tl.TaskResult.Failed, err.message);
   }
 }
 
@@ -285,7 +417,8 @@ async function validationStatus() {
     var inputForIncoming: string = manageInput('forIncoming','false');
     var inputFormat: string = manageInput('format','JSON');
     var inputWithCustomValidations: string = manageInput('withCustomValidations','true');
-
+    var inputXmlTestResult: string = manageInput('xmlTestResult', 'true');
+    var maxRetries = 5;
 
     // Calculate API URL
     var apiPrefix = "/api/v1/data/include/validation_progress";
@@ -299,7 +432,7 @@ async function validationStatus() {
     var noCDSFound: boolean = false;
     var dataString: string = "";
     var nbRetry:number = 1;
-    while (!ready && nbRetry<5 && !noCDSFound) {
+    while (!ready && nbRetry<maxRetries && !noCDSFound) {
       callSweagleAPI(apiPrefix + apiPath, "GET").then((data) => {
         console.log("XXX RESOLVE:"+data.toString());
         if (data.toString().indexOf("FINISHED") >= 0) { ready = true; }
@@ -317,18 +450,23 @@ async function validationStatus() {
       // Change to validation API
       apiPrefix = "/api/v1/data/include/validate";
       // Launch the Validation API
-      callSweagleAPI(apiPrefix + apiPath, "GET").then((data) => {
-          dataString = data.toString();
-          var jsonResponse = JSON.parse(dataString);
-          console.log("Validation Results:" + dataString);
-          tl.setVariable("response", dataString);
-          if ( jsonResponse.summary.errors > 0 ) {
-            tl.setResult(tl.TaskResult.Failed, dataString);
-          } else {
-            tl.setResult(tl.TaskResult.Succeeded, "Validation successfull, check result in 'response' variable");
-          }
-          return jsonResponse;
-      });
+      var response = (await callSweagleAPI(apiPrefix + apiPath, "GET")).toString();
+      //console.log("Validation Results:" + dataString);
+      tl.setVariable("response", response);
+      var jsonResponse = JSON.parse(response);
+      var whereToCheckResult = "check detailed result in 'response' variable";
+      // If publishTestResult is enabled, create the Junit XML test result file
+      if (inputXmlTestResult) {
+        var outputFile = await generateXmlOutput(jsonResponse, inputCds);
+        whereToCheckResult = "check detailed result in '"+outputFile+"' file";
+      }
+      // Manage the result status of the ADO tasks
+      if ( jsonResponse.summary.errors > 0 ) {
+        tl.setResult(tl.TaskResult.Failed, response);
+      } else {
+        tl.setResult(tl.TaskResult.Succeeded, "Validation successfull, " + whereToCheckResult);
+      }
+      return jsonResponse;
     }
 
   } catch (err) {
@@ -338,3 +476,37 @@ async function validationStatus() {
 
 
 main();
+
+
+/*
+var item2;
+if (jsonResponse.summary.errors > 0) {
+  if (jsonResponse.errors.metadataInvalid.isArray()) {
+    jsonResponse.errors.metadataInvalid.forEach((testresult) => {
+      //console.log ("TESTRESULT=");
+      //console.log(testresult);
+      item2 = item.ele('testcase', { name: "metadataInvalid-"+testresult.key, classname: cds })
+        .ele('failure', { message: testresult.path + "/" + testresult.key + " metadaInvalid, expected " + testresult.expected }).up()
+      .up();
+    });
+  }
+  if (jsonResponse.errors.failedParsers.isArray()) {
+    jsonResponse.errors.failedParsers.forEach((testresult) => {
+      //console.log ("TESTRESULT=");
+      //console.log(testresult);
+      item2 = item.ele('testcase', { name: testresult.validatorName, classname: cds })
+        .ele('failure', { message: testresult.errorDescription }).up()
+      .up();
+    });
+  }
+}
+if (jsonResponse.summary.problems > 0 && jsonResponse.problems.crashedParsers.isArray()) {
+  jsonResponse.problems.crashedParsers.forEach((testresult) => {
+    //console.log ("TESTRESULT=");
+    //console.log(testresult);
+    item2 = item.ele('testcase', { name: testresult.validatorName, classname: cds })
+      .ele('error', { message: testresult.errorDescription }).up()
+    .up();
+  });
+}
+*/
