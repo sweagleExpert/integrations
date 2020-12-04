@@ -476,37 +476,3 @@ async function validationStatus() {
 
 
 main();
-
-
-/*
-var item2;
-if (jsonResponse.summary.errors > 0) {
-  if (jsonResponse.errors.metadataInvalid.isArray()) {
-    jsonResponse.errors.metadataInvalid.forEach((testresult) => {
-      //console.log ("TESTRESULT=");
-      //console.log(testresult);
-      item2 = item.ele('testcase', { name: "metadataInvalid-"+testresult.key, classname: cds })
-        .ele('failure', { message: testresult.path + "/" + testresult.key + " metadaInvalid, expected " + testresult.expected }).up()
-      .up();
-    });
-  }
-  if (jsonResponse.errors.failedParsers.isArray()) {
-    jsonResponse.errors.failedParsers.forEach((testresult) => {
-      //console.log ("TESTRESULT=");
-      //console.log(testresult);
-      item2 = item.ele('testcase', { name: testresult.validatorName, classname: cds })
-        .ele('failure', { message: testresult.errorDescription }).up()
-      .up();
-    });
-  }
-}
-if (jsonResponse.summary.problems > 0 && jsonResponse.problems.crashedParsers.isArray()) {
-  jsonResponse.problems.crashedParsers.forEach((testresult) => {
-    //console.log ("TESTRESULT=");
-    //console.log(testresult);
-    item2 = item.ele('testcase', { name: testresult.validatorName, classname: cds })
-      .ele('error', { message: testresult.errorDescription }).up()
-    .up();
-  });
-}
-*/
