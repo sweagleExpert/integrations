@@ -149,12 +149,19 @@ example:
 - you can display the result of validation rules in Azure DevOps test dashboard using a publish test result task like the one below:
 
 `- task: PublishTestResults@2
+
   inputs:
+
     testResultsFormat: 'JUnit'
+
     testResultsFiles: '**/testResult*.xml'
+
     mergeTestResults: false
+
     testRunTitle: 'SWEAGLE VALIDATION'
-    buildPlatform: 'SWEAGLE'`
+
+    buildPlatform: 'SWEAGLE'
+    `
 
 Refer to https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch if you want to use it in multi-jobs pipeline.
 
