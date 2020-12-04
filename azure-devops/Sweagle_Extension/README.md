@@ -29,7 +29,7 @@ Refer to section "Create and Publish from Azure DevOps Pipeline" to do it from a
 |--- vss-extension.json             // extension's manifest
 `
 
-## Build and Test
+## Build
 
 Describe and show how to build your code and run the tests.
 
@@ -57,9 +57,16 @@ From your task folder (ex: `/buildAndReleaseTask`), run
 
 By default, extension will run a connection to Sweagle testing tenant with the `/info` api.
 
-4.	Test your extension
+## Test
+
+1.	Test your extension
 From your task folder, run the test suite with
 `mocha tests/_suite.js`
+
+2.  Test with creating a JUnit test results report
+From your task folder, run the test suite with
+`mocha ./tests/_suite.js --reporter xunit --reporter-option output=ResultsFile.xml`
+
 
 ## Create Package and Publish it
 
@@ -139,6 +146,16 @@ example:
     script: echo $(response)
 `
 
+- you can display the result of validation rules in Azure DevOps test dashboard using a publish test result task like the one below:
+
+`- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: '**/testResult*.xml'
+    mergeTestResults: false
+    testRunTitle: 'SWEAGLE VALIDATION'
+    buildPlatform: 'SWEAGLE'`
+
 Refer to https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch if you want to use it in multi-jobs pipeline.
 
 ## Define as Decorator
@@ -185,3 +202,7 @@ https://docs.microsoft.com/en-us/azure/devops/extend/develop/add-build-task?view
 - Your mocha test can't run from your Azure DevOps publish pipeline
   - This is because Azure sample doesn't include task to install mocha
   - You should add the following task before your test task: TBD
+
+- When you try to publish Mocha test results a JUNit XML, you got error
+`✖ ERROR: { TypeError: Could not load reporter "mocha-junit-reporter":`
+  - solution TBD
