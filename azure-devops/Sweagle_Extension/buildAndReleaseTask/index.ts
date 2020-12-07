@@ -112,7 +112,7 @@ function manageTestList(testList: any, validatorList: any, status: string, type:
         testList[testArray].forEach((testresult) => { validatorList[testresult.validatorName] = {status: status, type: type, message: testresult.errorDescription}; });
       } else {
         // This is a metadata error
-        testList[testArray].forEach((testresult) => { validatorList[testArray+"-"+testresult.key] = {status: status, type: type, message: testresult.path + "/" + testresult.key + " "+ testArray + ", expected " + testresult.expected}; });
+        testList[testArray].forEach((testresult) => { validatorList[testArray+"-"+testresult.path] = {status: status, type: type, message: testArray + " for key: " + testresult.key + " with value: " + testresult.value}; });
       }
     };
   };
