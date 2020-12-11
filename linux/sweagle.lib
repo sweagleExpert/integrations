@@ -155,6 +155,26 @@ function createChangeset() {
 }
 
 
+function createCds() {
+  if [ $# -lt 3 ]; then
+    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "### YOU SHOULD PROVIDE 1-CHANGESET ID, 2-NAME OF CDS, 3-NODE PATH (nodes separated by commas)"
+    return $INSUFFICIENT_ARGS
+  fi
+  csId=$1
+  cdsName=$2
+  cdsPath=$3
+
+  response=$(curl -skw "%{http_code}" -X POST "${sweagleURL}/api/v1/data/include/byPath?changeset=$csId&name=$cdsName&referenceNode=$cdsPath" -H "Authorization: bearer $aToken" -H "Content-Type: application/vnd.siren+json;charset=UTF-8")
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+  echo "Created configdataset: $cdsName"
+  return $OK
+}
+
+
 function createConfigData() {
   # Get all arguments
   while [[ "$#" > "0" ]]; do
@@ -197,7 +217,7 @@ function createConfigData() {
 function createInclude {
   if [ $# -lt 2 ]; then
     echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "### YOU SHOULD PROVIDE parentNode=<value> referenceNode=<value>"
+    echo "### YOU SHOULD PROVIDE parentNode=<value> referenceNode=<value> (node path, comma separated)"
     echo "### (OPTIONAL) YOU MAY ALSO PROVIDE changeset=<value>"
     return $INSUFFICIENT_ARGS
   fi
@@ -214,7 +234,7 @@ function createInclude {
   parentNode=${parentNode:-}
   referenceNode=${referenceNode:-}
 
-  if [ -z "${changeset}" ]; then changeset=$(createChangeset "Include ${referenceNode} in node ${parentNode}"); fi
+  if [ -z "${changeset}" ]; then changeset=$(createChangeset "Include ${referenceNode} in ${parentNode}"); fi
 
   response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "$sweagleURL/api/v1/data/include/byPath?changeset=${changeset}&parentNode=${parentNode}&referenceNode=${referenceNode}")
   # Handle errors
@@ -225,22 +245,46 @@ function createInclude {
 }
 
 
-function createCds() {
-  if [ $# -lt 3 ]; then
+function createMultipleIncludes {
+  if [ $# -lt 2 ]; then
     echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "### YOU SHOULD PROVIDE 1-CHANGESET ID, 2-NAME OF CDS, 3-NODE PATH (nodes separated by commas)"
+    echo "### YOU SHOULD PROVIDE parentNodes=<value> referenceNodes=<value> (where <value> is an array of node path, comma separated, and same dimension)"
+    echo "### <value> example array with 2 items: (node1,node2 node1,node3)"
+    echo "### (OPTIONAL) YOU MAY ALSO PROVIDE changeset=<value>"
     return $INSUFFICIENT_ARGS
   fi
-  csId=$1
-  cdsName=$2
-  cdsPath=$3
 
-  response=$(curl -skw "%{http_code}" -X POST "${sweagleURL}/api/v1/data/include/byPath?changeset=$csId&name=$cdsName&referenceNode=$cdsPath" -H "Authorization: bearer $aToken" -H "Content-Type: application/vnd.siren+json;charset=UTF-8")
+  while [[ "$#" > "0" ]]
+  do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+    shift
+  done
+  # Check if args null to replace by default values
+  changeset=${changeset:-}
+  parentNodes=${parentNodes:-}
+  referenceNodes=${referenceNodes:-}
+
+  # Build JSON body with array of all includes/parent
+  jsonBody="["
+  for ((i=0;i<${#parentNodes[@]};++i)); do
+    jsonBody="${jsonBody}{\"referenceNode\":\"${referenceNodes[i]}\",\"parentNode\":\"${parentNodes[i]}\"},"
+  done
+  # remove last character
+  jsonBody=${jsonBody::-1}
+  jsonBody="${jsonBody}]"
+
+  if [ -z "${changeset}" ]; then changeset=$(createChangeset "Create multiple includes"); fi
+
+  response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" -H "Content-Type: application/json" \
+    "$sweagleURL/api/v1/data/include/byMultiplePath?changeset=${changeset}" \
+    --data "${jsonBody}")
+
   # Handle errors
   response=$(handleErrors $? "${response}")
-  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
-  # no errors, handle response
-  echo "Created configdataset: $cdsName"
+  rc=$?; echo "${response}"; return ${rc}
+  echo ${changeset}
   return $OK
 }
 
