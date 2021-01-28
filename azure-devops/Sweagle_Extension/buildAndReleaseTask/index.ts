@@ -7,6 +7,7 @@ const querystring = require('querystring');
 const inputOperation: string = manageInput ('operation','info');
 const inputSweagleHost: string = manageInput ('tenant', 'testing.sweagle.com');
 const inputSweaglePort: string = manageInput ('port', '443');
+const inputAllowInsecure: string = manageInput ('allowInsecure', 'false');
 var startTime = new Date();
 
 async function main() {
@@ -53,12 +54,14 @@ function callSweagleAPI(apiPath: string, apiMethod: string = 'POST', filepath: s
     var HttpsProxyAgent = require('./HttpsProxyAgent');
     agent = new HttpsProxyAgent(proxy);
   }
+
   var sweagleTenant = {
     agent: agent,
     host: inputSweagleHost,
     port: inputSweaglePort,
     method: apiMethod,
     path: apiPath,
+    rejectUnauthorized: !(inputAllowInsecure),
     headers: { 'Accept': '*/*', 'Authorization': 'Bearer ' + manageInput ('token') }
   };
 

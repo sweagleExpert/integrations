@@ -1,6 +1,6 @@
 {
     "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
-    "id": "78e4b2ca-8ebd-4147-9be2-26f3d9f271a4",
+    "id": "78e4b2ca-8ebd-4147-9be2-XXX",
     "name": "sweagle",
     "friendlyName": "Sweagle",
     "description": "Manage, Validate and Secure your configuration data with ServiceNow Sweagle",
@@ -15,6 +15,11 @@
     "instanceNameFormat": "Sweagle $(operation)",
     "groups": [
       {
+        "name": "apiArgsGroup",
+        "displayName": "API arguments",
+        "isExpanded": true
+      },
+      {
         "name": "tenantGroup",
         "displayName": "Tenant information",
         "isExpanded": false
@@ -23,30 +28,9 @@
         "name": "proxyGroup",
         "displayName": "Proxy information",
         "isExpanded": false
-      },
-      {
-        "name": "extraArgsGroup",
-        "displayName": "Optional arguments",
-        "isExpanded": false
       }
     ],
     "inputs": [
-      {
-        "name": "operation",
-        "type": "pickList",
-        "label": "Operation",
-        "defaultValue": "info",
-        "options": {
-          "info": "Check connection and get info from your tenant",
-          "upload": "Upload a file to your tenant",
-          "validate": "Validate your configuration with specified validator",
-          "validationStatus": "Get validation status for your configuration",
-          "snapshot": "Snapshot a configuration",
-          "export": "Export a configuration"
-        },
-        "required": true,
-        "helpMarkDown": "Sweagle operation you want to realize (default is info to check connection to your tenant)."
-      },
       {
         "name": "tenant",
         "type": "string",
@@ -59,7 +43,7 @@
       {
         "name": "port",
         "type": "string",
-        "label": "Sweagle port",
+        "label": "Sweagle Port",
         "defaultValue": "443",
         "required": true,
         "helpMarkDown": "Sweagle port of the host you plan to connect to (default is 443 for HTTPS).",
@@ -72,8 +56,16 @@
         "defaultValue": "$(SWEAGLE_TOKEN)",
         "required": true,
         "helpMarkDown": "Sweagle token used to connect to your tenant with sufficient privileges. It is recommended to store as secret variable.",
-        "groupName": "tenantGroup",
-        "visibleRule": "operation != info"
+        "groupName": "tenantGroup"
+      },
+      {
+        "name": "allowInsecure",
+        "type": "boolean",
+        "label": "Allow Self Signed",
+        "defaultValue": "false",
+        "required": false,
+        "helpMarkDown": "Check this box if your SSL certificate is self signed or not issued by recognized CA.",
+        "groupName": "tenantGroup"
       },
       {
         "name": "proxyHost",
@@ -109,11 +101,29 @@
         "groupName": "proxyGroup"
       },
       {
+        "name": "operation",
+        "type": "pickList",
+        "label": "Operation",
+        "defaultValue": "info",
+        "options": {
+          "info": "Check connection and get info from your tenant",
+          "upload": "Upload a file to your tenant",
+          "validate": "Validate your configuration with specified validator",
+          "validationStatus": "Get validation status for your configuration",
+          "snapshot": "Snapshot a configuration",
+          "export": "Export a configuration"
+        },
+        "required": true,
+        "helpMarkDown": "Sweagle operation you want to realize (default is info to check connection to your tenant).",
+        "groupName": "apiArgsGroup"
+      },
+      {
         "name": "cds",
         "type": "string",
         "label": "Configuration Data Set (CDS)",
         "required": true,
         "helpMarkDown": "Sweagle configuration data set on which you will perform your operation.",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation != info && operation != upload"
       },
       {
@@ -122,6 +132,7 @@
         "label": "Input File Path",
         "required": true,
         "helpMarkDown": "Path to the input file to upload to Sweagle.",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation = upload"
       },
       {
@@ -130,6 +141,7 @@
         "label": "Node Path",
         "required": true,
         "helpMarkDown": "The comma-separated path of the node to upload the data.",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation = upload"
       },
       {
@@ -147,6 +159,7 @@
         },
         "required": true,
         "helpMarkDown": "Format of the configuration data file.",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation = upload || operation = export"
       },
       {
@@ -156,6 +169,7 @@
         "defaultValue": "all",
         "required": true,
         "helpMarkDown": "Exporter used to export your configuration.",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation = export"
       },
       {
@@ -165,6 +179,7 @@
         "defaultValue": "",
         "required": true,
         "helpMarkDown": "Validator used to check your configuration.",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation = validate"
       },
       {
@@ -174,7 +189,7 @@
         "defaultValue": "",
         "required": false,
         "helpMarkDown": "Parser custom arguments in object notation (JSON, XML or YAML) or comma separated list.",
-        "groupName": "extraArgsGroup",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation = validate || operation = export"
       },
       {
@@ -184,7 +199,7 @@
         "defaultValue": "false",
         "required": false,
         "helpMarkDown": "To allow the deletion of existing data or not.",
-        "groupName": "extraArgsGroup",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation = upload"
       },
       {
@@ -194,7 +209,7 @@
         "defaultValue": "false",
         "required": false,
         "helpMarkDown": "To run the machine learning type recognition after the upload.",
-        "groupName": "extraArgsGroup",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation = upload"
       },
       {
@@ -204,7 +219,7 @@
         "defaultValue": "true",
         "required": false,
         "helpMarkDown": "To auto-approve the changeset or not.",
-        "groupName": "extraArgsGroup",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation = upload"
       },
       {
@@ -214,7 +229,7 @@
         "defaultValue": "",
         "required": false,
         "helpMarkDown": "Additional configuration data sets (CDS) used in parser, CDS names comma separated.",
-        "groupName": "extraArgsGroup",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation = validate || operation = export"
       },
       {
@@ -224,7 +239,7 @@
         "defaultValue": "",
         "required": false,
         "helpMarkDown": "Tags of the additional configuration data sets (CDS) used in parser, comma separated.",
-        "groupName": "extraArgsGroup",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation = validate ||  operation = export"
       },
       {
@@ -234,7 +249,7 @@
         "defaultValue": "",
         "required": false,
         "helpMarkDown": "Open changeset Id to add these changes to.",
-        "groupName": "extraArgsGroup",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation = upload"
       },
       {
@@ -244,7 +259,7 @@
         "defaultValue": "",
         "required": false,
         "helpMarkDown": "Description to add",
-        "groupName": "extraArgsGroup",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation = upload || operation = snapshot"
       },
       {
@@ -254,7 +269,7 @@
         "defaultValue": "UTF-8",
         "required": false,
         "helpMarkDown": "The encoding of the upload data. Default UTF-8",
-        "groupName": "extraArgsGroup",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation = upload"
       },
       {
@@ -264,7 +279,7 @@
         "defaultValue": "false",
         "required": false,
         "helpMarkDown": "Use validation for pending data or for last snapshot data (default).",
-        "groupName": "extraArgsGroup",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation = validate || operation = validationStatus"
       },
       {
@@ -273,7 +288,7 @@
         "label": "Identifier Words",
         "required": false,
         "helpMarkDown": "This parameter can be used for XML, JSON, or YAML files to uniquely identify a data item in a list or an array. Uniqueness allows listed data to be exported properly.",
-        "groupName": "extraArgsGroup",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation = upload"
       },
       {
@@ -283,7 +298,7 @@
         "defaultValue": "true",
         "required": false,
         "helpMarkDown": "If a test result file (format './testResult*.xml') should also be generated. In this case, it will follow the XML Junit output format (default is true).",
-        "groupName": "extraArgsGroup",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation = validate || operation = validationStatus"
       },
       {
@@ -293,7 +308,7 @@
         "defaultValue": "false",
         "required": false,
         "helpMarkDown": "To restrict allow delete to only parent node.",
-        "groupName": "extraArgsGroup",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation = upload"
       },
       {
@@ -302,7 +317,7 @@
         "label": "Output File",
         "required": false,
         "helpMarkDown": "File to store result of the export.",
-        "groupName": "extraArgsGroup",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation = export"
       },
       {
@@ -312,7 +327,7 @@
         "defaultValue": "false",
         "required": false,
         "helpMarkDown": "To store a new snapshot or not.",
-        "groupName": "extraArgsGroup",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation = upload"
       },
       {
@@ -321,7 +336,7 @@
         "label": "Tag",
         "required": false,
         "helpMarkDown": "Sweagle snapshot (release) tag, string without space.",
-        "groupName": "extraArgsGroup",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation = upload || operation = snapshot || operation = export"
       },
       {
@@ -335,7 +350,7 @@
         "label": "Snapshot Validation Level",
         "required": false,
         "helpMarkDown": "Validation level to snapshot configuration.",
-        "groupName": "extraArgsGroup",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation = upload || operation = snapshot"
       },
       {
@@ -345,7 +360,7 @@
         "defaultValue": "true",
         "required": false,
         "helpMarkDown": "To get the custom validations in the response.",
-        "groupName": "extraArgsGroup",
+        "groupName": "apiArgsGroup",
         "visibleRule": "operation = validationStatus"
       }
   ],

@@ -8,5 +8,6 @@ let tmr: tmrm.TaskMockRunner = new tmrm.TaskMockRunner(taskPath);
 
 tmr.setInput('operation', 'info');
 tmr.setInput('tenant', params.sweagleEnv.tenant);
+tmr.setInput('allowInsecure', 'true');
 
 tmr.run();
