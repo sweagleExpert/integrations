@@ -64,7 +64,7 @@ Puppet::Functions.create_function(:sweagle_lookup_key) do
     #@http.set_debug_output($stdout)
     Puppet.debug("[sweagle_lookup_key]: Lookup key =(#{key})")
     Puppet.info("[sweagle_lookup_key]: cds (#{sweagle_cds}) with exporter (#{sweagle_parser}) and arg (#{sweagle_args}) from SWEAGLE tenant "+sweagle_tenant)
-    httpreq = Net::HTTP::Post.new('/api/v1/tenant/metadata-parser/parse?mds='+sweagle_cds+'&parser='+sweagle_parser+'&format=json&args='+sweagle_args)
+    httpreq = Net::HTTP::Post.new('/api/v1/tenant/metadata-parser/parse?mds='+sweagle_cds+'&parser='+sweagle_parser+'&format=json&arraySupport=true&args='+sweagle_args)
     header = {
       'Authorization' => 'Bearer ' + sweagle_token,
       "Accept" => 'application/json',
