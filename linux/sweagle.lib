@@ -357,13 +357,11 @@ function deleteConfigData() {
 function getConfig {
   if [[ $# -lt 2 ]]; then
     echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "### YOU SHOULD PROVIDE 1-MDS, 2-PARSER"
+    echo "### YOU SHOULD PROVIDE cds=<CDS NAME>, parser=<PARSER NAME>"
     echo "### (OPTIONAL) YOU MAY PROVIDE ANY OTHER API OPTIONS IN THE FORMAT <option>=<value> (ex: template=true)"
     return $INSUFFICIENT_ARGS
   fi
 
-  argMds=$1
-  argParser=$2
   while [[ "$#" > "0" ]]
   do
     case $1 in
@@ -372,12 +370,14 @@ function getConfig {
     shift
   done
   # Check if args null to replace by default values
+  mds=${cds:-}
   template=${template:-false}
+  arraySupport=${arraySupport:-false}
 
   if [ "$template" != "true" ]; then
-    response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/tenant/metadata-parser/parse?mds=${argMds}&parser=${argParser}&tag=${tag}&args=${args}&format=${format}&mdsArgs=${mdsArgs}&mdsTags=${mdsTags}")
+    response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/tenant/metadata-parser/parse?mds=${mds}&parser=${parser}&tag=${tag}&arg=${arg}&args=${args}&format=${format}&mdsArgs=${mdsArgs}&mdsTags=${mdsTags}&arraySupport=${arraySupport}")
   else
-    response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/tenant/template-parser/replace?mds=${argMds}&parser=${argParser}&tag=${tag}")
+    response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/tenant/template-parser/replace?mds=${mds}&parser=${parser}&tag=${tag}")
   fi
   # Handle errors
   response=$(handleErrors $? "${response}")
@@ -509,7 +509,7 @@ function getNodeId {
 function getValidationStatus {
   if [[ $# -lt 1 ]]; then
     echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "### YOU SHOULD PROVIDE name=<MDS NAME>"
+    echo "### YOU SHOULD PROVIDE cds=<CDS NAME>"
     return $INSUFFICIENT_ARGS
   fi
   while [[ "$#" > "0" ]]
@@ -520,7 +520,7 @@ function getValidationStatus {
     shift
   done
   # Check if args null to replace by default values
-  name=${name:-}
+  name=${cds:-}
   forIncoming=${forIncoming:-true}
   format=${format:-json}
   withCustomValidations=${withCustomValidations:-true}
@@ -596,11 +596,10 @@ function recognizeFromPath {
 function storeSnapshot {
   if [[ $# -lt 1 ]]; then
     echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "### YOU SHOULD PROVIDE 1-MDS NAME TO SNAPSHOT"
+    echo "### YOU SHOULD PROVIDE cds=<CDS NAME>"
     echo "### (OPTIONAL) YOU MAY PROVIDE ANY OTHER API OPTIONS IN THE FORMAT <option>=<value> (ex: level=warn)"
     return $INSUFFICIENT_ARGS
   fi
-  argMds=$1
   # Get all other optional arguments
   while [[ "$#" > "0" ]]; do
     case $1 in
@@ -611,8 +610,10 @@ function storeSnapshot {
   # Check if args null to replace by default values
   description=${description:-}
   level=${level:-"error"}
+  name=${cds:-}
+  tag=${tag:-}
 
-  response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/snapshot/byname?name=${argMds}" \
+  response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/snapshot/byname?name=${name}" \
     --data-urlencode "tag=${tag}" \
     --data-urlencode "description=${description}" \
     --data "level=${level}")
@@ -687,6 +688,7 @@ function uploadFile {
   if [[ -z ${file} ]]; then echo "### ERROR: FILE COULD NOT BE EMPTY, PUT file=<value>"; return $INSUFFICIENT_ARGS; fi
   if [[ -z ${nodePath} ]]; then echo "### ERROR: NODE PATH COULD NOT BE EMPTY, PUT nodePath=<value>"; return $INSUFFICIENT_ARGS; fi
   extension="${file##*.}"
+  # Get format from file extension if not provided
   format=${format:-$extension}
   # Put format in lowercase and check it to set content type
   case ${format,,} in
