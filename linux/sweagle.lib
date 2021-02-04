@@ -16,6 +16,8 @@
 #
 # PURPOSE:		Libraries of common SWEAGLE functions
 #
+# INPUTS:		SWEAGLE_URL and SWEAGLE_TOKEN variables should be defined before or at envrt variables
+
 # REV LIST:
 #        DATE: DATE_of_REVISION
 #        BY:   AUTHOR_of_MODIFICATION
@@ -122,7 +124,7 @@ function approveChangeset() {
   fi
 
   # echo "Approving changeset $csId"
-  response=$(curl -skw "%{http_code}" -X POST "${sweagleURL}/api/v1/data/changeset/$1/approve" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  response=$(curl -skw "%{http_code}" -X POST "${SWEAGLE_URL}/api/v1/data/changeset/$1/approve" -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Accept: application/vnd.siren+json")
   # Handle errors
   response=$(handleErrors $? "${response}")
   # No specific response processing, just return it
@@ -141,7 +143,7 @@ function createChangeset() {
 	description=${2:-}
 
   #echo "Creating changeset"
-  response=$(curl -skw "%{http_code}" -X POST "${sweagleURL}/api/v1/data/changeset" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" \
+  response=$(curl -skw "%{http_code}" -X POST "${SWEAGLE_URL}/api/v1/data/changeset" -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Accept: application/vnd.siren+json" \
     --data-urlencode "title=${title}" \
     --data-urlencode "description=${description}")
 
@@ -165,7 +167,7 @@ function createCds() {
   cdsName=$2
   cdsPath=$3
 
-  response=$(curl -skw "%{http_code}" -X POST "${sweagleURL}/api/v1/data/include/byPath?changeset=$csId&name=$cdsName&referenceNode=$cdsPath" -H "Authorization: bearer $aToken" -H "Content-Type: application/vnd.siren+json;charset=UTF-8")
+  response=$(curl -skw "%{http_code}" -X POST "${SWEAGLE_URL}/api/v1/data/include/byPath?changeset=$csId&name=$cdsName&referenceNode=$cdsPath" -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Content-Type: application/vnd.siren+json;charset=UTF-8")
   # Handle errors
   response=$(handleErrors $? "${response}")
   rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
@@ -203,7 +205,7 @@ function createConfigData() {
   # Check if mdiTypeName provided and id empty, will search for Id
 
   #echo "Creating changeset"
-  response=$(curl -skw "%{http_code}" -X POST "${sweagleURL}/api/v1/data/metadata" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" \
+  response=$(curl -skw "%{http_code}" -X POST "${SWEAGLE_URL}/api/v1/data/metadata" -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Accept: application/vnd.siren+json" \
     --data-urlencode "attributeKey=${attributeKey}" \
     --data-urlencode "attributeValue=${attributeValue}" \
     --data "changeset=${changeset}&isSensitive=${isSensitive}&mdiTypeId=${mdiTypeId}&node=${node}&path=${path}")
@@ -236,7 +238,7 @@ function createInclude {
 
   if [ -z "${changeset}" ]; then changeset=$(createChangeset "Include ${referenceNode} in ${parentNode}"); fi
 
-  response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "$sweagleURL/api/v1/data/include/byPath?changeset=${changeset}&parentNode=${parentNode}&referenceNode=${referenceNode}")
+  response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $SWEAGLE_TOKEN" "$SWEAGLE_URL/api/v1/data/include/byPath?changeset=${changeset}&parentNode=${parentNode}&referenceNode=${referenceNode}")
   # Handle errors
   response=$(handleErrors $? "${response}")
   rc=$?; echo "${response}"; return ${rc}
@@ -277,8 +279,8 @@ function createMultipleIncludes {
 
   if [ -z "${changeset}" ]; then changeset=$(createChangeset "Create multiple includes"); fi
 
-  response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" -H "Content-Type: application/json" \
-    "$sweagleURL/api/v1/data/include/byMultiplePath?changeset=${changeset}" \
+  response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Content-Type: application/json" \
+    "$SWEAGLE_URL/api/v1/data/include/byMultiplePath?changeset=${changeset}" \
     --data "${jsonBody}")
 
   # Handle errors
@@ -296,7 +298,7 @@ function createNode {
     return $INSUFFICIENT_ARGS
   fi
 
-  response=$(curl -skw "%{http_code}" -X POST "${sweagleURL}/api/v1/data/node?name=$1&parentNode=$2&changeset=$3" -H "Authorization: bearer $aToken")
+  response=$(curl -skw "%{http_code}" -X POST "${SWEAGLE_URL}/api/v1/data/node?name=$1&parentNode=$2&changeset=$3" -H "Authorization: bearer $SWEAGLE_TOKEN")
   # Handle errors
   response=$(handleErrors $? "${response}")
   rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
@@ -314,7 +316,7 @@ function createNodefromType {
     return $INSUFFICIENT_ARGS
   fi
 
-  response=$(curl -skw "%{http_code}" -X POST "${sweagleURL}/api/v1/data/node?name=$1&typeName=$2&parentNode=$3&changeset=$4" -H "Authorization: bearer $aToken")
+  response=$(curl -skw "%{http_code}" -X POST "${SWEAGLE_URL}/api/v1/data/node?name=$1&typeName=$2&parentNode=$3&changeset=$4" -H "Authorization: bearer $SWEAGLE_TOKEN")
   # Handle errors
   response=$(handleErrors $? "${response}")
   rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
@@ -332,7 +334,7 @@ function deleteChangeset() {
     return $INSUFFICIENT_ARGS
   fi
 
-  response=$(curl -skw "%{http_code}" -X DELETE "${sweagleURL}/api/v1/data/changeset/$1" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  response=$(curl -skw "%{http_code}" -X DELETE "${SWEAGLE_URL}/api/v1/data/changeset/$1" -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Accept: application/vnd.siren+json")
   # Handle errors
   response=$(handleErrors $? "${response}")
   rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
@@ -345,7 +347,7 @@ function deleteChangeset() {
 function deleteConfigData() {
   if [ $# -ne 1 ]; then echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"; echo "### YOU SHOULD PROVIDE 1-CONFIG DATA ID TO DELETE"; return $INSUFFICIENT_ARGS; fi
 
-  response=$(curl -skw "%{http_code}" -X DELETE "${sweagleURL}/api/v1/data/metadata/$1" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  response=$(curl -skw "%{http_code}" -X DELETE "${SWEAGLE_URL}/api/v1/data/metadata/$1" -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Accept: application/vnd.siren+json")
   # Handle errors
   response=$(handleErrors $? "${response}")
   rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
@@ -375,9 +377,9 @@ function getConfig {
   arraySupport=${arraySupport:-false}
 
   if [ "$template" != "true" ]; then
-    response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/tenant/metadata-parser/parse?mds=${mds}&parser=${parser}&tag=${tag}&arg=${arg}&args=${args}&format=${format}&mdsArgs=${mdsArgs}&mdsTags=${mdsTags}&arraySupport=${arraySupport}")
+    response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $SWEAGLE_TOKEN" "${SWEAGLE_URL}/api/v1/tenant/metadata-parser/parse?mds=${mds}&parser=${parser}&tag=${tag}&arg=${arg}&args=${args}&format=${format}&mdsArgs=${mdsArgs}&mdsTags=${mdsTags}&arraySupport=${arraySupport}")
   else
-    response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/tenant/template-parser/replace?mds=${mds}&parser=${parser}&tag=${tag}")
+    response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $SWEAGLE_TOKEN" "${SWEAGLE_URL}/api/v1/tenant/template-parser/replace?mds=${mds}&parser=${parser}&tag=${tag}")
   fi
   # Handle errors
   response=$(handleErrors $? "${response}")
@@ -406,7 +408,7 @@ function getConfigData() {
     return $INSUFFICIENT_ARGS
   fi
 
-  response=$(curl -skw "%{http_code}" -X GET "${sweagleURL}/api/v1/data/metadata" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" \
+  response=$(curl -skw "%{http_code}" -X GET "${SWEAGLE_URL}/api/v1/data/metadata" -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Accept: application/vnd.siren+json" \
     --data-urlencode "attributeKey=${attributeKey}" \
     --data "changeset=${changeset}&path=${path}")
 
@@ -436,7 +438,7 @@ function getConfigDataId() {
     return $INSUFFICIENT_ARGS
   fi
 
-  response=$(curl -skw "%{http_code}" -X GET "${sweagleURL}/api/v1/data/metadata" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" \
+  response=$(curl -skw "%{http_code}" -X GET "${SWEAGLE_URL}/api/v1/data/metadata" -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Accept: application/vnd.siren+json" \
     --data-urlencode "attributeKey=${attributeKey}" \
     --data "changeset=${changeset}&path=${path}")
 
@@ -480,8 +482,8 @@ function getConfigDataSets {
   # Check if args null to replace by default values
   forIncoming=${forIncoming:-false}
 
-  response=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/data/include?forIncoming=${forIncoming}" \
-    -X GET  -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  response=$(curl -skw "%{http_code}" "$SWEAGLE_URL/api/v1/data/include?forIncoming=${forIncoming}" \
+    -X GET  -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Accept: application/vnd.siren+json")
   # Handle errors
   response=$(handleErrors $? "${response}")
   rc=$?; echo "${response}" | jq .; return ${rc}
@@ -495,7 +497,7 @@ function getNodeId {
     return $INSUFFICIENT_ARGS
   fi
 
-  response=$(curl -skw "%{http_code}" -X GET -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/node?path=${1}" )
+  response=$(curl -skw "%{http_code}" -X GET -H "Authorization: bearer $SWEAGLE_TOKEN" "${SWEAGLE_URL}/api/v1/data/node?path=${1}" )
   # Handle errors
   response=$(handleErrors $? "${response}")
   rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
@@ -525,7 +527,7 @@ function getValidationStatus {
   format=${format:-json}
   withCustomValidations=${withCustomValidations:-true}
 
-  response=$(curl -skw "%{http_code}" -X GET -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/validate?\
+  response=$(curl -skw "%{http_code}" -X GET -H "Authorization: bearer $SWEAGLE_TOKEN" "${SWEAGLE_URL}/api/v1/data/include/validate?\
 name=${name}&forIncoming=${forIncoming}&format=${format}&withCustomValidations=${withCustomValidations}")
   # Handle errors
   response=$(handleErrors $? "${response}")
@@ -554,7 +556,7 @@ function recognizeFromNodeId {
   # Check if args null to replace by default values
   downLimit=${downLimit:-100}
 
-  response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/ml/recognize" \
+  response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $SWEAGLE_TOKEN" "${SWEAGLE_URL}/api/v1/data/ml/recognize" \
   --data-urlencode "path=$1" --data "downLimit=${downLimit}")
   # Handle errors
   response=$(handleErrors $? "${response}")
@@ -613,7 +615,7 @@ function storeSnapshot {
   name=${cds:-}
   tag=${tag:-}
 
-  response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/snapshot/byname?name=${name}" \
+  response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $SWEAGLE_TOKEN" "${SWEAGLE_URL}/api/v1/data/include/snapshot/byname?name=${name}" \
     --data-urlencode "tag=${tag}" \
     --data-urlencode "description=${description}" \
     --data "level=${level}")
@@ -650,7 +652,7 @@ function updateConfigData() {
   # Check if mdiTypeName provided and id empty, will search for Id
 
   #echo "Creating changeset"
-  response=$(curl -skw "%{http_code}" -X POST "${sweagleURL}/api/v1/data/metadata/${id}" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" \
+  response=$(curl -skw "%{http_code}" -X POST "${SWEAGLE_URL}/api/v1/data/metadata/${id}" -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Accept: application/vnd.siren+json" \
     --data-urlencode "attributeKey=${attributeKey}" \
     --data-urlencode "attributeValue=${attributeValue}" \
     --data "changeset=${changeset}&isSensitive=${isSensitive}&mdiTypeId=${mdiTypeId}")
@@ -708,8 +710,8 @@ function uploadFile {
   esac
   description=$(urlencode $description)
 
-  response=$(curl -skw "%{http_code}" "${sweagleURL}/api/v1/data/bulk-operations/dataLoader/upload?nodePath=${nodePath}&allowDelete=${allowDelete}&autoApprove=${autoApprove}&changeset=${changeset}&description=${description}&encoding=${encoding}&format=${format}&identifierWords=${identifierWords}&onlyParent=${onlyParent}&runRecognition=${runRecognition}&storeSnapshotResults=${storeSnapshotResults}&tag=${tag}&validationLevel=${validationLevel}" \
-    --request POST -H "Authorization: bearer $aToken" -H "Content-Type: $contentType" --data-binary "@$file")
+  response=$(curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/data/bulk-operations/dataLoader/upload?nodePath=${nodePath}&allowDelete=${allowDelete}&autoApprove=${autoApprove}&changeset=${changeset}&description=${description}&encoding=${encoding}&format=${format}&identifierWords=${identifierWords}&onlyParent=${onlyParent}&runRecognition=${runRecognition}&storeSnapshotResults=${storeSnapshotResults}&tag=${tag}&validationLevel=${validationLevel}" \
+    --request POST -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Content-Type: $contentType" --data-binary "@$file")
 
   response=$(handleErrors $? "${response}")
   # No specific response processing, just return it
@@ -748,9 +750,9 @@ function validateConfig {
 
   if [[ -z ${parser} ]]; then
     # No parser provided, check the standard validator status
-    response=$(curl -skw "%{http_code}" -X GET -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/validate?name=${cds}&format=${format}&forIncoming=${forIncoming}&withCustomValidations=${withCustomValidations}")
+    response=$(curl -skw "%{http_code}" -X GET -H "Authorization: bearer $SWEAGLE_TOKEN" "${SWEAGLE_URL}/api/v1/data/include/validate?name=${cds}&format=${format}&forIncoming=${forIncoming}&withCustomValidations=${withCustomValidations}")
   else
-    response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/tenant/metadata-parser/validate" \
+    response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $SWEAGLE_TOKEN" "${SWEAGLE_URL}/api/v1/tenant/metadata-parser/validate" \
       --data "mds=${cds}" --data "parser=${parser}" --data-urlencode "arg=${arg}" --data "mdsArgs=${mdsArgs}" --data "mdsTags=${mdsTags}" --data "forIncoming=${forIncoming}")
   fi
   # Handle errors
@@ -761,9 +763,9 @@ function validateConfig {
     if [ "${ec}" = "NotFoundException" ]; then
       if [[ -z ${parser} ]]; then
         # No parser provided, check the standard validator status
-        response=$(curl -skw "%{http_code}" -X GET -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/data/include/validate?name=${cds}&format=${format}&forIncoming=false&withCustomValidations=${withCustomValidations}")
+        response=$(curl -skw "%{http_code}" -X GET -H "Authorization: bearer $SWEAGLE_TOKEN" "${SWEAGLE_URL}/api/v1/data/include/validate?name=${cds}&format=${format}&forIncoming=false&withCustomValidations=${withCustomValidations}")
       else
-        response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "${sweagleURL}/api/v1/tenant/metadata-parser/validate" \
+        response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $SWEAGLE_TOKEN" "${SWEAGLE_URL}/api/v1/tenant/metadata-parser/validate" \
           --data "mds=${cds}" --data "parser=${parser}"  --data "arg=${arg}" --data "mdsArgs=${mdsArgs}" --data "mdsTags=${mdsTags}" --data "forIncoming=false")
       fi
       # Handle errors
