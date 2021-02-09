@@ -43,9 +43,8 @@ SWEAGLE_ERROR=5
 ##########################################################
 if ! [ -x "$(command -v jq)" ] ; then
   echo "#########################################################################################"
-  echo "########## ERROR: JQ is not installed"
+  echo "########## WARNING: JQ is not installed, some features will not work"
   echo "#########################################################################################"
-  exit 1
 fi
 
 BASH_VERSION=$( bash --version | sed -Ee 's/GNU bash, version ([0-9.]+).*/\1/;q' )
@@ -355,6 +354,24 @@ function deleteConfigData() {
   return $OK
 }
 
+function deleteNodePath() {
+  if [ $# -ne 2 ]; then echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"; echo "### YOU SHOULD PROVIDE 1-NODEPATH TO DELETE AND CHANGESET ID TO USE"; return $INSUFFICIENT_ARGS; fi
+
+  # Get ID of Node Path
+  response=$(curl -skw "%{http_code}" -X GET "${SWEAGLE_URL}/api/v1/data/node?path=$1" -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Accept: application/vnd.siren+json")
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  nodeId=$(echo $response | jsonValue "id")
+
+  # Delete node
+  response=$(curl -skw "%{http_code}" -X DELETE "${SWEAGLE_URL}/api/v1/data/node/$nodeId?changeset=$2" -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Accept: application/vnd.siren+json")
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  echo "### node $1 deleted"
+  return $OK
+}
 
 function getConfig {
   if [[ $# -lt 2 ]]; then
@@ -486,7 +503,13 @@ function getConfigDataSets {
     -X GET  -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Accept: application/vnd.siren+json")
   # Handle errors
   response=$(handleErrors $? "${response}")
-  rc=$?; echo "${response}" | jq .; return ${rc}
+  rc=$?
+  if ! [ -x "$(command -v jq)" ]; then
+    echo "${response}"
+  else
+    echo "${response}" | jq .
+  fi
+  return ${rc}
 }
 
 
@@ -663,7 +686,7 @@ function updateConfigData() {
 }
 
 
-function uploadFile {
+function upload {
   # Get all arguments
   while [[ "$#" > "0" ]]; do
     case $1 in
@@ -676,6 +699,7 @@ function uploadFile {
   autoApprove=${autoApprove:-false}
   autoRecognize=${autoRecognize:-false}
   changeset=${changeset:-}
+  data=${data:-}
   description=${description:-}
   file=${file:-}
   encoding=${encoding:-utf-8}
@@ -687,7 +711,7 @@ function uploadFile {
   tag=${tag:-}
   validationLevel=${validationLevel:-"warn"}
 
-  if [[ -z ${file} ]]; then echo "### ERROR: FILE COULD NOT BE EMPTY, PUT file=<value>"; return $INSUFFICIENT_ARGS; fi
+  if [[ -z ${file} && -z ${data} ]]; then echo "### ERROR: FILE OR DATA MUST HAVE A VALUE, PUT file=<filepath> or data=<value>"; return $INSUFFICIENT_ARGS; fi
   if [[ -z ${nodePath} ]]; then echo "### ERROR: NODE PATH COULD NOT BE EMPTY, PUT nodePath=<value>"; return $INSUFFICIENT_ARGS; fi
   extension="${file##*.}"
   # Get format from file extension if not provided
@@ -710,9 +734,15 @@ function uploadFile {
   esac
   description=$(urlencode $description)
 
-  response=$(curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/data/bulk-operations/dataLoader/upload?nodePath=${nodePath}&allowDelete=${allowDelete}&autoApprove=${autoApprove}&changeset=${changeset}&description=${description}&encoding=${encoding}&format=${format}&identifierWords=${identifierWords}&onlyParent=${onlyParent}&runRecognition=${runRecognition}&storeSnapshotResults=${storeSnapshotResults}&tag=${tag}&validationLevel=${validationLevel}" \
-    --request POST -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Content-Type: $contentType" --data-binary "@$file")
-
+  if [[ -z ${file} ]]; then
+    # Upload raw data
+    response=$(curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/data/bulk-operations/dataLoader/upload?nodePath=${nodePath}&allowDelete=${allowDelete}&autoApprove=${autoApprove}&changeset=${changeset}&description=${description}&encoding=${encoding}&format=${format}&identifierWords=${identifierWords}&onlyParent=${onlyParent}&runRecognition=${runRecognition}&storeSnapshotResults=${storeSnapshotResults}&tag=${tag}&validationLevel=${validationLevel}" \
+      --request POST -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Content-Type: $contentType" --data-binary "$data")
+  else
+    # Upload file
+    response=$(curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/data/bulk-operations/dataLoader/upload?nodePath=${nodePath}&allowDelete=${allowDelete}&autoApprove=${autoApprove}&changeset=${changeset}&description=${description}&encoding=${encoding}&format=${format}&identifierWords=${identifierWords}&onlyParent=${onlyParent}&runRecognition=${runRecognition}&storeSnapshotResults=${storeSnapshotResults}&tag=${tag}&validationLevel=${validationLevel}" \
+      --request POST -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Content-Type: $contentType" --data-binary "@$file")
+  fi
   response=$(handleErrors $? "${response}")
   # No specific response processing, just return it
   rc=$?; echo "${response}"; return ${rc}
@@ -772,7 +802,11 @@ function validateConfig {
       response=$(handleErrors $? "${response}")
     fi
   fi
-  echo $response | jq .
+  if ! [ -x "$(command -v jq)" ]; then
+    echo $response
+  else
+    echo $response | jq .
+  fi
   rc=$(echo "$response" | jsonValue "result")
   if [[ $response = "{\"error\":"* ]]; then
       echo "********** ERROR: Unable to validate configuration: ${cds} with validator: ${parser}"
