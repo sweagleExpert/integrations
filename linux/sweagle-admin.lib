@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-source $(dirname "$0")/sweagle.lib
 ##########################################################
 # SCRIPT: sweagle-admin.lib
 # AUTHOR: dimitris@sweagle.com
@@ -15,6 +14,8 @@ source $(dirname "$0")/sweagle.lib
 #       - If on MAC with older Bash, please install higher bash version, check https://stackoverflow.com/questions/10574969/how-do-i-install-bash-3-2-25-on-mac-os-x-10-5-8
 #
 # PURPOSE:		Libraries of administration SWEAGLE functions
+#
+# INPUTS:		SWEAGLE_URL and SWEAGLE_TOKEN variables should be defined before in source file or at envrt variables
 #
 # REV LIST:
 #        DATE: DATE_of_REVISION
@@ -33,7 +34,7 @@ OK=0
 SYSTEM_ERROR=1
 INSUFFICIENT_ARGS=2
 SYNTAX_ERROR=3
-FILE_NOT_FOUND=4
+NOT_FOUND=4
 SWEAGLE_ERROR=5
 
 ##########################################################
@@ -54,6 +55,13 @@ if [ "${BASH_VERSION:0:1}" -lt 4 ] ; then
   exit 1
 fi
 
+if [ -z "${SWEAGLE_URL}" ] || [ -z "${SWEAGLE_TOKEN}" ] ; then
+  echo "#########################################################################################"
+  echo "########## ERROR: SWEAGLE_URL and SWEAGLE_TOKEN must be defined"
+  echo "#########################################################################################"
+  exit 1
+fi
+
 ##########################################################
 #                    UTILITIES FUNCTIONS
 #               (USED BY SWEAGLE API FUNCTIONS)
@@ -65,7 +73,7 @@ function handleErrors() {
   rc=$1
   response=$2
   # check curl exit code
-  rc=$?; if [ ${rc} -ne 0 ]; then echo "ERROR: CURL exit code ${rc}"; return ${rc}; fi;
+  if [ ${rc} -ne 0 ]; then echo "ERROR: CURL exit code ${rc}"; return ${rc}; fi;
   # check http_code returned
   http_code=$(echo "$response"| tail -c 4)
   response=$(echo "${response::-3}")
@@ -119,11 +127,12 @@ function urlencode() {
 function approveModelChangeset() {
 	changeset=${1}
 	# Create and open a new changeset
-	res=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/model/changeset/${changeset}/approve" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
-	# check curl exit code
-	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-  # check http return code
-	get_httpreturn httpcode res; if [ ${httpcode} -eq "200" ]; then return 0; else return 1; fi;
+	response=$(curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/model/changeset/${changeset}/approve" --request POST --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json')
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+  return $OK
 }
 
 
@@ -134,16 +143,15 @@ function createModelChangeset() {
 	description=${2}
 
 	# Create and open a new changeset
-	res=$(\
-		curl -skw "%{http_code}" "$sweagleURL/api/v1/model/changeset" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	response=$(\
+		curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/model/changeset" --request POST --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json' \
 		--data-urlencode "title=${title}" \
 		--data-urlencode "description=${description}")
-	# check exit code
-	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-    # check http return code
-	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then exit 1; fi;
-
-  cs=$(echo ${res} | jq '.properties.changeset.id')
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+  cs=$(echo ${response} | jq '.properties.changeset.id')
 	echo ${cs}
 }
 
@@ -164,10 +172,11 @@ function setPreferences {
   done
   echo "ARGS=${args}"
 
-  response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer $aToken" "$sweagleURL/api/tenant/preferences?${args}")
+  response=$(curl -skw "%{http_code}" -X POST -H "Authorization: bearer ${SWEAGLE_TOKEN}" "${SWEAGLE_URL}/api/tenant/preferences?${args}")
   # Handle errors
   response=$(handleErrors $? "${response}")
   rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
   return $OK
 }
 
@@ -196,8 +205,8 @@ function createCdiType() {
 	listOfValues=${8:-}
 
 	# Create a new mdi_type
-	res=$(\
-		curl -sw "%{http_code}" "$sweagleURL/api/v1/model/mdiType" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	response=$(\
+		curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/model/mdiType" --request POST --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json' \
 		--data "changeset=${changeset}" \
 		--data-urlencode "name=${name}" \
 		--data "required=${required}" \
@@ -207,21 +216,21 @@ function createCdiType() {
 		--data-urlencode "listOfValues=${listOfValues}" \
 		--data-urlencode "description=${description}")
 
-	# check curl exit code
-	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-  # check http return code
-	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then echo ${res}; exit 1; fi;
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+	return $OK
 }
 
 function getAllMdiTypes() {
 	# Get all mdi_types
-	res=$(curl -sw "%{http_code}" "$sweagleURL/api/v1/model/mdiType" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
-	# check curl exit code
-	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-    # check http return code
-	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then ${res};  exit 1; fi;
-
-	echo ${res}
+	response=$(curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/model/mdiType" --request GET --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json')
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+	echo ${response}
 }
 
 # arg1: id
@@ -229,13 +238,12 @@ function getMdiTypeFromId() {
   id=${1}
 
 	# Get one mdi_type based on its id
-	res=$(curl -sw "%{http_code}" "$sweagleURL/api/v1/model/mdiType/$id" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
-	# check curl exit code
-	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-    # check http return code
-	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then echo ${res}; exit 1; fi;
-
-	echo ${res}
+	response=$(curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/model/mdiType/$id" --request GET --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json')
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+	echo ${response}
 }
 
 
@@ -244,17 +252,15 @@ function getMdiTypeFromName() {
 	name=${1}
 
 	# Get a mdi_type based on its name
-	#echo "curl $sweagleURL/api/v1/model/mdiType?name=$name --request GET --header 'authorization: bearer $aToken'  --header 'Accept: application/vnd.siren+json'"
-	res=$(\
-	  curl -sw "%{http_code}" "$sweagleURL/api/v1/model/mdiType?name=$name" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	#echo "curl ${SWEAGLE_URL}/api/v1/model/mdiType?name=$name --request GET --header 'authorization: bearer ${SWEAGLE_TOKEN}'  --header 'Accept: application/vnd.siren+json'"
+	response=$(\
+	  curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/model/mdiType?name=$name" --request GET --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json' \
 		)
-
-	# check curl exit code
-	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-    # check http return code
-	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then exit 1; fi;
-
-	id=$(echo ${res} | jq '.entities[].properties.id')
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+	id=$(echo ${response} | jq '.entities[].properties.id')
 	echo ${id}
 }
 
@@ -280,8 +286,8 @@ function updateMdiType() {
 	listOfValues=${9:-}
 
 	# Update an existing mdi_type
-	res=$(\
-		curl -sw "%{http_code}" "$sweagleURL/api/v1/model/mdiType/$id" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	response=$(\
+		curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/model/mdiType/$id" --request POST --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json' \
 		--data "changeset=${changeset}" \
 		--data-urlencode "name=${name}" \
 		--data "required=${required}" \
@@ -291,10 +297,11 @@ function updateMdiType() {
 		--data-urlencode "listOfValues=${listOfValues}" \
 		--data-urlencode "description=${description}")
 
-	# check curl exit code
-	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-	# check http return code
-	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then echo ${res}; exit 1; fi;
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+  return $OK
 }
 
 
@@ -327,11 +334,11 @@ function createNodeType() {
 			args="$args&numberOfIncludes=$numberOfIncludes"
 		fi
 	fi
-	createURL="$sweagleURL/api/v1/model/type$args"
+	createURL="${SWEAGLE_URL}/api/v1/model/type$args"
 
 	# Create a new node_type
-	res=$(\
-		curl -skw "%{http_code}" "$createURL" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	response=$(\
+		curl -skw "%{http_code}" "$createURL" --request POST --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json' \
 		--data "changeset=${changeset}" \
 		--data-urlencode "name=${name}" \
 		--data-urlencode "description=${description}" \
@@ -339,13 +346,12 @@ function createNodeType() {
 		--data "internal=${internal}" \
 		--data "isMetadataset=${isMetadataset}" )
 
-	# check curl exit code
-	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-  # check http return code, it's ok if 200 (OK) or 201 (created)
-	get_httpreturn httpcode res; if [[ "${httpcode}" != 20* ]]; then echo ${res}; exit 1; fi;
-
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
 	# Get the node ID created
-	id=$(echo ${res} | jq '.properties.id')
+	id=$(echo ${response} | jq '.properties.id')
 	echo ${id}
 }
 
@@ -379,14 +385,14 @@ function createTypeAttribute() {
 	if [[ -n "${referenceTypeName}" && "${referenceTypeName}" != "null" ]]; then
 		# if there is a reference name, then find referenced type
 		referenceTypeId=$(getNodeType "$referenceTypeName")
-		createURL="$sweagleURL/api/v1/model/attribute?referenceType=${referenceTypeId}"
+		createURL="${SWEAGLE_URL}/api/v1/model/attribute?referenceType=${referenceTypeId}"
 	else
-		createURL="$sweagleURL/api/v1/model/attribute?valueType=${valueType}"
+		createURL="${SWEAGLE_URL}/api/v1/model/attribute?valueType=${valueType}"
 	fi
 
 	# Create a new type_attribute
-	res=$(\
-		curl -skw "%{http_code}" "$createURL" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	response=$(\
+		curl -skw "%{http_code}" "$createURL" --request POST --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json' \
 		--data "changeset=${changeset}" \
 		--data "type=${type_id}" \
 		--data-urlencode "name=${name}" \
@@ -398,10 +404,11 @@ function createTypeAttribute() {
 		--data-urlencode "dateFormat=${dateFormat}" \
 		--data-urlencode "defaultValue=${defaultValue}")
 
-	# check curl exit code
-	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-	# check http return code, it's ok if 200 (OK) or 201 (created)
-	get_httpreturn httpcode res; if [[ "${httpcode}" != 20* ]]; then echo ${res}; exit 1; fi;
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+  return $OK
 }
 
 
@@ -417,12 +424,12 @@ function deleteTypeAttribute() {
 	attr_id=$(getTypeAttribute $type_id "${name}")
 
 	# delete attribute
-	deleteURL="$sweagleURL/api/v1/model/attribute/${attr_id}?changeset=${changeset}&type=${type_id}"
-	res=$(curl -skw "%{http_code}" "$deleteURL" --request DELETE --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
-	# check curl exit code
-	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-	# check http return code, it's ok if 200 (OK) or 201 (created)
-	get_httpreturn httpcode res; if [ ${httpcode} -ne 200 ]; then echo ${res}; exit 1; fi;
+	deleteURL="${SWEAGLE_URL}/api/v1/model/attribute/${attr_id}?changeset=${changeset}&type=${type_id}"
+	response=$(curl -skw "%{http_code}" "$deleteURL" --request DELETE --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json')
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
 }
 
 
@@ -430,15 +437,14 @@ function deleteTypeAttribute() {
 function getAllAllowedChildTypes() {
 	id=${1}
 
-	res=$(\
-	  curl -skw "%{http_code}" "$sweagleURL/api/v1/model/type/$id/childTypes" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	response=$(\
+	  curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/model/type/$id/childTypes" --request GET --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json' \
 		)
-	# check curl exit code
-	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-  # check http return code
-	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then exit 1; fi;
-
-	echo ${res}
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+	echo ${response}
 }
 
 
@@ -447,29 +453,27 @@ function getAllAttributes() {
 	id=${1}
 
 	# Get a type attributes based on type id
-	res=$(\
-	  curl -skw "%{http_code}" "$sweagleURL/api/v1/model/attribute?type=$id" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	response=$(\
+	  curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/model/attribute?type=$id" --request GET --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json' \
 		)
-	# check curl exit code
-	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-  # check http return code
-	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then exit 1; fi;
-
-	echo ${res}
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+	echo ${response}
 }
 
 
 function getAllNodeTypes() {
 
-	res=$(\
-	  curl -skw "%{http_code}" "$sweagleURL/api/v1/model/type" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	response=$(\
+	  curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/model/type" --request GET --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json' \
 		)
-	# check curl exit code
-	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-  # check http return code
-	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then exit 1; fi;
-
-	echo ${res}
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+	echo ${response}
 }
 
 
@@ -480,14 +484,13 @@ function getNodeType() {
 
   # Replace any space in name by %20 as data-urlencode doesn't seem to work for GET
   name=${name//" "/"%20"}
-	res=$(\
-	  curl -skw "%{http_code}" "$sweagleURL/api/v1/model/type?name=${name}" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' )
-	# check curl exit code
-	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-  # check http return code
-	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then echo ${res}; exit 1; fi;
-
-	id=$(echo ${res} | jq '.entities[0].properties.id')
+	response=$(\
+	  curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/model/type?name=${name}" --request GET --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json' )
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+	id=$(echo ${response} | jq '.entities[0].properties.id')
 	echo ${id}
 }
 
@@ -498,20 +501,19 @@ function getTypeAttribute() {
 	name=${2:-}
 
 	# Get a type attributes based on type id
-	res=$(\
-	  curl -skw "%{http_code}" "$sweagleURL/api/v1/model/attribute?type=$id" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	response=$(\
+	  curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/model/attribute?type=$id" --request GET --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json' \
 		)
-	# check curl exit code
-	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-  # check http return code
-	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then echo ${res}; exit 1; fi;
-
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
 	if [ -n "${name}" ]; then
 		# Get attribute ID based on its name
-		attr_id=$(echo ${res} | jq --arg attr_name ${name} '.entities[].properties | select(.identifierKey|index($attr_name)) | .id')
+		attr_id=$(echo ${response} | jq --arg attr_name ${name} '.entities[].properties | select(.identifierKey|index($attr_name)) | .id')
 	else
 		# Return list of existing attributes names
-		attr_id=$(echo ${res} | jq '.entities[].properties.identifierKey')
+		attr_id=$(echo ${response} | jq '.entities[].properties.identifierKey')
 	fi
 	echo ${attr_id}
 }
@@ -548,14 +550,14 @@ function updateTypeAttribute() {
 	if [ -n "${referenceTypeName}" ]; then
 		# if there is a refence name, then find referenced type
 		referenceTypeId=$(getNodeType "$referenceTypeName")
-		updateURL="$sweagleURL/api/v1/model/attribute/$attr_id?referenceType=${referenceTypeId}"
+		updateURL="${SWEAGLE_URL}/api/v1/model/attribute/$attr_id?referenceType=${referenceTypeId}"
 	else
-		updateURL="$sweagleURL/api/v1/model/attribute/$attr_id?valueType=${valueType}"
+		updateURL="${SWEAGLE_URL}/api/v1/model/attribute/$attr_id?valueType=${valueType}"
 	fi
 
 	# update a type_attribute
-	res=$(\
-		curl -skw "%{http_code}" "$updateURL" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	response=$(\
+		curl -skw "%{http_code}" "$updateURL" --request POST --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json' \
 		--data "changeset=${changeset}" \
 		--data "type=${type_id}" \
 		--data-urlencode "name=${name}" \
@@ -567,10 +569,10 @@ function updateTypeAttribute() {
 		--data-urlencode "dateFormat=${dateFormat}" \
 		--data-urlencode "defaultValue=${defaultValue}")
 
-	# check curl exit code
-	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-  # check http return code
-	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then echo ${res}; exit 1; fi;
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
 }
 
 
@@ -593,8 +595,8 @@ function assignParserToCds {
     shift
   done
 
-  response=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/tenant/metadata-parser/${parserId}/metadatasets?metadataset=${cdsId}" \
-    -X POST  -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  response=$(curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/tenant/metadata-parser/${parserId}/metadatasets?metadataset=${cdsId}" \
+    -X POST  -H "Authorization: bearer ${SWEAGLE_TOKEN}" -H "Accept: application/vnd.siren+json")
   # Handle errors
   response=$(handleErrors $? "${response}")
   rc=$?; echo "${response}" | jq .; return ${rc}
@@ -629,10 +631,10 @@ function createParser {
   echo "### Create parser with name: $argName"
   if [ "$argParserType" = "TEMPLATE" ]; then
     #for debug
-    #echo "curl -sk -X POST '$sweagleURL/api/v1/tenant/template-parser?name=$filename&parserType=$argParserType&errorDescriptionDraft=error+in+parser+$filename' --data-urlencode 'description=$argDescription' --data-urlencode 'template=$argScript' -H 'Authorization: bearer $aToken' -H 'Accept: application/vnd.siren+json'"
-    response=$(curl -sk -X POST "$sweagleURL/api/v1/tenant/template-parser?name=$filename" --data-urlencode "description=$argDescription" --data-urlencode "template=$argScript" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+    #echo "curl -sk -X POST '${SWEAGLE_URL}/api/v1/tenant/template-parser?name=$filename&parserType=$argParserType&errorDescriptionDraft=error+in+parser+$filename' --data-urlencode 'description=$argDescription' --data-urlencode 'template=$argScript' -H 'Authorization: bearer ${SWEAGLE_TOKEN}' -H 'Accept: application/vnd.siren+json'"
+    response=$(curl -sk -X POST "${SWEAGLE_URL}/api/v1/tenant/template-parser?name=$filename" --data-urlencode "description=$argDescription" --data-urlencode "template=$argScript" -H "Authorization: bearer ${SWEAGLE_TOKEN}" -H "Accept: application/vnd.siren+json")
   else
-    response=$(curl -sk -X POST "$sweagleURL/api/v1/tenant/metadata-parser?name=$filename&parserType=$argParserType&errorDescriptionDraft=error+in+parser+$filename" --data-urlencode "description=$argDescription" --data-urlencode "scriptDraft=$argScript" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+    response=$(curl -sk -X POST "${SWEAGLE_URL}/api/v1/tenant/metadata-parser?name=$filename&parserType=$argParserType&errorDescriptionDraft=error+in+parser+$filename" --data-urlencode "description=$argDescription" --data-urlencode "scriptDraft=$argScript" -H "Authorization: bearer ${SWEAGLE_TOKEN}" -H "Accept: application/vnd.siren+json")
   fi
   # Check if any error before continue
   errorFound=$(echo $response | jsonValue "error_description")
@@ -649,9 +651,9 @@ function createParser {
 function deleteParser {
   local argId=$1
   if [ "$argParserType" = "TEMPLATE" ]; then
-    response=$(curl -sk -X DELETE "$sweagleURL/api/v1/tenant/template-parser/$argId" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+    response=$(curl -sk -X DELETE "${SWEAGLE_URL}/api/v1/tenant/template-parser/$argId" -H "Authorization: bearer ${SWEAGLE_TOKEN}" -H "Accept: application/vnd.siren+json")
   else
-    response=$(curl -sk -X DELETE "$sweagleURL/api/v1/tenant/metadata-parser/$argId" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+    response=$(curl -sk -X DELETE "${SWEAGLE_URL}/api/v1/tenant/metadata-parser/$argId" -H "Authorization: bearer ${SWEAGLE_TOKEN}" -H "Accept: application/vnd.siren+json")
   fi
   # Check if any error before continue
   errorFound=$(echo $response | jsonValue "error_description")
@@ -668,9 +670,9 @@ function deleteParser {
 function getNextParserId {
   echo "### Get parser list"
   if [ "$argParserType" = "TEMPLATE" ]; then
-    response=$(curl -sk -X GET -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" "$sweagleURL/api/v1/tenant/template-parser")
+    response=$(curl -sk -X GET -H "Authorization: bearer ${SWEAGLE_TOKEN}" -H "Accept: application/vnd.siren+json" "${SWEAGLE_URL}/api/v1/tenant/template-parser")
   else
-    response=$(curl -sk -X GET -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" "$sweagleURL/api/v1/tenant/metadata-parser")
+    response=$(curl -sk -X GET -H "Authorization: bearer ${SWEAGLE_TOKEN}" -H "Accept: application/vnd.siren+json" "${SWEAGLE_URL}/api/v1/tenant/metadata-parser")
   fi
   # Check if any error before continue
   errorFound=$(echo $response | jsonValue "error_description")
@@ -722,11 +724,11 @@ function getParsers {
   status=${status:-}
 
   if [ "$ParserType" = "TEMPLATE" ]; then
-	response=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/tenant/template-parser?status=${status}" \
-    -X GET  -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+	response=$(curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/tenant/template-parser?status=${status}" \
+    -X GET  -H "Authorization: bearer ${SWEAGLE_TOKEN}" -H "Accept: application/vnd.siren+json")
   else
-	response=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/tenant/metadata-parser?parserType=${parserType}&status=${status}" \
-    -X GET  -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+	response=$(curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/tenant/metadata-parser?parserType=${parserType}&status=${status}" \
+    -X GET  -H "Authorization: bearer ${SWEAGLE_TOKEN}" -H "Accept: application/vnd.siren+json")
   fi
   # Handle errors
   response=$(handleErrors $? "${response}")
@@ -747,11 +749,11 @@ function getParser {
   parserId=${parserId:-}
 
   if [ "$ParserType" = "TEMPLATE" ]; then
-	response=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/tenant/template-parser/$parserId?status=${status}" \
-    -X GET  -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+	response=$(curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/tenant/template-parser/$parserId?status=${status}" \
+    -X GET  -H "Authorization: bearer ${SWEAGLE_TOKEN}" -H "Accept: application/vnd.siren+json")
   else
-	response=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/tenant/metadata-parser/$parserId?parserType=${parserType}&status=${status}" \
-    -X GET  -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+	response=$(curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/tenant/metadata-parser/$parserId?parserType=${parserType}&status=${status}" \
+    -X GET  -H "Authorization: bearer ${SWEAGLE_TOKEN}" -H "Accept: application/vnd.siren+json")
   fi
   # Handle errors
   response=$(handleErrors $? "${response}")
@@ -760,7 +762,7 @@ function getParser {
 
 
 function getTemplates {
-  response=$(curl  -skw "%{http_code}" -X GET "$sweagleURL/api/v1/tenant/template-parser" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+  response=$(curl  -skw "%{http_code}" -X GET "${SWEAGLE_URL}/api/v1/tenant/template-parser" -H "Authorization: bearer ${SWEAGLE_TOKEN}" -H "Accept: application/vnd.siren+json")
   # Handle errors
   response=$(handleErrors $? "${response}")
   rc=$?; echo "${response}"; return ${rc}
@@ -772,9 +774,9 @@ function publishParser {
   local argScript=$2
   echo "### Publish parser with id: $argId"
   if [ "$argParserType" = "TEMPLATE" ]; then
-    response=$(curl -sk -X POST "$sweagleURL/api/v1/tenant/template-parser/$argId/publish" --data-urlencode "template=$argScript" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" )
+    response=$(curl -sk -X POST "${SWEAGLE_URL}/api/v1/tenant/template-parser/$argId/publish" --data-urlencode "template=$argScript" -H "Authorization: bearer ${SWEAGLE_TOKEN}" -H "Accept: application/vnd.siren+json" )
   else
-    response=$(curl -sk -X POST "$sweagleURL/api/v1/tenant/metadata-parser/$argId/publish" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json" )
+    response=$(curl -sk -X POST "${SWEAGLE_URL}/api/v1/tenant/metadata-parser/$argId/publish" -H "Authorization: bearer ${SWEAGLE_TOKEN}" -H "Accept: application/vnd.siren+json" )
   fi
   errorFound=$(echo $response | jsonValue "error_description")
   if [[ -z $errorFound ]]; then
@@ -792,9 +794,9 @@ function updateParser {
   local argScript=$3
   echo "### Update parser $argId"
   if [ "$argParserType" = "TEMPLATE" ]; then
-    response=$(curl -sk -X POST "$sweagleURL/api/v1/tenant/template-parser/$argId/draft" --data-urlencode "description=$argDescription" --data-urlencode "template=$argScript" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+    response=$(curl -sk -X POST "${SWEAGLE_URL}/api/v1/tenant/template-parser/$argId/draft" --data-urlencode "description=$argDescription" --data-urlencode "template=$argScript" -H "Authorization: bearer ${SWEAGLE_TOKEN}" -H "Accept: application/vnd.siren+json")
   else
-    response=$(curl -sk -X POST "$sweagleURL/api/v1/tenant/metadata-parser/$argId" --data-urlencode "description=$argDescription" --data-urlencode "scriptDraft=$argScript" -H "Authorization: bearer $aToken" -H "Accept: application/vnd.siren+json")
+    response=$(curl -sk -X POST "${SWEAGLE_URL}/api/v1/tenant/metadata-parser/$argId" --data-urlencode "description=$argDescription" --data-urlencode "scriptDraft=$argScript" -H "Authorization: bearer ${SWEAGLE_TOKEN}" -H "Accept: application/vnd.siren+json")
   fi
   # Check if any error before continue
   errorFound=$(echo $response | jsonValue "error_description")
@@ -817,13 +819,13 @@ function addUserApis() {
 	apis_id=${2}
 
 	# Add apis token to an existing user
-	res=$(\
-		curl -skw "%{http_code}" "$sweagleURL/api/v1/user/${user_id}/api" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	response=$(\
+		curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/user/${user_id}/api" --request POST --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json' \
 		--data "apiUsers=${apis_id}")
-	# check curl exit code
-	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-  # check http return code
-	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then echo ${res}; exit 1; fi;
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
 }
 
 # arg1: user_id
@@ -833,13 +835,96 @@ function addUserRoles() {
 	roles_id=${2}
 
 	# Add roles to an existing user
-	res=$(\
-		curl -skw "%{http_code}" "$sweagleURL/api/v1/user/${user_id}/assignRoles" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	response=$(\
+		curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/user/${user_id}/assignRoles" --request POST --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json' \
 		--data "roles=${roles_id}")
-	# check curl exit code
-	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-  # check http return code
-	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then echo ${res}; exit 1; fi;
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+}
+
+
+# arg1: user_id
+# arg2: roles_id (roles id separated by commas)
+function assignPolicyToRole() {
+	role_id=${1}
+	policies_id=${2}
+
+	# Add roles to an existing user
+  response=$(curl -skw "%{http_code}" -X POST "${SWEAGLE_URL}/api/v1/tenant/role/${role_id}/policies?policies=${policies_id}" -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Accept: application/vnd.siren+json")
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+  return $OK
+}
+
+
+function createPolicy() {
+  if [ "$#" -lt "2" ]; then
+      echo "########## ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+      echo "########## YOU MUST PROVIDE <name> <description> type=<value>"
+      echo "########## YOU MAY ALSO PROVIDE path=<NodePath Id> tag=<Tag Id> canEdit=<true|false> (default false)"
+      exit $INSUFFICIENT_ARGS
+  fi
+  name=${1}
+  description=${2}
+  # Skip first 2 args
+  shift; shift
+  while [[ "$#" > "0" ]]
+  do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+    shift
+  done
+  # Check required args
+  if [ -z "${type}" ]; then
+    echo "########## ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "########## YOU MUST PROVIDE <name> <description> type=<value>"
+    echo "########## YOU MAY ALSO PROVIDE path=<NodePath Id> tag=<Tag Id> canEdit=<true|false> (default false)"
+    exit $INSUFFICIENT_ARGS
+  fi
+  # Put default value
+  canEdit=${canEdit:-false}
+
+  response=$(curl -skw "%{http_code}" -X POST "${SWEAGLE_URL}/api/v1/tenant/policy" -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Accept: application/vnd.siren+json" \
+    --data "canEdit=${canEdit}" \
+    --data "type=${type}" \
+    --data "path=${path}" \
+    --data "tag=${tag}" \
+    --data-urlencode "name=${name}" \
+    --data-urlencode "description=${description}")
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+  policyId=$(echo "$response" | jsonValue "id")
+  echo $policyId
+  return $OK
+}
+
+
+function createRole() {
+  if [ "$#" -lt "2" ]; then
+      echo "########## ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+      echo "########## YOU MUST PROVIDE <name> <description>"
+      exit $INSUFFICIENT_ARGS
+  fi
+  name=${1}
+  description=${2}
+
+  response=$(curl -skw "%{http_code}" -X POST "${SWEAGLE_URL}/api/v1/tenant/role" -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Accept: application/vnd.siren+json" \
+    --data-urlencode "name=${name}" \
+    --data-urlencode "description=${description}")
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+  roleId=$(echo "$response" | jsonValue "id")
+  echo $roleId
+  return $OK
 }
 
 
@@ -849,7 +934,7 @@ function addUserRoles() {
 # arg4: password
 # arg5: disabled (true, false)
 # arg6: userType (PERSON, API, SYSTEM)
-# arg7: roles (comma separated list of roles)
+# arg7: roles (comma separated list of roles Ids)
 function createUser() {
 	username=${1}
 	email=${2}
@@ -859,8 +944,8 @@ function createUser() {
 	userType=${6:-"PERSON"}
 	roles=${7:-}
 
-	res=$(\
-		curl -skw "%{http_code}" "$sweagleURL/api/v1/user" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	response=$(\
+		curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/user" --request POST --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json' \
 		--data "username=${username}" \
 		--data-urlencode "email=${email}" \
 		--data-urlencode "name=${name}" \
@@ -868,40 +953,63 @@ function createUser() {
 		--data "disabled=${disabled}" \
 		--data "userType=${userType}" \
 		--data-urlencode "roles=${roles}")
-	# check curl exit code
-	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-  # check http return code
-	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then echo ${res}; exit 1; fi;
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
   # return id of created user
-  echo "$res" | jsonValue "id"
+  echo "$response" | jsonValue "id"
+}
+
+
+# arg1: policyname
+function getPolicy() {
+  policyname=${1}
+  # Get all tenant policies
+  response=$(curl -skw "%{http_code}" -X GET "${SWEAGLE_URL}/api/v1/tenant/policy" -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Content-Type: application/vnd.siren+json;charset=UTF-8")
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+  id=$(echo "${response}" | jq --arg attr_name "$policyname" '._entities[] | select(.name|index($attr_name)) | .id')
+  if [ "$id" = "" ]; then
+    echo "ERROR: NOT FOUND"
+    return $NOT_FOUND
+  fi
+  echo ${id}
+  return $OK
 }
 
 
 # arg1: rolename
 function getRole() {
   rolename=${1}
-
   # Get all tenant roles
-	res=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/tenant/role" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
-	# check curl exit code
-	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-	# check http return code
-	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then exit 1; fi;
-
-  id=$(echo ${res} | jq --arg attr_rolename ${rolename} '.entities[].properties | select(.name|index($attr_rolename)) | .id')
-	echo ${id}
+  response=$(curl -skw "%{http_code}" -X GET "${SWEAGLE_URL}/api/v1/tenant/role" -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Content-Type: application/vnd.siren+json;charset=UTF-8")
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+  id=$(echo ${response} | jq --arg attr_name "$rolename" '._entities[] | select(.name|index($attr_name)) | .id')
+  if [ "$id" = "" ]; then
+    echo "ERROR: NOT FOUND"
+    return $NOT_FOUND
+  fi
+  echo ${id}
+  return $OK
 }
+
 
 function getUsers() {
 	# Get all tenant users
-	res=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/user" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
-	# check curl exit code
-	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-	# check http return code
-	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then echo ${res}; exit 1; fi;
-
-	echo ${res}
+	response=$(curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/user" --request GET --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json')
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+	echo ${response}
 }
+
 
 # arg1: username
 function getUserFromUsername() {
@@ -913,8 +1021,12 @@ function getUserFromUsername() {
   else
     id=$(echo ${users_list} | grep ${username})
   fi
-
-	echo ${id}
+  if [ "$id" = "" ]; then
+    echo "ERROR: NOT FOUND"
+    return $NOT_FOUND
+  fi
+  echo ${id}
+  return $OK
 }
 
 # arg1: email
@@ -928,8 +1040,12 @@ function getUserFromEmail() {
   else
     id=$(echo ${users_list} | grep ${email})
   fi
-
-	echo ${id}
+  if [ "$id" = "" ]; then
+    echo "ERROR: NOT FOUND"
+    return $NOT_FOUND
+  fi
+  echo ${id}
+  return $OK
 }
 
 
@@ -950,8 +1066,8 @@ function updateUser() {
 	disabled=${7:-false}
 
 	# Update an existing user
-	res=$(\
-		curl -skw "%{http_code}" "$sweagleURL/api/v1/user/${id}" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+	response=$(\
+		curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/user/${id}" --request POST --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json' \
 		--data "username=${username}" \
 		--data-urlencode "email=${email}" \
 		--data-urlencode "name=${name}" \
@@ -959,8 +1075,8 @@ function updateUser() {
 		--data-urlencode "password=${newPassword}" \
 		--data-urlencode "rwPassword=${newPassword}" \
 		--data "disabled=${disabled}")
-	# check curl exit code
-	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
-    # check http return code
-	get_httpreturn httpcode res; if [ ${httpcode} -ne "200" ]; then echo ${res}; exit 1; fi;
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
 }

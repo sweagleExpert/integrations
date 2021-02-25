@@ -15,6 +15,8 @@
 # PURPOSE:	Import users from CSV with a default role
 #						CSV columns must be LOGIN,PASSWORD,EMAIL,NAME,ROLE
 #
+# INPUTS:		SWEAGLE_URL and SWEAGLE_TOKEN variables should be defined before in source file or at envrt variables
+#
 # REV LIST:
 #        DATE: DATE_of_REVISION
 #        BY:   AUTHOR_of_MODIFICATION
@@ -35,10 +37,17 @@ if ! [ -x "$(command -v jq)" ] ; then
   echo "#########################################################################################"
 fi
 
+if [ -z "${SWEAGLE_URL}" ] || [ -z "${SWEAGLE_TOKEN}" ] ; then
+  echo "#########################################################################################"
+  echo "########## ERROR: SWEAGLE_URL and SWEAGLE_TOKEN must be defined"
+  echo "#########################################################################################"
+  exit 1
+fi
+
 if [ $# -lt 1 ]; then
     echo "########## ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
     echo "########## YOU SHOULD PROVIDE 1- CSV FILE WITH COLUMNS LOGIN,PASSWORD,EMAIL,NAME,ROLE"
-		echo "########## YOU MAY PROVIDE 2- COLUMN SEPARATOR (OPTIONAL, DEFAULT IS ,)"
+		echo "########## YOU MAY PROVIDE 2- COLUMN SEPARATOR (OPTIONAL, DEFAULT IS ;)"
     exit 1
 fi
 
@@ -53,14 +62,60 @@ if [ $# -lt 2 ]; then separator=';'; else separator=$2; fi
 # command line arguments
 this_script=$(basename $0)
 host=${1:-}
-# load sweagle host specific variables like aToken, sweagleURL, ...
-source $(dirname "$0")/sweagle.env
 
 # Define number regex
 numberRegex='^[0-9]+$'
 
 ##########################################################
-#                    FUNCTIONS
+#                    UTILITIES FUNCTIONS
+#               (USED BY SWEAGLE API FUNCTIONS)
+##########################################################
+
+# function to extract http return code from curl request
+# arg1: httpcode (returned by function)
+# arg2: http result (incl. http code)
+if [ -z $BASH_VERSION ] && [ "$BASH_VERSION" == "4.3*" ]; then
+  function get_httpreturn() {
+  	local -n __http=${1}
+  	local -n __res=${2}
+
+  	__http="${__res:${#__res}-3}"
+      if [ ${#__res} -eq 3 ]; then
+        __res=""
+      else
+        __res="${__res:0:${#__res}-3}"
+      fi
+  }
+else
+  function get_httpreturn() {
+  	__res="${!2}"
+  	__http="${__res:${#__res}-3}"
+    if [ ${#__res} -eq 3 ]; then
+      __res=""
+    else
+      __res="${__res:0:${#__res}-3}"
+    fi
+
+    eval ${1}=${__http}
+  	eval ${2}='$(echo ${__res})'
+  }
+fi
+
+# extract the value of a json key from json string (if present)
+# inputs are key to search for, and number of the occurrence to extract (default 1 if none provided)
+function jsonValue() {
+   key=$1
+   if [[ -z "$2" ]]; then
+      num=1
+   else
+      num=$2
+   fi
+   awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/\042'$key'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${num}p
+}
+
+
+##########################################################
+#                    API FUNCTIONS
 ##########################################################
 
 # arg1: rolename
@@ -69,7 +124,7 @@ function get_role() {
   rolename=${1}
 
   # Get all tenant roles
-	res=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/tenant/role" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
+	res=$(curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/tenant/role" --request GET --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json')
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
 	# check http return code
@@ -81,7 +136,7 @@ function get_role() {
 
 function get_users() {
 	# Get all tenant users
-	res=$(curl -skw "%{http_code}" "$sweagleURL/api/v1/user" --request GET --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json')
+	res=$(curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/user" --request GET --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json')
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
 	# check http return code
@@ -135,7 +190,7 @@ function create_user() {
 	roles=${7:-}
 
 	res=$(\
-		curl -skw "%{http_code}" "$sweagleURL/api/v1/user" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+		curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/user" --request POST --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json' \
 		--data "username=${username}" \
 		--data-urlencode "email=${email}" \
 		--data-urlencode "name=${name}" \
@@ -169,7 +224,7 @@ function update_user() {
 
 	# Update an existing user
 	res=$(\
-		curl -skw "%{http_code}" "$sweagleURL/api/v1/user/${id}" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+		curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/user/${id}" --request POST --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json' \
 		--data "username=${username}" \
 		--data-urlencode "email=${email}" \
 		--data-urlencode "name=${name}" \
@@ -191,7 +246,7 @@ function add_user_apis() {
 
 	# Add apis token to an existing user
 	res=$(\
-		curl -skw "%{http_code}" "$sweagleURL/api/v1/user/${user_id}/api" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+		curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/user/${user_id}/api" --request POST --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json' \
 		--data "apiUsers=${apis_id}")
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;
@@ -207,7 +262,7 @@ function add_user_roles() {
 
 	# Add roles to an existing user
 	res=$(\
-		curl -skw "%{http_code}" "$sweagleURL/api/v1/user/${user_id}/assignRoles" --request POST --header "authorization: bearer $aToken"  --header 'Accept: application/vnd.siren+json' \
+		curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/user/${user_id}/assignRoles" --request POST --header "authorization: bearer ${SWEAGLE_TOKEN}"  --header 'Accept: application/vnd.siren+json' \
 		--data "roles=${roles_id}")
 	# check curl exit code
 	rc=$?; if [ "${rc}" -ne "0" ]; then exit ${rc}; fi;

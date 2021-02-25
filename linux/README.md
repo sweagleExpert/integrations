@@ -11,3 +11,7 @@ The strategy adopted is to import one the 2 libraries present here in your shell
 Example of usage is present in examples folder.
 
 During transition period, you will also find in this folder former shell scripts that contains direct calls to APIs for specific use cases.
+
+Please, note that SWEAGLE provides also a Command Line Interface tool (CLI) that provides easy access to all common APIs and more.
+It is available for downloading for MacOS, Linux and Windows, directly from your instance:
+- once connected, just go to "Help" button and select the version you want to download.

@@ -9,15 +9,15 @@
 #
 # PLATFORM: Not platform dependent
 #
-# REQUIREMENTS:	- jq is required for this shell script to work.
+# REQUIREMENTS:	- jq is preferred for this shell script to work.
 #               (see: https://stedolan.github.io/jq/)
 #       - BASH v4 or more is required for this script to work
 #       - If on MAC with older Bash, please install higher bash version, check https://stackoverflow.com/questions/10574969/how-do-i-install-bash-3-2-25-on-mac-os-x-10-5-8
 #
 # PURPOSE:		Libraries of common SWEAGLE functions
 #
-# INPUTS:		SWEAGLE_URL and SWEAGLE_TOKEN variables should be defined before or at envrt variables
-
+# INPUTS:		SWEAGLE_URL and SWEAGLE_TOKEN variables should be defined before in source file or at envrt variables
+#
 # REV LIST:
 #        DATE: DATE_of_REVISION
 #        BY:   AUTHOR_of_MODIFICATION
@@ -35,22 +35,27 @@ OK=0
 SYSTEM_ERROR=1
 INSUFFICIENT_ARGS=2
 SYNTAX_ERROR=3
-FILE_NOT_FOUND=4
+NOT_FOUND=4
 SWEAGLE_ERROR=5
 
 ##########################################################
 #                    CHECK PREREQUISITES
 ##########################################################
 if ! [ -x "$(command -v jq)" ] ; then
-  echo "#########################################################################################"
-  echo "########## WARNING: JQ is not installed, some features will not work"
-  echo "#########################################################################################"
+  echo "########## WARNING: JQ is not installed, some features will be disabled"
 fi
 
 BASH_VERSION=$( bash --version | sed -Ee 's/GNU bash, version ([0-9.]+).*/\1/;q' )
 if [ "${BASH_VERSION:0:1}" -lt 4 ] ; then
   echo "#########################################################################################"
   echo "########## ERROR: BASH should be v4 or higher"
+  echo "#########################################################################################"
+  exit 1
+fi
+
+if [ -z "${SWEAGLE_URL}" ] || [ -z "${SWEAGLE_TOKEN}" ] ; then
+  echo "#########################################################################################"
+  echo "########## ERROR: SWEAGLE_URL and SWEAGLE_TOKEN must be defined"
   echo "#########################################################################################"
   exit 1
 fi
@@ -291,13 +296,26 @@ function createMultipleIncludes {
 
 
 function createNode {
-  if [ $# -ne 3 ]; then
-    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "### YOU SHOULD PROVIDE 1-NEW NODE NAME, 2-PARENT NODE ID, 3-CHANGESET ID"
-    return $INSUFFICIENT_ARGS
-  fi
 
-  response=$(curl -skw "%{http_code}" -X POST "${SWEAGLE_URL}/api/v1/data/node?name=$1&parentNode=$2&changeset=$3" -H "Authorization: bearer $SWEAGLE_TOKEN")
+  while [[ "$#" > "0" ]]
+  do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+    shift
+  done
+
+  # Check required args
+  if [ -z "${name}" ] || [ -z "${changeset}" ]; then
+    echo "########## ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "########## YOU SHOULD PROVIDE name=<value> changeset=<changeset Id>"
+    echo "########## YOU MAY ALSO PROVIDE parentNode=<value>"
+    exit $INSUFFICIENT_ARGS
+  fi
+  # Put default value
+  parentNode=${parentNode:-}
+
+  response=$(curl -skw "%{http_code}" -X POST "${SWEAGLE_URL}/api/v1/data/node?name=$name&parentNode=$parentNode&changeset=$changeset" -H "Authorization: bearer $SWEAGLE_TOKEN")
   # Handle errors
   response=$(handleErrors $? "${response}")
   rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
