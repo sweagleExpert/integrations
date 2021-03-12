@@ -15,8 +15,6 @@
 #
 # PURPOSE:		Libraries of administration SWEAGLE functions
 #
-# INPUTS:		SWEAGLE_URL and SWEAGLE_TOKEN variables should be defined before in source file or at envrt variables
-#
 # REV LIST:
 #        DATE: DATE_of_REVISION
 #        BY:   AUTHOR_of_MODIFICATION

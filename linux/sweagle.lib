@@ -16,8 +16,8 @@
 #
 # PURPOSE:		Libraries of common SWEAGLE functions
 #
-# INPUTS:		SWEAGLE_URL and SWEAGLE_TOKEN variables should be defined before in source file or at envrt variables
-#
+# INPUTS:		SWEAGLE_URL and SWEAGLE_TOKEN variables should be defined before or at envrt variables
+
 # REV LIST:
 #        DATE: DATE_of_REVISION
 #        BY:   AUTHOR_of_MODIFICATION
@@ -100,7 +100,7 @@ function jsonValue() {
 }
 
 # encode a string for HTTP URL
-# (used for upload to workaround issues with data-binary conflict with data-urlencode)
+# (used to workaround issues with data-binary conflict with data-urlencode)
 function urlencode() {
   # urlencode <string>
   old_lc_collate=$LC_COLLATE
@@ -121,14 +121,31 @@ function urlencode() {
 #                    SWEAGLE API FUNCTIONS
 ##########################################################
 function approveChangeset() {
-  if [ $# -ne 1 ]; then
-    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo -e "\n########## YOU SHOULD PROVIDE 1-CHANGESET ID TO APPROVE"
-    return $INSUFFICIENT_ARGS
+  while [[ "$#" > "0" ]]
+  do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+    shift
+  done
+
+  # Check required args
+  if [ -z "${changeset}" ]; then
+    echo "########## ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "########## YOU SHOULD PROVIDE changeset=<Id>"
+    echo "########## YOU MAY ALSO PROVIDE tag=<value> snapshotDescription=<value> withSnapshot=<true|false>"
+    exit $INSUFFICIENT_ARGS
   fi
+  # Put default value
+  snapshotDescription=${snapshotDescription:-}
+  tag=${tag:-}
+  withSnapshot=${withSnapshot:-false}
 
   # echo "Approving changeset $csId"
-  response=$(curl -skw "%{http_code}" -X POST "${SWEAGLE_URL}/api/v1/data/changeset/$1/approve" -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Accept: application/vnd.siren+json")
+  response=$(curl -skw "%{http_code}" -X POST "${SWEAGLE_URL}/api/v1/data/changeset/${changeset}/approve" -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Accept: application/vnd.siren+json" \
+    --data-urlencode "snapshotDescription=${snapshotDescription}" \
+    --data "tag=${tag}&withSnapshot=${withSnapshot}")
+
   # Handle errors
   response=$(handleErrors $? "${response}")
   # No specific response processing, just return it
@@ -161,22 +178,33 @@ function createChangeset() {
 }
 
 
-function createCds() {
-  if [ $# -lt 3 ]; then
-    echo "### ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "### YOU SHOULD PROVIDE 1-CHANGESET ID, 2-NAME OF CDS, 3-NODE PATH (nodes separated by commas)"
-    return $INSUFFICIENT_ARGS
-  fi
-  csId=$1
-  cdsName=$2
-  cdsPath=$3
+function createCdsByPath() {
+  while [[ "$#" > "0" ]]
+  do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+    shift
+  done
 
-  response=$(curl -skw "%{http_code}" -X POST "${SWEAGLE_URL}/api/v1/data/include/byPath?changeset=$csId&name=$cdsName&referenceNode=$cdsPath" -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Content-Type: application/vnd.siren+json;charset=UTF-8")
+  # Check required args
+  if [ -z "${name}" ] || [ -z "${changeset}" ] || [ -z "${referenceNode}" ]; then
+    echo "########## ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "########## YOU SHOULD PROVIDE name=<value> changeset=<Id> referenceNode=<nodes separated by comma>"
+    exit $INSUFFICIENT_ARGS
+  fi
+
+  response=$(curl -skw "%{http_code}" -X POST "${SWEAGLE_URL}/api/v1/data/include/byPath?changeset=$changeset&name=$name&referenceNode=$referenceNode" -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Content-Type: application/vnd.siren+json;charset=UTF-8")
   # Handle errors
   response=$(handleErrors $? "${response}")
   rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
   # no errors, handle response
-  echo "Created configdataset: $cdsName"
+  if [ -x "$(command -v jq)" ] ; then
+    id=$(echo "$response" | jq --raw-output .master.id )
+  else
+    id=$(echo $response | jsonValue "id")
+  fi
+  echo $id
   return $OK
 }
 
@@ -308,7 +336,7 @@ function createNode {
   # Check required args
   if [ -z "${name}" ] || [ -z "${changeset}" ]; then
     echo "########## ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
-    echo "########## YOU SHOULD PROVIDE name=<value> changeset=<changeset Id>"
+    echo "########## YOU SHOULD PROVIDE name=<value> changeset=<Id>"
     echo "########## YOU MAY ALSO PROVIDE parentNode=<value>"
     exit $INSUFFICIENT_ARGS
   fi
@@ -320,11 +348,54 @@ function createNode {
   response=$(handleErrors $? "${response}")
   rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
   # no errors, handle response
-  newNodeId=$(echo "$response" | jq --raw-output .master.id )
-  echo $newNodeId
+  if [ -x "$(command -v jq)" ] ; then
+    id=$(echo "$response" | jq --raw-output .master.id )
+  else
+    id=$(echo $response | jsonValue "id")
+  fi
+  echo $id
   return $OK
 }
 
+function createNodeByPath {
+
+  while [[ "$#" > "0" ]]
+  do
+    case $1 in
+      (*=*) eval $1;;
+    esac
+    shift
+  done
+
+  # Check required args
+  if [ -z "${path}" ] || [ -z "${changeset}" ]; then
+    echo "########## ERROR: NOT ENOUGH ARGUMENTS SUPPLIED"
+    echo "########## YOU SHOULD PROVIDE path=<nodes separated by comma> changeset=<Id>"
+    #echo "########## YOU MAY ALSO PROVIDE type=<Id> typeName=<value> isDefault=<true|false> endOfLife=<DateTime> workspace=<Id> assignChildTypes=<true|false>"
+    exit $INSUFFICIENT_ARGS
+  fi
+  # Put default value
+  #assignChildTypes=${assignChildTypes:-false}
+  #endOfLife=${endOfLife:-}
+  #isDefault=${isDefault:-false}
+  #type=${type:-}
+  #typeName=${typeName:-}
+  #workspace=${workspace:-}
+
+  response=$(curl -skw "%{http_code}" -X POST "${SWEAGLE_URL}/api/v1/data/node/byPath?path=$path&changeset=$changeset" -H "Authorization: bearer $SWEAGLE_TOKEN")
+  #response=$(curl -skw "%{http_code}" -X POST "${SWEAGLE_URL}/api/v1/data/node?path=$path&changeset=$changeset&endOfLife=$endOfLife&type=$type&typeName=$typeName&isDefault=$isDefault&assignChildTypes=$assignChildTypes&workspace=$workspace" -H "Authorization: bearer $SWEAGLE_TOKEN")
+  # Handle errors
+  response=$(handleErrors $? "${response}")
+  rc=$?; if [ ${rc} -ne ${OK} ]; then echo "${response}"; return ${rc}; fi;
+  # no errors, handle response
+  if [ -x "$(command -v jq)" ] ; then
+    id=$(echo "$response" | jq --raw-output .master.id )
+  else
+    id=$(echo $response | jsonValue "id")
+  fi
+  echo $id
+  return $OK
+}
 
 function createNodefromType {
   if [ $# -ne 4 ]; then
@@ -755,7 +826,7 @@ function upload {
   if [[ -z ${file} ]]; then
     # Upload raw data
     response=$(curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/data/bulk-operations/dataLoader/upload?nodePath=${nodePath}&allowDelete=${allowDelete}&autoApprove=${autoApprove}&changeset=${changeset}&description=${description}&encoding=${encoding}&format=${format}&identifierWords=${identifierWords}&onlyParent=${onlyParent}&runRecognition=${runRecognition}&storeSnapshotResults=${storeSnapshotResults}&tag=${tag}&validationLevel=${validationLevel}" \
-      --request POST -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Content-Type: $contentType" --data-binary "$data")
+      --request POST -H "Authorization: bearer $SWEAGLE_TOKEN" -H "Content-Type: $contentType" --data-raw "${data}")
   else
     # Upload file
     response=$(curl -skw "%{http_code}" "${SWEAGLE_URL}/api/v1/data/bulk-operations/dataLoader/upload?nodePath=${nodePath}&allowDelete=${allowDelete}&autoApprove=${autoApprove}&changeset=${changeset}&description=${description}&encoding=${encoding}&format=${format}&identifierWords=${identifierWords}&onlyParent=${onlyParent}&runRecognition=${runRecognition}&storeSnapshotResults=${storeSnapshotResults}&tag=${tag}&validationLevel=${validationLevel}" \
