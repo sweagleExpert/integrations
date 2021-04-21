@@ -45,6 +45,10 @@ ANSIBLE v2.5 is required for these scripts to work to allow support of loops
 https://docs.ansible.com/ansible/latest/plugins/lookup.html#enabling-lookup-plugins
 
 
+## RUN IT
+
+`ansible-playbook <your_playbook> -i <your_inventory_file>`
+
 ## CONTENT
 
 Each SWEAGLE API/CLI command is available under a specific `/roles/sweagle` folder
