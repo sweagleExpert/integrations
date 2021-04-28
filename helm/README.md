@@ -42,7 +42,7 @@ $ helm create mywebserver
 
 - Install the Sweagle plugin and list them
 ````
-$ helm plugin install https://github.com/sweagleExpert/integrations/helm/plugins/sweagle
+$ helm plugin install plugins/sweagle
 $ helm plugin list
 ````
 - Check the environment variables of Helm, especially the variable `HELM_PLUGINS` (the path to the plugins directory).
