@@ -34,6 +34,9 @@ Puppet::Functions.create_function(:sweagle_data_hash) do
     if (defined?(options['proxy_uri']) and options['proxy_uri'] != nil)
       then proxy_uri = options['proxy_uri']
       else proxy_uri = "" end
+    if (defined?(options['sweagle_tag']) and options['sweagle_tag'] != nil)
+      then sweagle_tag = options['sweagle_tag']
+      else sweagle_tag = "" end
 
     uri = URI.parse(sweagle_tenant)
     proxy = URI.parse(proxy_uri)
@@ -42,7 +45,7 @@ Puppet::Functions.create_function(:sweagle_data_hash) do
     #@http.set_debug_output($stdout)
 
     Puppet.info("[sweagle_data_hash]: Lookup cds (#{sweagle_cds}) with exporter (#{sweagle_parser}) and args (#{sweagle_args}) from SWEAGLE tenant "+sweagle_tenant)
-    httpreq = Net::HTTP::Post.new('/api/v1/tenant/metadata-parser/parse?mds='+sweagle_cds+'&parser='+sweagle_parser+'&format=json&arraySupport=true&args='+sweagle_args)
+    httpreq = Net::HTTP::Post.new('/api/v1/tenant/metadata-parser/parse?mds='+sweagle_cds+'&parser='+sweagle_parser+'&format=json&arraySupport=true&args='+sweagle_args+'&tag='+sweagle_tag)
     header = {
       'Authorization' => 'Bearer ' + sweagle_token,
       "Accept" => 'application/json',
