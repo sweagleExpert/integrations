@@ -57,9 +57,13 @@ Puppet::Functions.create_function(:sweagle_lookup_key) do
     if (defined?(options['sweagle_token']) and options['sweagle_token'] != nil)
       then sweagle_token = options['sweagle_token']
       else sweagle_token = "<YOUR_TOKEN>" end
+    if (defined?(options['proxy_uri']) and options['proxy_uri'] != nil)
+      then proxy_uri = options['proxy_uri']
+      else proxy_uri = "" end
 
     uri = URI.parse(sweagle_tenant)
-    @http = Net::HTTP.new(uri.host, uri.port)
+    proxy = URI.parse(proxy_uri)
+    @http = Net::HTTP.new(uri.host, uri.port, proxy.host, proxy.port)
     @http.use_ssl = true
     #@http.set_debug_output($stdout)
     Puppet.debug("[sweagle_lookup_key]: Lookup key =(#{key})")

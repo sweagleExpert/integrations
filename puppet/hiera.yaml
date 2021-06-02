@@ -26,6 +26,7 @@ hierarchy:
       #sweagle_parser: "<YOUR_EXPORT_PARSER>"    #ex: "returnDataForNode"
       #sweagle_tenant: "<YOUR_TENANT>"    #ex: "https://testing.sweagle.com"
       #sweagle_token: "<YOUR_TOKEN>"
+      #proxy_uri: "" #ex: "proxy.host.com:3128"
 
   - name: "SWEAGLE HIERA KEY"
     lookup_key: sweagle_lookup_key # sweagle data_lookup backend
@@ -40,3 +41,4 @@ hierarchy:
       #sweagle_parser: "<YOUR_EXPORT_PARSER>"    #ex: "returnValueForKey"
       #sweagle_tenant: "<YOUR_TENANT>"    #ex: "https://testing.sweagle.com"
       #sweagle_token: "<YOUR_TOKEN>"
+      #proxy_uri: "" #ex: "http://proxy.host.com:3128"

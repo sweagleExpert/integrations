@@ -24,7 +24,7 @@ Please check [**README_PREREQUISITES.md**](./README_PREREQUISITES.md) if you wan
 For SWEAGLE as HIERA backend use case:
 - Update all backend functions under `./lib/puppet/functions/sweagle_*.rb` with your default tenant and token values. You can also put default ConfigDataSet (cds) and node, but they will be overidden by values from `hiera.yaml` if provided
 
-- Update `hiera.yaml` with your cds, node, tenant and token values. Any value here will override values in your backend function, like `sweagle_data_hash.rb`
+- Update `hiera.yaml` with your cds, node, tenant, token and proxy values. Any value here will override values in your backend function, like `sweagle_data_hash.rb`
 
 - Copy folder `/lib` in
     - `/etc/puppetlabs/code/environments/<YOUR_ENVIRONMENT>`
