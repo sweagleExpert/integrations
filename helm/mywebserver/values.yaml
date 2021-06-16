@@ -28,8 +28,8 @@ ingress:
 replicaCount: 1
 tolerations: []
 service:
-  port: 80
-  type: ClusterIP
+  port: 8080
+  type: NodePort
 fullnameOverride:
 autoscaling:
   maxReplicas: 100

@@ -37,6 +37,28 @@ $ helm uninstall <app-name>
 ````
 $ helm create mywebserver
 ````
+- Once validated,   package the chart up for distribution
+````
+$ helm lint
+$ helm package mywebserver
+Successfully packaged chart and saved it to: /PATH/TO/CHART/helm/mywebserver-0.1.0.tgz
+````
+- Then install it!
+````
+$ helm install mywebserver ./mywebserver-0.1.0.tgz
+$ helm status mywebserver
+$ helm uninstall mywebserver
+````
+- Create a Chart Repository in GitHub
+Follow the steps detailed here: https://helm.sh/docs/topics/chart_repository/#github-pages-example
+- Push your chart to your GitHub Chart Repository. Upload the `ìndex.yaml` and `*.tgz` files to `docs` folder under your GitHub chart repo.
+````
+mkdir docs
+$ mv mywebserver-0.1.0.tgz docs
+$ helm repo index docs --url https://cyr-riv.github.io/charts
+````
+
+
 
 ## Use the Helm plugin 
 
@@ -55,7 +77,57 @@ HELM_PLUGINS="~/Documents/Sweagle/cyri_dev/git/sweagleExpert/integrations/helm/p
 $ helm sweagle helm-charts ReturnData4Node args=mywebserver format=YAML output=PATH/TO/values.yaml
 `````
 
+## Flux Helm Operator
+The Helm Operator is a Kubernetes operator, allowing one to declaratively manage Helm chart releases. Combined with FluxCD this can be utilized to automate releases in a GitOps manner.
+### Install the Helm Operator
+- Install the HelmRelease CRD (Custom Resource Definition)
+`````
+kubectl apply -f https://raw.githubusercontent.com/fluxcd/helm-operator/1.2.0/deploy/crds.yaml
+`````
+- Create a new namespace
+`````
+kubectl create ns flux
+`````
+- Using helm, first add the Flux CD Helm repository
+````
+helm repo add fluxcd https://charts.fluxcd.io
+````
+- Install the Helm Operator
+`````
+helm upgrade -i helm-operator fluxcd/helm-operator \
+    --namespace flux \
+    --set helm.versions=v3
+`````
+### Create your first HelmRelease
+- Install a Helm chart using the Helm Operator, create a HelmRelease resource on the cluster.
+````
+kubectl apply -f flux-helm-operator/mywebserver-deploy.yaml
+````
+- Confirm the chart has been installed
+````
+$ flux-helm-operator % kubectl describe helmrelease mywebserver
+Name:         podinfo
+Namespace:    default
+Labels:       <none>
+Annotations:  <none>
+API Version:  helm.fluxcd.io/v1
+Kind:         HelmRelease
+
+$ flux-helm-operator % kubectl get pods
+NAME                                      READY   STATUS    RESTARTS   AGE
+default-nginx-5f55f67c9b-2htwz            1/1     Running   0          6m16s
+````
+- Check that Nginx is and running from the controlplane node directly
+````
+curl http://localhost:32583
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+````
 
 ## Sources
 - Helm: https://helm.sh/docs/
 - Helm plugin: https://helm.sh/docs/topics/plugins/
+- Flux Helm Operator: https://docs.fluxcd.io/projects/helm-operator/en/stable/
+- Create a Chart Repository on GitHub: https://helm.sh/docs/topics/chart_repository/#github-pages-example
