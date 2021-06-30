@@ -31,13 +31,17 @@ $ kubectl get all
 $ helm uninstall <app-name>
 ````
 
-## Generate your first chart
+## Generate your first chart with Sweagle providing the config data
 
 - Create a freash chart
 ````
 $ helm create mywebserver
 ````
-- Once validated,   package the chart up for distribution
+- Generate the ConfigMap from SWEAGLE by using the exporter [configMapGenerator](https://github.com/sweagleExpert/exporters/blob/master/configMapGenerator.js) with an API call
+````
+curl -X POST https://testing.sweagle.com/api/v1/tenant/metadata-parser/parse -H "Authorization: bearer <TOKEN>" --data-binary "mds=mywebserver&parser=configMapGenerator&arg=%7B%22name%22%20:%20%22nginx-config%22,%20%22namespace%22%20:%22default%22,%22configMapGenerator%22%20:%20%5B%7B%22file%22:%22index.html%22,%22nodeNames%22:%5B%22nginx%22%5D%7D%5D%7D&args=&mdsArgs=&format=YAML&tag=&mdsTags=" | yq eval '.' - > mywebserver/templates/configmap.yaml
+````
+- Once validated,  package the chart up for distribution
 ````
 $ helm lint
 $ helm package mywebserver
@@ -57,8 +61,6 @@ mkdir docs
 $ mv mywebserver-0.1.0.tgz docs
 $ helm repo index docs --url https://cyr-riv.github.io/charts
 ````
-
-
 
 ## Use the Helm plugin 
 
