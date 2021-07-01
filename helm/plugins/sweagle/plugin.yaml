@@ -1,0 +1,8 @@
+name: "sweagle"
+version: "0.1.0"
+usage: "Retreive config data from Sweagle"
+description: |-
+  Get config data from Sweagle for specific CDS and parser.
+command: "$HELM_PLUGIN_DIR/getConfigByCdsParserArgs.sh"
+hooks:
+  install: "$HELM_PLUGIN_DIR/getConfigByCdsParserArgs.sh"

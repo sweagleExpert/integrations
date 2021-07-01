@@ -1,0 +1,12 @@
+metadata:
+  namespace: default
+  name: nginx-config
+apiVersion: v1
+data:
+  index.html: |
+    content: A description of my application
+    title: Welcome Cyrille!
+    version: 0.2.0
+    userpassword: P@ssW0rd
+    username: cyri
+kind: ConfigMap

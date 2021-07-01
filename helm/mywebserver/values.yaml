@@ -1,0 +1,39 @@
+---
+image:
+  tag:
+  repository: nginx
+  pullPolicy: IfNotPresent
+nameOverride:
+podSecurityContext: {}
+imagePullSecrets: []
+resources: {}
+serviceAccount:
+  name:
+  annotations: {}
+  create: "true"
+securityContext: {}
+podAnnotations: {}
+nodeSelector: {}
+ingress:
+  hosts:
+  - paths:
+    - path: /
+      backend:
+        servicePort: 80
+        serviceName: chart-example.local
+    host: chart-example.local
+  annotations: {}
+  tls: []
+  enabled: "false"
+replicaCount: 1
+tolerations: []
+service:
+  port: 8080
+  type: NodePort
+fullnameOverride:
+autoscaling:
+  maxReplicas: 100
+  minReplicas: 1
+  targetCPUUtilizationPercentage: 80
+  enabled: "false"
+affinity: {}

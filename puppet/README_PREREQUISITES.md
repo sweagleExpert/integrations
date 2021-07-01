@@ -2,11 +2,17 @@
 
 # HOW TO INSTALL PUPPET
 
-Instructions below details how to install puppet in order to test integration with SWEAGLE
+Instructions below details how to install puppet in order to test integration with SWEAGLE. Please complete all the installation and configuration steps as ROOT:`sudo` or `sudo -i`.
 
 1- Install Puppet Open Source version using docker-compose package and instructions here:
 https://puppet.com/try-puppet/open-source-puppet/download/
-run `docker-compose up`
+run `docker-compose up`.
+
+Check that the Puppet Master 6 is up and running
+```
+puppetserver --version
+puppetserver version: 6.15.3
+```
 
 2- Then install puppet agent
 - for linux, instructions are here:
@@ -22,7 +28,8 @@ sudo yum install puppet-agent
 `vi /etc/hosts`
 => Add a line to configure your puppet server IP and put 'puppet' as hostname
 `<IP>  puppet`
-ATTENTION, IT IS REQUIRED TO PUT 'PUPPET' AS HOSTNAME FOR CERTIFICATE GENERATION TO WORK
+ATTENTION, IT IS REQUIRED TO PUT 'PUPPET' AS HOSTNAME FOR CERTIFICATE GENERATION TO WORK.
+Do the same operation for the puppet server, add the `puppet` as the same line as `localhost`.
 
 vi /etc/puppetlabs/puppet/puppet.conf
 Add
@@ -34,6 +41,14 @@ Add the Puppet labs bin directory to your PATH: `export PATH=/opt/puppetlabs/bin
 2.2 Test and generate certificate request
 ```console
 puppet agent --server puppet --waitforcert 60 --test
+```
+Once launched, go back to the puppet server to sign the cert request sent by the agent.
+````
+puppetserver ca list
+puppetserver ca sign --certname <name>
+````
+Finally,
+```
 puppet agent -t
 ```
 

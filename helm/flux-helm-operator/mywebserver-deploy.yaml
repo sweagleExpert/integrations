@@ -1,0 +1,19 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: mywebserver
+  namespace: default
+spec:
+  chart:
+    repository: https://cyr-riv.github.io/charts
+    name: mywebserver
+    version: 0.1.0
+  values:
+    service:
+      enabled: true
+      type: NodePort
+  valuesFrom:
+  - configMapKeyRef:
+      name: nginx-config
+      namespace: default
+      key: index.html
