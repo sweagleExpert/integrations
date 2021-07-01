@@ -253,7 +253,7 @@ function upload {
         $format = $parameters["format"]
         Write-Verbose -Message "File extension detected is: $format"
     }
-exit 0
+
     # Call Sweagle API
     $response = callSweagleAPI -apiPath $apiPath -parameters $parameters -filePath $filePath
     Write-Output $response
