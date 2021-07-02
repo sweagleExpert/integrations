@@ -8,10 +8,26 @@
 Write-Output "*** TESTING OPERATION: info"
 . ./sweagle-lib.ps1 -operation "info"
 
+
+Write-Output "*** TESTING OPERATION: createChangeset"
+$parameters= @{"title"="My Changeset"}
+#. ./sweagle-lib.ps1 -operation "createChangeset" -parameters $parameters
+$changesetId = . ./sweagle-lib.ps1 -operation "createChangeset" -parameters $parameters
+Write-Output "Changeset Id=$changesetId"
+
 Write-Output "*** TESTING OPERATION: upload"
 $parameters= @{"nodePath"="sample,environments,DEV,DEV1"}
 $filePath= "./db.json"
 . ./sweagle-lib.ps1 -operation "upload" -parameters $parameters -filePath $filePath -Verbose
+
+Write-Output "*** TESTING OPERATION: createCDS"
+$parameters= @{"name"="sample.DEV1"; "changeset"=$changesetId; "referenceNode"="sample,environments,DEV,DEV1"}
+$cdsId = . ./sweagle-lib.ps1 -operation "createCDS" -parameters $parameters
+Write-Output "CDS Id=$cdsId"
+
+Write-Output "*** TESTING OPERATION: approveChangeset"
+$parameters= @{"changeset"="$changesetId"; "withSnapshot"="true"}
+. ./sweagle-lib.ps1 -operation "approveChangeset" -parameters $parameters
 
 Write-Output "*** TESTING OPERATION: validate"
 $parameters= @{"cds"="sample.DEV1"; "parser"="passwordChecker"}
