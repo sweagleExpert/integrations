@@ -1,0 +1,41 @@
+description: >
+  Upload a file into a given node path.
+parameters:
+  filePath:
+    type: string
+    default: ""
+    description: "Location of the file path to upload"
+  data:
+    type: string
+    default: ""
+    description: "Data to be uploaded (String)"
+  nodePath:
+    type: string
+    default: ""
+    description: "Node path in the data model"
+  fileType:
+    type: string
+    default: ""
+    description: "Type of the input file"
+  autoApprove:
+    type: boolean
+    default: true
+    description: "Approve the change set?"
+  sweagleUrl:
+    type: string
+    default: "https://testing.sweagle.com"
+    description: "Sweagle URL endpoint"
+  sweagleUsername:
+    type: string
+    default: ""
+    description: "Sweagle Username"
+  sweagleToken:
+    type: string
+    default: ""
+    description: "Sweagle API Token"
+steps:
+  - run:
+      name: Uploading a data change
+      command: |
+        sweagle options --newenv <<parameters.sweagleUrl>> --newusername <<parameters.sweagleUsername>> --newtoken <<parameters.sweagleToken>>
+        sweagle uploadData --data '<<parameters.data>>' --nodePath '<<parameters.nodePath>>' --type <<parameters.fileType>> --autoApprove

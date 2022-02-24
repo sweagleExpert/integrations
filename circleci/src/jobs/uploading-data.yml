@@ -1,0 +1,19 @@
+description: >
+  Upload data into Sweagle.
+# What will this job do?
+# Descriptions should be short, simple, and clear.
+
+executor: swgl-cli
+
+steps:
+  - checkout
+  - setup_remote_docker:
+      docker_layer_caching: true
+  - upload-data:
+      data: '{"appname": "onlinestore-webapp","appurl": "https://onlinestore.com","dbport": "3307","ipAddress": "10.2.1.13","portNumber": "8097"}'
+      nodePath: "Demo,OnlineStore,frontend"
+      fileType: "json"
+      autoApprove: true
+      sweagleUrl: $ENV
+      sweagleUsername : $USERNAME
+      sweagleToken: $TOKEN

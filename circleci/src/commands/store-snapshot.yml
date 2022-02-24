@@ -1,0 +1,33 @@
+description: >
+  Stores all or a given Pending Snapshot.
+parameters:
+  cds:
+    type: string
+    default: ""
+    description: "CDS name"
+  snapshotTag:
+    type: string
+    default: ""
+    description: "Snapshot Tag"
+  level:
+    type: string
+    default: "error"
+    description: "Validation Level"
+  sweagleUrl:
+    type: string
+    default: "https://testing.sweagle.com"
+    description: "Sweagle URL endpoint"
+  sweagleUsername:
+    type: string
+    default: ""
+    description: "Sweagle Username"
+  sweagleToken:
+    type: string
+    default: ""
+    description: "Sweagle API Token"
+steps:
+  - run:
+      name: Create a new version of a CDS
+      command: |
+        sweagle options --newenv <<parameters.sweagleUrl>> --newusername <<parameters.sweagleUsername>> --newtoken <<parameters.sweagleToken>>
+        sweagle storeSnapshots --configdatasetName <<parameters.cds>> --snapshotTag <<parameters.snapshotTag>> --level <<parameters.level>>

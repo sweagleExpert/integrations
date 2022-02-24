@@ -1,0 +1,22 @@
+description: >
+  Sweagle example description.
+# Provide a use-case based example for using this orb.
+# Everything in the `usage` section will be displayed in the orb registry.
+# Comments are not retained.
+usage:
+  version: 2.1
+  orbs:
+    swgl-orb: cyr-riv/swgl-orb@dev:alpha
+  workflows:
+    sweagle:
+      jobs:
+        - swgl-orb/uploading-data
+        - swgl-orb/cds-is-valid:
+            requires:
+            - swgl-orb/uploading-data
+        - swgl-orb/cds-is-stored:
+            requires:
+            - swgl-orb/cds-is-valid
+        - swgl-orb/exporting-data:
+            requires:
+            - swgl-orb/cds-is-stored

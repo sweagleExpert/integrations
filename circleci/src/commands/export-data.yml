@@ -1,0 +1,41 @@
+description: >
+  Export a Config data set.
+parameters:
+  cds:
+    type: string
+    default: ""
+    description: "CDS name"
+  cdsTag:
+    type: string
+    default: ""
+    description: "Export by tag"
+  exporterName:
+    type: string
+    default: ""
+    description: "Exporter Name"
+  exporterArgs:
+    type: string
+    default: ""
+    description: "Arguments list provided"
+  format:
+    type: string
+    default: "json"
+    description: "Format to export, default is JSON"
+  sweagleUrl:
+    type: string
+    default: "https://testing.sweagle.com"
+    description: "Sweagle URL endpoint"
+  sweagleUsername:
+    type: string
+    default: ""
+    description: "Sweagle Username"
+  sweagleToken:
+    type: string
+    default: ""
+    description: "Sweagle API Token"
+steps:
+  - run:
+      name: Export a CDS
+      command: |
+        sweagle options --newenv <<parameters.sweagleUrl>> --newusername <<parameters.sweagleUsername>> --newtoken <<parameters.sweagleToken>>
+        sweagle export <<parameters.cds>> --exporter <<parameters.exporterName>> --argsList <<parameters.exporterArgs>> --format <<parameters.format>> --pretty

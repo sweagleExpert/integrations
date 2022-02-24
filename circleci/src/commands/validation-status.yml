@@ -1,0 +1,35 @@
+description: >
+  Checks for Validation Status of a Config data set.
+parameters:
+  cds:
+    type: string
+    default: ""
+    description: "CDS name"
+  forIncoming:
+    type: boolean
+    default: true
+    description: "For Incoming Data"
+  sweagleUrl:
+    type: string
+    default: "https://testing.sweagle.com"
+    description: "Sweagle URL endpoint"
+  sweagleUsername:
+    type: string
+    default: ""
+    description: "Sweagle Username"
+  sweagleToken:
+    type: string
+    default: ""
+    description: "Sweagle API Token"
+steps:
+  - run:
+      name: Validation Status of a CDS
+      command: |
+        sweagle options --newenv <<parameters.sweagleUrl>> --newusername <<parameters.sweagleUsername>> --newtoken <<parameters.sweagleToken>>
+        RESULT=$(sweagle validationStatus <<parameters.cds>> -i --withData --pretty)
+        echo ${RESULT}
+        if [ "${RESULT}" == "The Config data set has passed all Validations" ] ; then
+          exit 0
+        else
+          exit 255
+        fi

@@ -1,0 +1,13 @@
+description: >
+  This is the executor using Sweagle CLI with Docker.
+docker:
+  - image: 'docker.sweagle.com:8444/sweagle-docker/sweagle-cli:<<parameters.tag>>'
+    auth:
+      username: $SWGLREGISTRY_USERNAME
+      password: $SWGLREGISTRY_PASSWORD
+parameters:
+  tag:
+    default: 1.1.4
+    description: >
+      The latest version of the Sweagle CLI.
+    type: string

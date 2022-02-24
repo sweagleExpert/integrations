@@ -1,0 +1,19 @@
+description: >
+  Sweagle checks the validation status of the Config Data Set.
+# What will this job do?
+# Descriptions should be short, simple, and clear.
+
+executor: swgl-cli
+
+steps:
+  - checkout
+  - setup_remote_docker:
+      docker_layer_caching: true
+  - export-data:
+      cds: "OnlineStore"
+      exporterName: "ReturnData4Node"
+      exporterArgs: "frontend"
+      format: "json"
+      sweagleUrl: $ENV
+      sweagleUsername : $USERNAME
+      sweagleToken: $TOKEN
