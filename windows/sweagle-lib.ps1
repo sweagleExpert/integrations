@@ -9,7 +9,7 @@
 # Inputs required: 1- operation (see API list above) and 2- parameters (hasmap of key/values arguments used for the API called)
 
 param(
-    [Parameter(Mandatory=$true)][Alias("op")][ValidateSet('info','upload','validate','validationStatus','snapshot','export')][string]$operation,
+    [Parameter(Mandatory=$true)][Alias("op")][ValidateSet('approveChangeset','createCDS','createChangeset','export','info','snapshot','upload','validate','validationStatus')][string]$operation,
     [Parameter(Mandatory=$false)][Alias("args")][hashtable]$parameters,
     [Parameter(Mandatory=$false)][Alias("file")][string]$filePath
 )
@@ -133,6 +133,75 @@ function callSweagleAPI {
 #  API FUNCTIONS
 ###########################################
 
+# Approve a changeset
+function approveChangeset {
+    param (
+        [Parameter(Mandatory=$true)][hashtable]$parameters
+    )
+    # Required parameters: changeset
+    # Optional parameters: snapshotDescription, tag, withSnapshot (true|false)
+
+    # Checking input parameters
+    if (-Not ($parameters.ContainsKey('changeset'))) {
+        Write-Error -Message "********** ERROR: changeset id is required !"; exit 1
+    } else {
+        # Remove changeset parameter as it should be present only in api url
+        $apiPath = "/api/v1/data/changeset/"+$parameters["changeset"]+"/approve";
+        $parameters.Remove("changeset")
+    }
+
+    # Call Sweagle API
+    $response = callSweagleAPI -apiPath $apiPath -parameters $parameters
+    Write-Output $response
+}
+
+
+# Creates a changeset and returns the Id if ok
+function createChangeset {
+    param (
+        [Parameter(Mandatory=$true)][hashtable]$parameters
+    )
+    # Required parameters: title
+    # Optional parameters: description
+
+    $apiPath = "/api/v1/data/changeset";
+
+    # Checking input parameters
+    if (-Not ($parameters.ContainsKey('title'))) {
+        Write-Error -Message "********** ERROR: changeset title is required !"; exit 1
+    }
+
+    # Call Sweagle API
+    $response = callSweagleAPI -apiPath $apiPath -parameters $parameters | ConvertFrom-Json
+    Write-Output $response.id
+}
+
+# Creates a CDS and returns the Id if ok
+function createCDS {
+    param (
+        [Parameter(Mandatory=$true)][hashtable]$parameters
+    )
+    # Required parameters: name, changeset (Id), referenceNode
+    # Optional parameters:
+
+    $apiPath = "/api/v1/data/include/byPath";
+
+    # Checking input parameters
+    if (-Not ($parameters.ContainsKey('name'))) {
+        Write-Error -Message "********** ERROR: parameter 'name' with CDS name is required !"; exit 1
+    }
+    if (-Not ($parameters.ContainsKey('changeset'))) {
+        Write-Error -Message "********** ERROR: parameter 'changeset' with changeset Id is required !"; exit 1
+    }
+    if (-Not ($parameters.ContainsKey('referenceNode'))) {
+        Write-Error -Message "********** ERROR: parameter 'referenceNode' with comma separated list of node path is required !"; exit 1
+    }
+
+    # Call Sweagle API
+    $response = callSweagleAPI -apiPath $apiPath -parameters $parameters | ConvertFrom-Json
+    Write-Output $response.master.id
+}
+
 function export {
     param (
         [Parameter(Mandatory=$true)][hashtable]$parameters,
@@ -253,7 +322,7 @@ function upload {
         $format = $parameters["format"]
         Write-Verbose -Message "File extension detected is: $format"
     }
-exit 0
+
     # Call Sweagle API
     $response = callSweagleAPI -apiPath $apiPath -parameters $parameters -filePath $filePath
     Write-Output $response
@@ -320,10 +389,13 @@ function validationStatus {
 
 switch ($operation)
 {
+    "approveChangeset" { approveChangeset -parameters $parameters; Break }
+    "createCDS" { createCDS -parameters $parameters; Break }
+    "createChangeset" { createChangeset -parameters $parameters; Break }
+    "export" { export -parameters $parameters -filePath $filePath; Break }
     "info" { getInfo; Break }
+    "snapshot" { snapshot -parameters $parameters; Break }
     "upload" { upload -parameters $parameters -filePath $filePath; Break }
     "validate" { validate -parameters $parameters; Break }
     "validationStatus" { validationStatus -parameters $parameters; Break }
-    "snapshot" { snapshot -parameters $parameters; Break }
-    "export" { export -parameters $parameters -filePath $filePath; Break }
 }
