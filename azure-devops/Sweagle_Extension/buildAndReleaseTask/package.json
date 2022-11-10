@@ -9,7 +9,7 @@
   "author": "Service Now",
   "license": "ISC",
   "dependencies": {
-    "azure-pipelines-task-lib": "^2.11.1",
+    "azure-pipelines-task-lib": "^4.0.1-preview",
     "xmlbuilder2": "^2.4.0"
   },
   "devDependencies": {
